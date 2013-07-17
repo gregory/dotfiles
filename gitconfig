@@ -1,0 +1,29 @@
+[github]
+  user = gregory
+[user]
+  name = gregory
+  email = greg2502@gmail.com
+[alias]
+  l  = log --stat --abbrev-commit
+  ll = log --graph --pretty=format:'%C(yellow)%h%C(cyan)%d%Creset %s %C(white)-%an, %ar%Creset'
+  lp = log --pretty=oneline
+  lw = whatchanged -p --abbrev-commit --pretty=medium
+[color]
+  ui = true
+  interactive = auto
+  diff = auto
+  status = auto
+  branch = auto
+[core]
+  excludesfile = /Users/metakungfu/.gitignore
+  editor = vim
+  autocrlf = input
+  pager = less -r
+[apply]
+  whitespace = nowarn
+[format]
+  pretty = %C(yellow)%h%Creset %s %C(red)(%an, %cr)%Creset
+[merge]
+  tool = meld
+[mergetool]
+  keepBackup = false
