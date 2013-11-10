@@ -13,5 +13,5 @@ export PATH="/usr/local/bin:/usr/local/sbin:~/bin:$PATH"
 export EDITOR='vim'
 # Fix tmux vim color
 alias tmux="TERM=screen-256color-bce tmux"
-
+alias bower='noglob bower'
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi

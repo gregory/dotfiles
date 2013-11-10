@@ -27,3 +27,5 @@
   tool = meld
 [mergetool]
   keepBackup = false
+[push]
+	default = matching

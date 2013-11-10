@@ -11,55 +11,66 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 
 " Plugins
-Bundle 'rails.vim'
-Bundle 'scrooloose/nerdtree'
-Bundle 'kchmck/vim-coffee-script'
+"-------------------------------------------
+
+""Frameworks/languages
 Bundle 'tpope/vim-rails'
-Bundle 'vim-ruby/vim-ruby'
-Bundle 'tpope/vim-rbenv'
-Bundle 'tpope/vim-haml'
-Bundle 'tpope/vim-git'
 Bundle 'tpope/vim-bundler'
-Bundle 'altercation/vim-colors-solarized'
-Bundle 'kien/ctrlp.vim'
-Bundle 'vim-scripts/number-marks'
-Bundle 'matchit.zip'
-Bundle 'ruby-matchit'
-Bundle 'AndrewRadev/splitjoin.vim'
 Bundle 'tpope/vim-fugitive'
-Bundle 'Lokaltog/vim-powerline'
-Bundle 'vim-scripts/bufkill.vim'
-Bundle 'tpope/vim-repeat'
-Bundle 'tpope/vim-surround'
-Bundle 'tpope/vim-endwise'
-Bundle 'tpope/vim-unimpaired'
-Bundle 'tpope/vim-surround'
-Bundle 'jamescarr/snipmate-nodejs'
-Bundle 'ZenCoding.vim'
+Bundle 'thoughtbot/vim-rspec'
+
+"Coding
+Bundle 'tpope/vim-speeddating'
+Bundle "scrooloose/nerdcommenter"
+Bundle 'scrooloose/nerdtree'
+Bundle 'kien/ctrlp.vim'
 Bundle "MarcWeber/vim-addon-mw-utils"
 Bundle "tomtom/tlib_vim"
-Bundle "garbas/vim-snipmate"
-Bundle 'majutsushi/tagbar'
+Bundle "jc00ke/vim-tomdoc"
+Bundle 'Lokaltog/vim-easymotion'
+Bundle 'mattn/emmet-vim'
 Bundle 'scrooloose/syntastic'
-Bundle 'ack.vim'
-Bundle 'thoughtbot/vim-rspec'
-Bundle "Chiel92/vim-autoformat"
-Bundle "ddollar/nerdcommenter"
-Bundle "slim-template/vim-slim"
 Bundle "nathanaelkane/vim-indent-guides"
 Bundle "ervandew/supertab"
+Bundle 'Lokaltog/vim-powerline'
+Bundle 'ack.vim'
 Bundle "mattn/gist-vim"
-Bundle 'mattn/webapi-vim'
-Bundle 'Lokaltog/vim-easymotion'
-Bundle 'pangloss/vim-javascript'
-Bundle 'digitaltoad/vim-jade'
-Bundle 'wavded/vim-stylus'
+"Might slow things down
+Bundle 'majutsushi/tagbar'
 
-" Colorschemes
+"Never used
+Bundle 'tpope/vim-surround'
+Bundle 'tpope/vim-repeat'
+Bundle 'tpope/vim-abolish'
+Bundle 'tpope/vim-unimpaired'
+Bundle 'AndrewRadev/splitjoin.vim'
+Bundle "Chiel92/vim-autoformat"
+
+"Syntaxes
+Bundle 'tpope/vim-git'
+Bundle 'tpope/vim-haml'
+Bundle 'slim-template/vim-slim'
+Bundle 'duwanis/tomdoc.vim'
+Bundle 'vim-ruby/vim-ruby'
+Bundle "pangloss/vim-javascript"
+Bundle "tpope/vim-markdown"
+Bundle 'wavded/vim-stylus'
+Bundle 'digitaltoad/vim-jade'
+Bundle 'kchmck/vim-coffee-script'
+
+"Theme
 Bundle 'altercation/vim-colors-solarized'
-Bundle 'jpo/vim-railscasts-theme'
-Bundle 'croaker/mustang-vim'
-Bundle '29decibel/codeschool-vim-theme'
+
+"Bundle 'tpope/vim-rbenv'
+"Bundle 'vim-scripts/number-marks'
+"Bundle 'matchit.zip'
+"Bundle 'ruby-matchit'
+"Bundle 'vim-scripts/bufkill.vim'
+"Bundle 'tpope/vim-endwise'
+"Bundle "MarcWeber/vim-addon-mw-utils"
+"Bundle "tomtom/tlib_vim"
+"Bundle 'mattn/webapi-vim'
+
 "
 " General settings
 "
@@ -67,31 +78,19 @@ let mapleader = ","
 syntax enable                     " Turn on syntax highlighting.
 filetype plugin indent on         " Turn on file type detection.
 au FocusLost * :wa " Autosave everything
-set autowriteall
+set autowrite "save file when buffer switched
 set backspace=indent,eol,start    " Intuitive backspacing
 set clipboard=unnamed
-set colorcolumn=120
-set directory=$HOME/.vim/tmp " Keep swap files there
 set encoding=utf-8
 set fileencoding=utf-8
 set history=1000
-set mouse=a
 set nobackup  " Don't make a backup before overwriting a file.
-set noswapfile  " Don't create swap file
+"set noswapfile  " Don't create swap file
 set nowritebackup " And again
 set secure  " Allow to write files without permissions?
 set smartindent
-" Removes trailing spaces
-function TrimWhiteSpace()
-  %s/\s*$//
-  ''
-:endfunction
 
-set guioptions-=T " Removes top toolbar
-set guioptions-=r " Removes right hand scroll bar
-set go-=L " Removes left hand scroll bar
 " Search
-
 set hlsearch    " highlight matches
 set incsearch   " incremental searching
 set ignorecase  " searches are case insensitive...
@@ -107,6 +106,23 @@ set listchars+=extends:>          " The character to show in the last column whe
 set listchars+=precedes:<         " The character to show in the last column when wrap is
                                   " off and the line continues beyond the left of the screen
 
+"
+"Tabs Indentations
+"
+set ts=2 sw=2 et
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_auto_colors = 0
+let g:indent_guides_start_level = 2
+let g:indent_guides_guide_size = 2
+let g:indent_guides_color_change_percent = 80
+
+"
+" Removes trailing spaces
+"
+function TrimWhiteSpace()
+  %s/\s*$//
+  ''
+:endfunction
 autocmd FileWritePre * :call TrimWhiteSpace()
 autocmd FileAppendPre * :call TrimWhiteSpace()
 autocmd FilterWritePre * :call TrimWhiteSpace()
@@ -116,15 +132,13 @@ autocmd BufWritePre * :call TrimWhiteSpace()
 " View
 "
 set cursorline
+set colorcolumn=120
 set laststatus=2    " Show the status line all the time
 set nonumber      " Show line numbers
 set showtabline=2    " Show tabs bar
-
 set showcmd      " Display incomplete commands
 set showmode      " Display the mode
-
 set visualbell     " No beeping
-
 set wildmenu     " Enhanced command line completion
 set wildmode=list:longest    " Complete files like a shell
 set wildignore+=*/.git/*,*/tmp/*,*/log/*,*/app/assets/images/*,*/vendor/assets/images/*,*/coverage/*,*/node_modules/*
@@ -134,57 +148,51 @@ let g:syntastic_warning_symbol='⚠'
 let g:syntastic_style_warning_symbol='>'
 
 
-au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
+set nofoldenable
+"au BufNewFile,BufReadPost *.rb setl nofoldenable
+"au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
 set foldmethod=syntax
 set foldlevel=1
 
-
+"
+" Colors/ Highlights
+"
 set t_Co=256
-"set term=screen-256color
-let g:solarized_termcolors=256
-"colorscheme codeschool
+set term=screen-256color
+"let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
-
-set ts=2 sw=2 et
-let g:indent_guides_enable_on_vim_startup = 1
-let g:indent_guides_auto_colors = 0
-let g:indent_guides_start_level = 2
-let g:indent_guides_guide_size = 2
-let g:indent_guides_color_change_percent = 80
 
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  ctermbg=NONE
 "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=136
 hi ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
-"hi IndentGuidesEven ctermbg=222
 hi IndentGuidesEven ctermbg=235
 hi IndentGuidesOdd  ctermbg=NONE
 "
-"Highlights
 "
+"highlight Normal guibg=black guifg=white
 function! ReverseBackground()
   let Mysyn=&syntax
   if &bg=="light"
     se bg=dark
     "highlight Normal guibg=black guifg=white
-    hi NonText ctermfg=NONE ctermbg=235
+    "hi NonText ctermfg=NONE ctermbg=235
     hi CursorLine cterm=bold,underline ctermbg=235 guibg=darkred guifg=white
     hi Folded ctermfg=black ctermbg=137 cterm=NONE
     hi Search cterm=underline ctermbg=59
     hi IndentGuidesEven ctermbg=235
-    hi IndentGuidesOdd  ctermbg=black
+    hi IndentGuidesOdd  ctermbg=NONE
   else
     se bg=light
-    hi NonText ctermfg=NONE ctermbg=235
-    hi CursorLine cterm=bold,underline ctermbg=235 guibg=darkred guifg=white
+    "hi NonText ctermfg=NONE ctermbg=235
+    hi CursorLine cterm=bold,underline ctermbg=235 guibg=white guifg=darkered
     hi Folded ctermfg=black ctermbg=137 cterm=NONE
     hi Search cterm=underline ctermbg=59
-    hi IndentGuidesEven ctermbg=280
+    hi IndentGuidesEven ctermbg=222
+    "hi IndentGuidesEven ctermbg=280
     hi IndentGuidesOdd  ctermbg=NONE
   endif
-  syn on
-  colorscheme solarized
   exe "set syntax=" . Mysyn
   echo "now syntax is "&syntax
 endfunction
@@ -225,13 +233,20 @@ map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
 map <leader>t :tabe <CR>
 map <Leader>p :set paste!<CR>
-map zo zO "open full level all the time
+
+"remap the page up/down and disable the mouse
+"set mouse=a
+map <C-k> <C-D>
+map <C-l> <C-F>
+map <C-j> <C-U>
+map <C-h> <C-B>
 
 "always center the screen
 nnoremap <space> <nop>
 map <space> zz
 nmap n n zz
 nmap N N zz
+map zo zO "open full level all the time
 
 " resize current buffer by +/- 5
 nnoremap <C-left> :vertical resize -3<cr>
@@ -245,15 +260,11 @@ nnoremap <Leader>d :set hlsearch! <CR>
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
 "remap the ] ctrl
-noremap <C-j> <C-]> "j for jump
+"noremap <C-j> <C-]> "j for jump
 
 "
 " Plugin settings
 "
-
-" Zen coding
-let g:user_zen_expandabbr_key = '<c-e>'
-let g:use_zen_complete_tag = 1
 
 " NERDTree
 let g:NERDTreeMinimalUI = 0
@@ -261,7 +272,7 @@ let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
 let g:NERDTreeWinSize = 20
 let g:NERDTreeDirArrows = 0
 let g:NERDTreeQuitOnOpen = 0
-"let g:NERDTreeWinPos = "right"
+let g:NERDTreeWinPos = "right"
 augroup AuNERDTreeCmd
 autocmd AuNERDTreeCmd VimEnter * call s:CdIfDirectory(expand("<amatch>"))
 autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
@@ -272,7 +283,7 @@ map <Leader>m :NERDTreeToggle<CR>
 map <Leader>n :NERDTreeFind<CR>
 
 " CtrlP
-let g:ctrlp_map = '<c-p>'
+let g:ctrlp_map = '<C-g>'
 let g:ctrlp_cmd = 'CtrlP'
 let g:ctrlp_working_path_mode = 0
 let g:ctrlp_match_window_reversed = 0
@@ -292,10 +303,10 @@ autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> c
 :set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
 " coffeescript.vim
-au BufNewFile,BufReadPost *.coffee setl foldmethod=indent nofoldenable
+"au BufNewFile,BufReadPost *.coffee setl foldmethod=indent nofoldenable
 
-" bufkill.vim
-cnoreabbrev bd BD
+"" bufkill.vim
+"cnoreabbrev bd BD
 
 " splitjoin
 nmap sjj :SplitjoinJoin<CR>
@@ -331,8 +342,14 @@ nmap <leader>gl :Glog<CR>
 nmap <leader>gc :Gcommit<CR>
 nmap <leader>gp :Git push<CR>
 
+"vim-javascript
+let javascript_enable_domhtmlcss=1
+
 " Gist
 let g:gist_clip_command = 'pbcopy'
 let g:gist_detect_filetype = 1
 let g:gist_open_browser_after_post = 1
 let g:gist_post_private = 1
+
+"Vim autoformat
+noremap <F3> :Autoformat<CR><CR>
