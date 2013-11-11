@@ -107,9 +107,9 @@ set listchars+=extends:>          " The character to show in the last column whe
 set listchars+=precedes:<         " The character to show in the last column when wrap is
                                   "" off and the line continues beyond the left of the screen
 
-""
-""Tabs Indentations
-""
+"
+"Tabs Indentations
+"
 set ts=2 sw=2 et
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
@@ -117,21 +117,21 @@ let g:indent_guides_start_level = 2
 let g:indent_guides_guide_size = 2
 let g:indent_guides_color_change_percent = 80
 
-""
-"" Removes trailing spaces
-""
+"
+" Removes trailing spaces
+"
 function TrimWhiteSpace()
- "%s/\s*$//
- "''
+ %s/\s*$//
+ ''
 :endfunction
 autocmd FileWritePre * :call TrimWhiteSpace()
 autocmd FileAppendPre * :call TrimWhiteSpace()
 autocmd FilterWritePre * :call TrimWhiteSpace()
 autocmd BufWritePre * :call TrimWhiteSpace()
 
-""
-"" View
-""
+"
+" View
+"
 set cursorline
 set colorcolumn=120
 set laststatus=2    " Show the status line all the time
