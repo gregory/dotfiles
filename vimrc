@@ -13,13 +13,14 @@ Bundle 'gmarik/vundle'
 " Plugins
 "-------------------------------------------
 
-""Frameworks/languages
+"Frameworks/languages
 Bundle 'tpope/vim-rails'
 Bundle 'tpope/vim-bundler'
 Bundle 'tpope/vim-fugitive'
 Bundle 'thoughtbot/vim-rspec'
 
 "Coding
+Bundle 'Lokaltog/vim-easymotion'
 Bundle 'tpope/vim-speeddating'
 Bundle "scrooloose/nerdcommenter"
 Bundle 'scrooloose/nerdtree'
@@ -27,7 +28,6 @@ Bundle 'kien/ctrlp.vim'
 Bundle "MarcWeber/vim-addon-mw-utils"
 Bundle "tomtom/tlib_vim"
 Bundle "jc00ke/vim-tomdoc"
-Bundle 'Lokaltog/vim-easymotion'
 Bundle 'mattn/emmet-vim'
 Bundle 'scrooloose/syntastic'
 Bundle "nathanaelkane/vim-indent-guides"
@@ -35,7 +35,6 @@ Bundle "ervandew/supertab"
 Bundle 'Lokaltog/vim-powerline'
 Bundle 'ack.vim'
 Bundle "mattn/gist-vim"
-"Might slow things down
 Bundle 'majutsushi/tagbar'
 
 "Never used
@@ -71,44 +70,46 @@ Bundle 'altercation/vim-colors-solarized'
 "Bundle "tomtom/tlib_vim"
 "Bundle 'mattn/webapi-vim'
 
-"
-" General settings
-"
+""
+"" General settings
+""
 let mapleader = ","
 syntax enable                     " Turn on syntax highlighting.
 filetype plugin indent on         " Turn on file type detection.
 au FocusLost * :wa " Autosave everything
 set autowrite "save file when buffer switched
+set ttyfast
+set lazyredraw
 set backspace=indent,eol,start    " Intuitive backspacing
 set clipboard=unnamed
 set encoding=utf-8
 set fileencoding=utf-8
 set history=1000
 set nobackup  " Don't make a backup before overwriting a file.
-"set noswapfile  " Don't create swap file
+set noswapfile  " Don't create swap file
 set nowritebackup " And again
 set secure  " Allow to write files without permissions?
 set smartindent
 
-" Search
+"" Search
 set hlsearch    " highlight matches
 set incsearch   " incremental searching
 set ignorecase  " searches are case insensitive...
 set smartcase   " ... unless they contain at least one capital letter
 
-" List chars
+"" List chars
 set nowrap                        " Don't wrap line when too long
 set listchars=""                  " Reset the listchars
 set listchars=tab:\ \             " a tab should display as "  ", trailing whitespace as "."
 set listchars+=trail:.            " show trailing spaces as dots
 set listchars+=extends:>          " The character to show in the last column when wrap is
-                                  " off and the line continues beyond the right of the screen
+                                 "" off and the line continues beyond the right of the screen
 set listchars+=precedes:<         " The character to show in the last column when wrap is
-                                  " off and the line continues beyond the left of the screen
+                                  "" off and the line continues beyond the left of the screen
 
-"
-"Tabs Indentations
-"
+""
+""Tabs Indentations
+""
 set ts=2 sw=2 et
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
@@ -116,21 +117,21 @@ let g:indent_guides_start_level = 2
 let g:indent_guides_guide_size = 2
 let g:indent_guides_color_change_percent = 80
 
-"
-" Removes trailing spaces
-"
+""
+"" Removes trailing spaces
+""
 function TrimWhiteSpace()
-  %s/\s*$//
-  ''
+ "%s/\s*$//
+ "''
 :endfunction
 autocmd FileWritePre * :call TrimWhiteSpace()
 autocmd FileAppendPre * :call TrimWhiteSpace()
 autocmd FilterWritePre * :call TrimWhiteSpace()
 autocmd BufWritePre * :call TrimWhiteSpace()
 
-"
-" View
-"
+""
+"" View
+""
 set cursorline
 set colorcolumn=120
 set laststatus=2    " Show the status line all the time
@@ -148,18 +149,20 @@ let g:syntastic_warning_symbol='⚠'
 let g:syntastic_style_warning_symbol='>'
 
 
-set nofoldenable
+"set nofoldenable
 "au BufNewFile,BufReadPost *.rb setl nofoldenable
 "au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
-set foldmethod=syntax
-set foldlevel=1
+"set foldmethod=syntax " Pretty slow
+"set foldlevel=1
+"autocmd InsertEnter * let w:last_fdm=&foldmethod | setlocal foldmethod=manual
+"autocmd InsertLeave * let &l:foldmethod=w:last_fdm
 
-"
-" Colors/ Highlights
-"
-set t_Co=256
-set term=screen-256color
-"let g:solarized_termcolors=256
+""
+"" Colors/ Highlights
+""
+"set t_Co=256
+"set term=screen-256color
+let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
 
@@ -313,7 +316,7 @@ nmap sjj :SplitjoinJoin<CR>
 nmap sjs :SplitjoinSplit<CR>
 
 " vim-powerline.vim
- "let g:Powerline_symbols='skwp'
+let g:Powerline_symbols='skwp'
 
 " Ack
 set grepprg=ack
