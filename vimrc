@@ -31,13 +31,16 @@ Bundle "jc00ke/vim-tomdoc"
 Bundle 'mattn/emmet-vim'
 Bundle 'scrooloose/syntastic'
 Bundle "nathanaelkane/vim-indent-guides"
+Bundle "garbas/vim-snipmate"
+Bundle "honza/vim-snippets"
+Bundle "marcweber/vim-addon-mw-utils"
+Bundle "tomtom/tlib_vim"
 Bundle "ervandew/supertab"
 "Bundle "Lokaltog/powerline"
 Bundle "bling/vim-airline"
 Bundle 'ack.vim'
 Bundle "mattn/gist-vim"
 Bundle 'majutsushi/tagbar'
-Bundle "msanders/snipmate.vim"
 Bundle 'tpope/vim-endwise'
 Bundle 'godlygeek/tabular'
 
@@ -359,3 +362,4 @@ let g:gist_post_private = 1
 
 "Vim autoformat
 noremap <F3> :Autoformat<CR><CR>
+
