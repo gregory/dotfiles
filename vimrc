@@ -32,10 +32,14 @@ Bundle 'mattn/emmet-vim'
 Bundle 'scrooloose/syntastic'
 Bundle "nathanaelkane/vim-indent-guides"
 Bundle "ervandew/supertab"
-Bundle 'Lokaltog/vim-powerline'
+"Bundle "Lokaltog/powerline"
+Bundle "bling/vim-airline"
 Bundle 'ack.vim'
 Bundle "mattn/gist-vim"
 Bundle 'majutsushi/tagbar'
+Bundle "msanders/snipmate.vim"
+Bundle 'tpope/vim-endwise'
+Bundle 'godlygeek/tabular'
 
 "Never used
 Bundle 'tpope/vim-surround'
@@ -65,7 +69,6 @@ Bundle 'altercation/vim-colors-solarized'
 "Bundle 'matchit.zip'
 "Bundle 'ruby-matchit'
 "Bundle 'vim-scripts/bufkill.vim'
-"Bundle 'tpope/vim-endwise'
 "Bundle "MarcWeber/vim-addon-mw-utils"
 "Bundle "tomtom/tlib_vim"
 "Bundle 'mattn/webapi-vim'
@@ -162,7 +165,7 @@ let g:syntastic_style_warning_symbol='>'
 ""
 "set t_Co=256
 "set term=screen-256color
-let g:solarized_termcolors=256
+"let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
 
@@ -239,10 +242,10 @@ map <Leader>p :set paste!<CR>
 
 "remap the page up/down and disable the mouse
 "set mouse=a
-map <C-k> <C-D>
-map <C-l> <C-F>
-map <C-j> <C-U>
-map <C-h> <C-B>
+map <C-j> <C-D>
+map <C-h> <C-F>
+map <C-k> <C-U>
+map <C-l> <C-B>
 
 "always center the screen
 nnoremap <space> <nop>
@@ -252,10 +255,10 @@ nmap N N zz
 map zo zO "open full level all the time
 
 " resize current buffer by +/- 5
-nnoremap <C-left> :vertical resize -3<cr>
+nnoremap <C-left> :vertical resize +3<cr>
 nnoremap <C-down> :resize +3<cr>
 nnoremap <C-up> :resize -3<cr>
-nnoremap <C-right> :vertical resize +3<cr>
+nnoremap <C-right> :vertical resize -3<cr>
 "nnoremap <Leader>hc :set cursorline! <CR>
 "nnoremap <Leader>hn :set nu! <CR>
 nnoremap <Leader>d :set hlsearch! <CR>
