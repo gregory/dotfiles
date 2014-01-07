@@ -12,3 +12,6 @@ gem install zeus
 ```
 
 Then Enter vim and do :BundleInstall
+
+
+[![Analytics](https://ga-beacon.appspot.com/UA-34823890-2/dotfiles/readme?pixel)](https://github.com/gregory/dotfiles)
