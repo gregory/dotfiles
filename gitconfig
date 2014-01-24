@@ -1,8 +1,8 @@
 [github]
   user = gregory
 [user]
-  name = gregory
-  email = greg2502@gmail.com
+	name = gregory
+	email = greg2502@gmail.com
 [alias]
   l  = log --stat --abbrev-commit
   ll = log --graph --pretty=format:'%C(yellow)%h%C(cyan)%d%Creset %s %C(white)-%an, %ar%Creset'
@@ -15,7 +15,7 @@
   status = auto
   branch = auto
 [core]
-  excludesfile = /Users/metakungfu/.gitignore
+	excludesfile = /Users/metakungfu/.gitignore
   editor = vim
   autocrlf = input
   pager = less -r
@@ -28,4 +28,12 @@
 [mergetool]
   keepBackup = false
 [push]
-	default = matching
+	default = upstream
+[pull]
+  rebase = true
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path =
+[mergetool "sourcetree"]
+	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
