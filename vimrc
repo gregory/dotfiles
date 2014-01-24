@@ -44,6 +44,10 @@ Bundle 'majutsushi/tagbar'
 Bundle 'tpope/vim-endwise'
 Bundle 'godlygeek/tabular'
 
+"Doc
+Bundle 'rizzatti/funcoo.vim'
+Bundle 'rizzatti/dash.vim'
+
 "Never used
 Bundle 'tpope/vim-surround'
 Bundle 'tpope/vim-repeat'
@@ -82,7 +86,7 @@ Bundle 'altercation/vim-colors-solarized'
 let mapleader = ","
 syntax enable                     " Turn on syntax highlighting.
 filetype plugin indent on         " Turn on file type detection.
-au FocusLost * :wa " Autosave everything
+"au FocusLost * :wa " Autosave everything
 set autowrite "save file when buffer switched
 set ttyfast
 set lazyredraw
@@ -281,7 +285,7 @@ let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
 let g:NERDTreeWinSize = 20
 let g:NERDTreeDirArrows = 0
 let g:NERDTreeQuitOnOpen = 0
-let g:NERDTreeWinPos = "right"
+"let g:NERDTreeWinPos = "right"
 augroup AuNERDTreeCmd
 autocmd AuNERDTreeCmd VimEnter * call s:CdIfDirectory(expand("<amatch>"))
 autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
