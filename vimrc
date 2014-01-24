@@ -49,12 +49,12 @@ Bundle 'rizzatti/funcoo.vim'
 Bundle 'rizzatti/dash.vim'
 
 "Never used
-Bundle 'tpope/vim-surround'
-Bundle 'tpope/vim-repeat'
-Bundle 'tpope/vim-abolish'
-Bundle 'tpope/vim-unimpaired'
-Bundle 'AndrewRadev/splitjoin.vim'
-Bundle "Chiel92/vim-autoformat"
+"Bundle 'tpope/vim-surround'
+"Bundle 'tpope/vim-repeat'
+"Bundle 'tpope/vim-abolish'
+"Bundle 'tpope/vim-unimpaired'
+"Bundle 'AndrewRadev/splitjoin.vim'
+"Bundle "Chiel92/vim-autoformat"
 
 "Syntaxes
 Bundle 'tpope/vim-git'
