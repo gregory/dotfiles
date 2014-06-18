@@ -1,7 +1,7 @@
 "
 " Vundle setup
 "
-set nocompatible                  " Must come first because it changes other options.
+set nocompatible                  "We run vim not VI
 
 filetype off                       " required by Vundler
 
@@ -17,50 +17,36 @@ Bundle 'gmarik/vundle'
 Bundle 'tpope/vim-rails'
 Bundle 'tpope/vim-bundler'
 Bundle 'tpope/vim-fugitive'
+" follow instructions here => https://github.com/skwp/vim-rspec
 Bundle 'thoughtbot/vim-rspec'
+Bundle 'tpope/vim-dispatch'
 
 "Coding
 Bundle 'Lokaltog/vim-easymotion'
-Bundle 'tpope/vim-speeddating'
 Bundle "scrooloose/nerdcommenter"
 Bundle 'scrooloose/nerdtree'
 Bundle 'kien/ctrlp.vim'
-Bundle "MarcWeber/vim-addon-mw-utils"
-Bundle "tomtom/tlib_vim"
 Bundle "jc00ke/vim-tomdoc"
 Bundle 'mattn/emmet-vim'
 Bundle 'scrooloose/syntastic'
 Bundle "nathanaelkane/vim-indent-guides"
+Bundle "MarcWeber/vim-addon-mw-utils"
+Bundle "tomtom/tlib_vim"
 Bundle "garbas/vim-snipmate"
 Bundle "honza/vim-snippets"
-Bundle "marcweber/vim-addon-mw-utils"
-Bundle "tomtom/tlib_vim"
 Bundle "ervandew/supertab"
-"Bundle "Lokaltog/powerline"
 Bundle "bling/vim-airline"
-Bundle 'ack.vim'
-Bundle "mattn/gist-vim"
-Bundle 'majutsushi/tagbar'
 Bundle 'tpope/vim-endwise'
 Bundle 'godlygeek/tabular'
+Bundle 'vim-scripts/EasyGrep'
 
 "Doc
 Bundle 'rizzatti/funcoo.vim'
 Bundle 'rizzatti/dash.vim'
 
-"Never used
-"Bundle 'tpope/vim-surround'
-"Bundle 'tpope/vim-repeat'
-"Bundle 'tpope/vim-abolish'
-"Bundle 'tpope/vim-unimpaired'
-"Bundle 'AndrewRadev/splitjoin.vim'
-"Bundle "Chiel92/vim-autoformat"
-
 "Syntaxes
-Bundle 'tpope/vim-git'
 Bundle 'tpope/vim-haml'
 Bundle 'slim-template/vim-slim'
-Bundle 'duwanis/tomdoc.vim'
 Bundle 'vim-ruby/vim-ruby'
 Bundle "pangloss/vim-javascript"
 Bundle "tpope/vim-markdown"
@@ -71,21 +57,22 @@ Bundle 'kchmck/vim-coffee-script'
 "Theme
 Bundle 'altercation/vim-colors-solarized'
 
-"Bundle 'tpope/vim-rbenv'
-"Bundle 'vim-scripts/number-marks'
-"Bundle 'matchit.zip'
-"Bundle 'ruby-matchit'
-"Bundle 'vim-scripts/bufkill.vim'
-"Bundle "MarcWeber/vim-addon-mw-utils"
-"Bundle "tomtom/tlib_vim"
-"Bundle 'mattn/webapi-vim'
-
 ""
 "" General settings
 ""
-let mapleader = ","
 syntax enable                     " Turn on syntax highlighting.
 filetype plugin indent on         " Turn on file type detection.
+let mapleader = ","
+nnoremap \ ,
+
+" Use jk to escape
+inoremap jk <ESC>
+
+" close
+nnoremap <leader>cl :close<CR>
+" Buffer hotkey
+nnoremap <Leader>b :buffer
+
 "au FocusLost * :wa " Autosave everything
 set autowrite "save file when buffer switched
 set ttyfast
@@ -212,6 +199,31 @@ endfunction
 command! Invbg call ReverseBackground()
 noremap <F11> :Invbg<CR>
 
+function! s:RunShellCommand(cmdline)
+  let isfirst = 1
+  let words = []
+  for word in split(a:cmdline)
+    if isfirst
+      let isfirst = 0  " don't change first word (shell command)
+    else
+      if word[0] =~ '\v[%#<]'
+        let word = expand(word)
+      endif
+      let word = shellescape(word, 1)
+    endif
+    call add(words, word)
+  endfor
+  let expanded_cmdline = join(words)
+  botright new
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+  call setline(1, 'You entered:  ' . a:cmdline)
+  call setline(2, 'Expanded to:  ' . expanded_cmdline)
+  call append(line('$'), substitute(getline(2), '.', '=', 'g'))
+  silent execute '$read !'. expanded_cmdline
+  1
+endfunction
+command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
+
 "
 "Text formatting
 "
@@ -271,6 +283,7 @@ nnoremap <C-right> :vertical resize -3<cr>
 nnoremap <Leader>d :set hlsearch! <CR>
 " autocmd BufEnter * if expand("%:p:h") !~ '^/tmp' | silent! lcd %:p:h | endif " changes the cd to the directory of the current file except for /tmp/*
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
+inoremap <tab> <c-r>=InsertTabWrapper()<cr>
 
 "remap the ] ctrl
 "noremap <C-j> <C-]> "j for jump
@@ -296,7 +309,7 @@ map <Leader>m :NERDTreeToggle<CR>
 map <Leader>n :NERDTreeFind<CR>
 
 " CtrlP
-let g:ctrlp_map = '<C-g>'
+let g:ctrlp_map = '<C-m>'
 let g:ctrlp_cmd = 'CtrlP'
 let g:ctrlp_working_path_mode = 0
 let g:ctrlp_match_window_reversed = 0
@@ -305,9 +318,12 @@ let g:ctrlp_custom_ignore = '\.git$'
 map <C-T> :CtrlPBuffer<CR>
 
 " vim-rspec
-let g:rspec_command = "!zeus rspec {spec}"
-map <Leader>rf :call RunCurrentSpecFile()<CR>
-map <Leader>rs :call RunNearestSpec()<CR>
+"let g:rspec_command = "!zeus rspec {spec}"
+"let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
+let g:rspec_command = "Dispatch rspec {spec}"
+"let g:rspec_command = "!bundle exec rspec {spec}"
+map <Leader>rs :call RunCurrentSpecFile()<CR>
+map <Leader>rn :call RunNearestSpec()<CR>
 map <Leader>rl :call RunLastSpec()<CR>
 map <Leader>ra :call RunAllSpecs()<CR>
 
@@ -318,34 +334,9 @@ autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> c
 " coffeescript.vim
 "au BufNewFile,BufReadPost *.coffee setl foldmethod=indent nofoldenable
 
-"" bufkill.vim
-"cnoreabbrev bd BD
-
-" splitjoin
-nmap sjj :SplitjoinJoin<CR>
-nmap sjs :SplitjoinSplit<CR>
 
 " vim-powerline.vim
 let g:Powerline_symbols='skwp'
-
-" Ack
-set grepprg=ack
-nnoremap <leader>fw :Ack <c-r><c-w><CR>
-
-" Taglist
-
-set tags=./tags,tags;$HOME
-let g:tagbar_ctags_bin='/usr/local/bin/ctags' "Proper Ctags location
-let g:tagbar_width=26                         "Default is 40, seems to wide
-let g:tagbar_autofocus = 1
-let g:tagbar_sort= 0
-let g:tagbar_compact= 1
-let g:tagbar_indent= 1
-let g:tagbar_autoclose= 1
-
-so ~/.vim/tagbar-coffeescript-config
-so ~/.vim/tagbar-css-config
-noremap <silent> <Leader>y :TagbarToggle<CR>
 
 " Fugitive
 nmap <leader>gb :Gblame<CR>
