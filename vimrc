@@ -5,58 +5,59 @@ set nocompatible                  "We run vim not VI
 
 filetype off                       " required by Vundler
 
-set rtp+=~/.vim/bundle/vundle/
-call vundle#rc()
+set rtp+=~/.vim/bundle/Vundle.vim/
+call vundle#begin()
 
-Bundle 'gmarik/vundle'
+Plugin 'gmarik/Vundle.vim'
 
 " Plugins
 "-------------------------------------------
 
 "Frameworks/languages
-Bundle 'tpope/vim-rails'
-Bundle 'tpope/vim-bundler'
-Bundle 'tpope/vim-fugitive'
+Plugin 'tpope/vim-rails'
+Plugin 'tpope/vim-bundler'
+Plugin 'tpope/vim-fugitive'
 " follow instructions here => https://github.com/skwp/vim-rspec
-Bundle 'thoughtbot/vim-rspec'
-Bundle 'tpope/vim-dispatch'
+Plugin 'thoughtbot/vim-rspec'
+Plugin 'tpope/vim-dispatch'
 
 "Coding
-Bundle 'Lokaltog/vim-easymotion'
-Bundle "scrooloose/nerdcommenter"
-Bundle 'scrooloose/nerdtree'
-Bundle 'kien/ctrlp.vim'
-Bundle "jc00ke/vim-tomdoc"
-Bundle 'mattn/emmet-vim'
-Bundle 'scrooloose/syntastic'
-Bundle "nathanaelkane/vim-indent-guides"
-Bundle "MarcWeber/vim-addon-mw-utils"
-Bundle "tomtom/tlib_vim"
-Bundle "garbas/vim-snipmate"
-Bundle "honza/vim-snippets"
-Bundle "ervandew/supertab"
-Bundle "bling/vim-airline"
-Bundle 'tpope/vim-endwise'
-Bundle 'godlygeek/tabular'
-Bundle 'vim-scripts/EasyGrep'
+Plugin 'Lokaltog/vim-easymotion'
+Plugin 'scrooloose/nerdcommenter'
+Plugin 'scrooloose/nerdtree'
+Plugin 'kien/ctrlp.vim'
+Plugin 'jc00ke/vim-tomdoc'
+Plugin 'mattn/emmet-vim'
+Plugin 'scrooloose/syntastic'
+Plugin 'nathanaelkane/vim-indent-guides'
+Plugin 'MarcWeber/vim-addon-mw-utils'
+Plugin 'tomtom/tlib_vim'
+Plugin 'garbas/vim-snipmate'
+Plugin 'honza/vim-snippets'
+Plugin 'ervandew/supertab'
+Plugin 'bling/vim-airline'
+Plugin 'tpope/vim-endwise'
+Plugin 'godlygeek/tabular'
+Plugin 'vim-scripts/EasyGrep'
 
 "Doc
-Bundle 'rizzatti/funcoo.vim'
-Bundle 'rizzatti/dash.vim'
+Plugin 'rizzatti/funcoo.vim'
+Plugin 'rizzatti/dash.vim'
 
 "Syntaxes
-Bundle 'tpope/vim-haml'
-Bundle 'slim-template/vim-slim'
-Bundle 'vim-ruby/vim-ruby'
-Bundle "pangloss/vim-javascript"
-Bundle "tpope/vim-markdown"
-Bundle 'wavded/vim-stylus'
-Bundle 'digitaltoad/vim-jade'
-Bundle 'kchmck/vim-coffee-script'
+Plugin 'tpope/vim-haml'
+Plugin 'slim-template/vim-slim'
+Plugin 'vim-ruby/vim-ruby'
+Plugin 'pangloss/vim-javascript'
+Plugin 'tpope/vim-markdown'
+Plugin 'wavded/vim-stylus'
+Plugin 'digitaltoad/vim-jade'
+Plugin 'kchmck/vim-coffee-script'
 
 "Theme
-Bundle 'altercation/vim-colors-solarized'
+Plugin 'altercation/vim-colors-solarized'
 
+call vundle#end()            " required
 ""
 "" General settings
 ""
@@ -260,7 +261,8 @@ map <leader>t :tabe <CR>
 map <Leader>p :set paste!<CR>
 
 "remap the page up/down and disable the mouse
-"set mouse=a
+set mouse=a
+set ttymouse=xterm2
 map <C-j> <C-D>
 map <C-h> <C-F>
 map <C-k> <C-U>
