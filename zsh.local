@@ -7,11 +7,15 @@ export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export ZEUSSOCK=/tmp/zeus.sock
-
-export PATH="/usr/local/bin:/usr/local/sbin:~/bin:$PATH"
-
 export EDITOR='vim'
+export SHELL=/bin/zsh
+export GREP_OPTIONS='--color=auto -n' GREP_COLOR='7;35'
+
+export DOCKER_HOST=tcp://$(boot2docker ip 2>/dev/null):2375
+export PATH="$HOME/.rbenv/bin:/usr/local/bin:/usr/local/sbin:~/bin:$PATH"
+
 # Fix tmux vim color
 alias tmux="TERM=screen-256color-bce tmux"
 alias bower='noglob bower'
+alias docker="docker -H $DOCKER_HOST"
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
