@@ -16,6 +16,9 @@ export PATH="$HOME/.rbenv/bin:/usr/local/bin:/usr/local/sbin:~/bin:$PATH"
 
 # Fix tmux vim color
 alias tmux="TERM=screen-256color-bce tmux"
+LESSPIPE=`which src-hilite-lesspipe.sh`
+export LESSOPEN="| ${LESSPIPE} %s"
+export LESS='-RN'
+
 alias bower='noglob bower'
-alias docker="docker -H $DOCKER_HOST"
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
