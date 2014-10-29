@@ -79,7 +79,10 @@ set autowrite "save file when buffer switched
 set ttyfast
 set lazyredraw
 set backspace=indent,eol,start    " Intuitive backspacing
-set clipboard=unnamed
+
+if $TMUX == ''
+  set clipboard+=unnamed
+endif
 set encoding=utf-8
 set fileencoding=utf-8
 set history=1000
