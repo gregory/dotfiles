@@ -39,3 +39,9 @@
 	trustExitCode = true
 [url "https://"]
 	insteadOf = git://
+[filter "media"]
+	clean = git media clean %f
+	smudge = git media smudge %f
+	required = true
+[credential]
+	helper = osxkeychain
