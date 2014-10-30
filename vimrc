@@ -323,7 +323,9 @@ map <C-T> :CtrlPBuffer<CR>
 "let g:rspec_command = "!zeus rspec {spec}"
 "let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
 let g:rspec_command = "Dispatch rspec {spec}"
-"let g:rspec_command = "!bundle exec rspec {spec}"
+"let g:rspec_command = "!rspec {spec}"
+
+map <Leader>rr :Dispatch rake rubocop<CR>
 map <Leader>rs :call RunCurrentSpecFile()<CR>
 map <Leader>rn :call RunNearestSpec()<CR>
 map <Leader>rl :call RunLastSpec()<CR>
