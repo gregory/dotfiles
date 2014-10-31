@@ -162,8 +162,8 @@ au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
 ""
 "" Colors/ Highlights
 ""
-"set t_Co=256
-"set term=screen-256color
+set t_Co=256
+set term=screen-256color
 "let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
