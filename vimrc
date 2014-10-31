@@ -75,7 +75,7 @@ nnoremap <leader>cl :close<CR>
 nnoremap <Leader>b :buffer
 
 "au FocusLost * :wa " Autosave everything
-set autowrite "save file when buffer switched
+set autowriteall "save file when buffer switched
 set ttyfast
 set lazyredraw
 set backspace=indent,eol,start    " Intuitive backspacing
@@ -151,10 +151,11 @@ let g:syntastic_style_warning_symbol='>'
 
 
 "set nofoldenable
-"au BufNewFile,BufReadPost *.rb setl nofoldenable
-"au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
-"set foldmethod=syntax " Pretty slow
-"set foldlevel=1
+set foldmethod=syntax " Pretty slow
+set foldlevel=1
+au BufRead * normal zR
+au BufNewFile,BufReadPost *.rb setl nofoldenable
+au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
 "autocmd InsertEnter * let w:last_fdm=&foldmethod | setlocal foldmethod=manual
 "autocmd InsertLeave * let &l:foldmethod=w:last_fdm
 
@@ -333,6 +334,10 @@ map <Leader>rs :call RunCurrentSpecFile()<CR>
 map <Leader>rn :call RunNearestSpec()<CR>
 map <Leader>rl :call RunLastSpec()<CR>
 map <Leader>ra :call RunAllSpecs()<CR>
+
+let g:netrw_banner       = 0
+let g:netrw_liststyle    = 3
+let g:netrw_sort_options = 'i'
 
 " rails.vim
 autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
