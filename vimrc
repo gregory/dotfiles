@@ -39,6 +39,7 @@ Plugin 'bling/vim-airline'
 Plugin 'tpope/vim-endwise'
 Plugin 'junegunn/vim-easy-align'
 Plugin 'vim-scripts/EasyGrep'
+Plugin 'gorkunov/smartpairs.vim'
 
 "Doc
 Plugin 'rizzatti/funcoo.vim'
