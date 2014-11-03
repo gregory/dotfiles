@@ -37,7 +37,7 @@ Plugin 'honza/vim-snippets'
 Plugin 'ervandew/supertab'
 Plugin 'bling/vim-airline'
 Plugin 'tpope/vim-endwise'
-Plugin 'godlygeek/tabular'
+Plugin 'junegunn/vim-easy-align'
 Plugin 'vim-scripts/EasyGrep'
 
 "Doc
@@ -244,6 +244,9 @@ inoremap <S-CR> <Esc>
 " Map ✠ (U+2720) to <S-CR>, so we have <S-CR> mapped to ✠ in iTerm2 and
 " ✠ mapped back to <S-CR> in Vim.
 imap ✠ <S-CR>
+
+" easy align
+vmap <Enter> <Plug>(EasyAlign)
 
 " faster split navigation
 map <Leader>w <C-w>
