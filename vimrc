@@ -152,11 +152,11 @@ let g:syntastic_style_warning_symbol='>'
 
 
 "set nofoldenable
-set foldmethod=syntax " Pretty slow
-set foldlevel=1
-au BufRead * normal zR
-au BufNewFile,BufReadPost *.rb setl nofoldenable
-au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
+"set foldmethod=syntax " Pretty slow
+"set foldlevel=1
+"au BufRead * normal zR
+"au BufNewFile,BufReadPost *.rb setl nofoldenable
+"au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
 "autocmd InsertEnter * let w:last_fdm=&foldmethod | setlocal foldmethod=manual
 "autocmd InsertLeave * let &l:foldmethod=w:last_fdm
 
