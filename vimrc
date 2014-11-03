@@ -54,6 +54,7 @@ Plugin 'tpope/vim-markdown'
 Plugin 'wavded/vim-stylus'
 Plugin 'digitaltoad/vim-jade'
 Plugin 'kchmck/vim-coffee-script'
+Plugin 'Chiel92/vim-autoformat'
 
 "Theme
 Plugin 'altercation/vim-colors-solarized'
