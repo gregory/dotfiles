@@ -101,7 +101,8 @@ set ignorecase  " searches are case insensitive...
 set smartcase   " ... unless they contain at least one capital letter
 
 "" List chars
-set nowrap                        " Don't wrap line when too long
+set wrap                          " wrap line when too long
+set linebreak                     " tells Vim to only wrap at a character in the breakat option
 set listchars=""                  " Reset the listchars
 set listchars=tab:\ \             " a tab should display as "  ", trailing whitespace as "."
 set listchars+=trail:.            " show trailing spaces as dots
