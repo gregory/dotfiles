@@ -331,7 +331,7 @@ map <C-T> :CtrlPBuffer<CR>
 " vim-rspec
 "let g:rspec_command = "!zeus rspec {spec}"
 "let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
-let g:rspec_command = "Dispatch rspec {spec}"
+let g:rspec_command = "Dispatch rspec -f -d -c {spec}"
 "let g:rspec_command = "!rspec {spec}"
 
 map <Leader>rr :Dispatch rake rubocop<CR>
