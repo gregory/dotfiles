@@ -137,7 +137,7 @@ autocmd BufWritePre * :call TrimWhiteSpace()
 " View
 "
 set cursorline
-set colorcolumn=120
+set colorcolumn=90
 set laststatus=2    " Show the status line all the time
 set nonumber      " Show line numbers
 set showtabline=2    " Show tabs bar
@@ -235,6 +235,9 @@ command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
 "
 "Text formatting
 "
+
+"" text wrap
+"set tw=80 fo=cqt wm=0
 "" LeanData style
 set tabstop=2
 set softtabstop=2
@@ -252,11 +255,14 @@ imap ✠ <S-CR>
 vmap <Enter> <Plug>(EasyAlign)
 
 " faster split navigation
+set splitbelow
+set splitright
+
 map <Leader>w <C-w>
-map <leader>j <C-w>j
-map <leader>k <C-w>k
-map <leader>h <C-w>h
-map <leader>l <C-w>l
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
 map <S-right> <ESC>
 
 " Forcing myself to stop using arrow keys
@@ -273,10 +279,6 @@ map <Leader>p :set paste!<CR>
 "remap the page up/down and disable the mouse
 set mouse=a
 set ttymouse=xterm2
-map <C-j> <C-D>
-map <C-h> <C-F>
-map <C-k> <C-U>
-map <C-l> <C-B>
 
 "always center the screen
 nnoremap <space> <nop>
