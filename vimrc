@@ -99,6 +99,7 @@ set hlsearch    " highlight matches
 set incsearch   " incremental searching
 set ignorecase  " searches are case insensitive...
 set smartcase   " ... unless they contain at least one capital letter
+set grepprg=git\ grep\ -nHI\ --exclude-standard\ --heading\ --color\ --no-index\ -e\ $* "\ --\ --\ `git\ ls-files\ \\\|\ egrep\ -v\ -e\ 'vendor\\\|vcr_casettes'`
 
 "" List chars
 set wrap                          " wrap line when too long
@@ -265,11 +266,15 @@ nnoremap <C-h> <C-w>h
 nnoremap <C-l> <C-w>l
 map <S-right> <ESC>
 
-" Forcing myself to stop using arrow keys
-map <up> <nop>
-map <down> <nop>
-map <left> <nop>
-map <right> <nop>
+imap <up> <nop>
+imap <down> <nop>
+imap <left> <nop>
+imap <right> <nop>
+
+nnoremap <down> :cn<CR>
+nnoremap <up> :cp<CR>
+nnoremap <right> :copen<CR>
+nnoremap <left> :cclose<CR>
 
 map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
@@ -307,11 +312,11 @@ inoremap <tab> <c-r>=InsertTabWrapper()<cr>
 "
 
 " NERDTree
-let g:NERDTreeMinimalUI = 0
+let g:NERDTreeMinimalUI = 1
 let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
 let g:NERDTreeWinSize = 20
 let g:NERDTreeDirArrows = 0
-let g:NERDTreeQuitOnOpen = 0
+let g:NERDTreeQuitOnOpen = 1
 "let g:NERDTreeWinPos = "right"
 augroup AuNERDTreeCmd
 autocmd AuNERDTreeCmd VimEnter * call s:CdIfDirectory(expand("<amatch>"))
@@ -323,9 +328,9 @@ map <Leader>m :NERDTreeToggle<CR>
 map <Leader>n :NERDTreeFind<CR>
 
 " CtrlP
-let g:ctrlp_map = '<C-m>'
+let g:ctrlp_map = '<C-g>'
 let g:ctrlp_cmd = 'CtrlP'
-let g:ctrlp_working_path_mode = 0
+let g:ctrlp_working_path_mode = 'ra'
 let g:ctrlp_match_window_reversed = 0
 let g:ctrlp_extensions = ['tag']
 let g:ctrlp_custom_ignore = '\.git$'
