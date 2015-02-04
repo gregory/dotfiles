@@ -68,7 +68,7 @@ filetype plugin indent on         " Turn on file type detection.
 let mapleader = ","
 nnoremap \ ,
 
-" Use jk to escape
+" Use ii to escape
 inoremap jk <ESC>
 
 " close
@@ -286,8 +286,6 @@ set mouse=a
 set ttymouse=xterm2
 
 "always center the screen
-nnoremap <space> <nop>
-map <space> zz
 nmap n n zz
 nmap N N zz
 map zo zO "open full level all the time
@@ -328,9 +326,9 @@ map <Leader>m :NERDTreeToggle<CR>
 map <Leader>n :NERDTreeFind<CR>
 
 " CtrlP
-let g:ctrlp_map = '<C-g>'
+let g:ctrlp_map = '<space>'
 let g:ctrlp_cmd = 'CtrlP'
-let g:ctrlp_working_path_mode = 'ra'
+let g:ctrlp_working_path_mode = 0
 let g:ctrlp_match_window_reversed = 0
 let g:ctrlp_extensions = ['tag']
 let g:ctrlp_custom_ignore = '\.git$'
