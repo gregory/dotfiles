@@ -19,6 +19,36 @@ alias tmux="TERM=screen-256color-bce tmux"
 LESSPIPE=`which src-hilite-lesspipe.sh`
 export LESSOPEN="| ${LESSPIPE} %s"
 export LESS='-RN'
+export WORK_PATHS=$HOME/wplace/bigwhale/codebases:$HOME/wplace/bigwhale
 
 alias bower='noglob bower'
-if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+eval "$(rbenv init -)"
+
+function lgrep {
+  less $(egrep -r -e $1 $2 | selecta | cut -d: -f1)
+}
+
+function lfind {
+  less $(find $1 -type f | selecta | cut -d: -f1)
+}
+
+function cdw {
+  pushd $(find $(echo $WORK_PATHS | tr ':' ' ') -maxdepth 1 -type d | selecta)
+}
+
+function branch {
+  git add --all; git stash; git branch | cut -c 3- | selecta | xargs git checkout
+}
+
+function checkout {
+  git add --all; git stash; git log --pretty=oneline | selecta | cut -d' ' -f1 | xargs git checkout
+}
+
+function log {
+  git log --pretty=oneline $* | selecta | cut -d' ' -f1 | xargs git show
+}
+
+function show {
+  file=$(git ls-files | selecta ) && git log --oneline $file | selecta | cut -d' ' -f1 | xargs -I commit git show commit:$file
+}
+
