@@ -266,10 +266,10 @@ nnoremap <C-h> <C-w>h
 nnoremap <C-l> <C-w>l
 map <S-right> <ESC>
 
-imap <up> <nop>
-imap <down> <nop>
-imap <left> <nop>
-imap <right> <nop>
+"imap <up> <nop>
+"imap <down> <nop>
+"imap <left> <nop>
+"imap <right> <nop>
 
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
@@ -286,8 +286,8 @@ set mouse=a
 set ttymouse=xterm2
 
 "always center the screen
-nmap n n zz
-nmap N N zz
+"nmap n n zz
+"nmap N N zz
 map zo zO "open full level all the time
 
 " resize current buffer by +/- 5
