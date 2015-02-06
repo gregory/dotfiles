@@ -69,7 +69,7 @@ let mapleader = ","
 nnoremap \ ,
 
 " Use ii to escape
-inoremap jk <ESC>
+inoremap jk <ESC>:w<CR>
 
 " close
 nnoremap <leader>cl :close<CR>
@@ -99,7 +99,16 @@ set hlsearch    " highlight matches
 set incsearch   " incremental searching
 set ignorecase  " searches are case insensitive...
 set smartcase   " ... unless they contain at least one capital letter
-set grepprg=git\ grep\ -nHI\ --exclude-standard\ --heading\ --color\ --no-index\ -e\ $* "\ --\ --\ `git\ ls-files\ \\\|\ egrep\ -v\ -e\ 'vendor\\\|vcr_casettes'`
+"set grepprg=git\ grep\ -nHI\ --exclude-standard\ --heading\ --color\ --no-index\ -e\ $1
+"command -nargs=+ Ggr execute 'silent Ggrep!' <q-args> | cw | redraw!
+
+function! Grep()
+  let params = input('search for: ', expand('%'))
+  exec ':silent Ggrep!' . params
+  cw
+  redraw!
+endfunction
+nmap <Leader>g :call Grep()<cr>
 
 "" List chars
 set wrap                          " wrap line when too long
@@ -126,13 +135,28 @@ let g:indent_guides_color_change_percent = 80
 " Removes trailing spaces
 "
 function TrimWhiteSpace()
- %s/\s*$//
- ''
-:endfunction
+  %s/\s*$//
+  silent! %!cat -s
+  ''
+endfunction
+
 autocmd FileWritePre * :call TrimWhiteSpace()
 autocmd FileAppendPre * :call TrimWhiteSpace()
 autocmd FilterWritePre * :call TrimWhiteSpace()
 autocmd BufWritePre * :call TrimWhiteSpace()
+
+" rename current file and new file path
+function! RenameFile()
+  let old_name = expand('%')
+  let new_name = input('New file name: ', expand('<cword>'))
+  if new_name != '' && new_name != old_name
+    exec ':saveas ' . new_name
+    exec ':silent !rm ' . old_name
+    redraw!
+  endif
+endfunction
+
+nmap mv :call RenameFile()<cr>
 
 "
 " View
@@ -152,7 +176,6 @@ let g:syntastic_error_symbol='✗'
 let g:syntastic_style_error_symbol='>'
 let g:syntastic_warning_symbol='⚠'
 let g:syntastic_style_warning_symbol='>'
-
 
 "set nofoldenable
 "set foldmethod=syntax " Pretty slow
@@ -247,23 +270,39 @@ set expandtab
 "
 " Maps
 "
-inoremap <S-CR> <Esc>
+"inoremap <S-CR> <Esc>
 " Map ✠ (U+2720) to <S-CR>, so we have <S-CR> mapped to ✠ in iTerm2 and
 " ✠ mapped back to <S-CR> in Vim.
-imap ✠ <S-CR>
+"imap ✠ <S-CR>
 
 " easy align
 vmap <Enter> <Plug>(EasyAlign)
+
+" easy motion
+map / <Plug>(easymotion-sn)
+omap / <Plug>(easymotion-tn)
+map <Leader>l <Plug>(easymotion-lineforward)
+map <Leader>j <Plug>(easymotion-j)
+map <Leader>k <Plug>(easymotion-k)
+map <Leader>h <Plug>(easymotion-linebackward)
+let g:EasyMotion_startofline = 0
 
 " faster split navigation
 set splitbelow
 set splitright
 
 map <Leader>w <C-w>
+" save the buffer before switching from insert mode
+imap <C-j> <ESC>:w<CR><C-j>
+imap <C-k> <ESC>:w<CR><C-k>
+imap <C-h> <ESC>:w<CR><C-h>
+imap <C-l> <ESC>:w<CR><C-l>
+
 nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-h> <C-w>h
 nnoremap <C-l> <C-w>l
+
 map <S-right> <ESC>
 
 "imap <up> <nop>
@@ -317,10 +356,10 @@ let g:NERDTreeDirArrows = 0
 let g:NERDTreeQuitOnOpen = 1
 "let g:NERDTreeWinPos = "right"
 augroup AuNERDTreeCmd
-autocmd AuNERDTreeCmd VimEnter * call s:CdIfDirectory(expand("<amatch>"))
-autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
-augroup AuNERDTreeCmd
-autocmd!
+  autocmd AuNERDTreeCmd VimEnter * call s:CdIfDirectory(expand("<amatch>"))
+  autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
+  augroup AuNERDTreeCmd
+  autocmd!
 augroup end
 map <Leader>m :NERDTreeToggle<CR>
 map <Leader>n :NERDTreeFind<CR>
@@ -356,7 +395,6 @@ autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> c
 
 " coffeescript.vim
 "au BufNewFile,BufReadPost *.coffee setl foldmethod=indent nofoldenable
-
 
 " vim-powerline.vim
 let g:Powerline_symbols='skwp'
