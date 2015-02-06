@@ -15,29 +15,22 @@ Plugin 'gmarik/Vundle.vim'
 
 "Frameworks/languages
 Plugin 'tpope/vim-rails'
-Plugin 'tpope/vim-bundler'
 Plugin 'tpope/vim-fugitive'
-" follow instructions here => https://github.com/skwp/vim-rspec
 Plugin 'thoughtbot/vim-rspec'
 Plugin 'tpope/vim-dispatch'
-
-"Coding
 Plugin 'Lokaltog/vim-easymotion'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'scrooloose/nerdtree'
-Plugin 'kien/ctrlp.vim'
-Plugin 'jc00ke/vim-tomdoc'
+Plugin 'ervandew/supertab'
+Plugin 'junegunn/vim-easy-align'
+Plugin 'szw/vim-ctrlspace'
+
 Plugin 'mattn/emmet-vim'
 Plugin 'scrooloose/syntastic'
-Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'MarcWeber/vim-addon-mw-utils'
 Plugin 'tomtom/tlib_vim'
-Plugin 'garbas/vim-snipmate'
-Plugin 'honza/vim-snippets'
-Plugin 'ervandew/supertab'
 Plugin 'bling/vim-airline'
 Plugin 'tpope/vim-endwise'
-Plugin 'junegunn/vim-easy-align'
 Plugin 'vim-scripts/EasyGrep'
 Plugin 'gorkunov/smartpairs.vim'
 
@@ -46,6 +39,7 @@ Plugin 'rizzatti/funcoo.vim'
 Plugin 'rizzatti/dash.vim'
 
 "Syntaxes
+Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'tpope/vim-haml'
 Plugin 'slim-template/vim-slim'
 Plugin 'vim-ruby/vim-ruby'
@@ -67,14 +61,6 @@ syntax enable                     " Turn on syntax highlighting.
 filetype plugin indent on         " Turn on file type detection.
 let mapleader = ","
 nnoremap \ ,
-
-" Use ii to escape
-inoremap jk <ESC>:w<CR>
-
-" close
-nnoremap <leader>cl :close<CR>
-" Buffer hotkey
-nnoremap <Leader>b :buffer
 
 "au FocusLost * :wa " Autosave everything
 set autowriteall "save file when buffer switched
@@ -99,12 +85,44 @@ set hlsearch    " highlight matches
 set incsearch   " incremental searching
 set ignorecase  " searches are case insensitive...
 set smartcase   " ... unless they contain at least one capital letter
-"set grepprg=git\ grep\ -nHI\ --exclude-standard\ --heading\ --color\ --no-index\ -e\ $1
-"command -nargs=+ Ggr execute 'silent Ggrep!' <q-args> | cw | redraw!
+
+" Run a given vim command on the results of fuzzy selecting from a given shell
+" command. See usage below.
+" Note: I'm using Iterm2 and remapped ^[ to "Send Hex Codes: 0x03" which is == ^C
+function! SelectaCommand(choice_command, selecta_args, vim_command)
+  try
+    let selection = system(a:choice_command . " | selecta " . a:selecta_args)
+  catch /Vim:Interrupt/
+    " Swallow the ^C so that the redraw below happens; otherwise there will be
+    " leftovers from selecta on the screen
+    redraw!
+    return ''
+  endtry
+  redraw!
+  exec a:vim_command . " " . selection
+endfunction
+
+let ignore = [".git", "vendor", ".svg", ".eot", ".jpg", '\/\.', '^\..*'] " ignore hidden files
+let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
+
+" Find all files in all non-dot directories starting in the working directory.
+" Fuzzy select one of those. Open the selected file with :e.
+nnoremap <space> :call SelectaCommand("git ls-files --exclude-standard" .g:excludes, "", ":e")<cr>
+
+function! SelectaBuffer()
+  let bufnrs = filter(range(1, bufnr("$")), 'buflisted(v:val)')
+  let buffers = map(bufnrs, 'bufname(v:val)')
+  call SelectaCommand('echo "' . join(buffers, "\n") . '"', "", ":b")
+endfunction
+
+" Fuzzy select a buffer. Open the selected buffer with :b.
+nnoremap <C-t> :call SelectaBuffer()<cr>
+
+"set grepprg=git\ grep\ --exclude-standard\ -n\ $*
 
 function! Grep()
-  let params = input('search for: ', expand('%'))
-  exec ':silent Ggrep!' . params
+  let params = input('search for: ', expand('<cword>'))
+  exec ':silent Ggrep! -I' . params
   cw
   redraw!
 endfunction
@@ -117,9 +135,9 @@ set listchars=""                  " Reset the listchars
 set listchars=tab:\ \             " a tab should display as "  ", trailing whitespace as "."
 set listchars+=trail:.            " show trailing spaces as dots
 set listchars+=extends:>          " The character to show in the last column when wrap is
-                                 "" off and the line continues beyond the right of the screen
+"" off and the line continues beyond the right of the screen
 set listchars+=precedes:<         " The character to show in the last column when wrap is
-                                  "" off and the line continues beyond the left of the screen
+"" off and the line continues beyond the left of the screen
 
 "
 "Tabs Indentations
@@ -140,6 +158,11 @@ function TrimWhiteSpace()
   ''
 endfunction
 
+nmap mm `
+
+" Use ii to escape
+inoremap jk <ESC>:w<CR>
+
 autocmd FileWritePre * :call TrimWhiteSpace()
 autocmd FileAppendPre * :call TrimWhiteSpace()
 autocmd FilterWritePre * :call TrimWhiteSpace()
@@ -148,7 +171,7 @@ autocmd BufWritePre * :call TrimWhiteSpace()
 " rename current file and new file path
 function! RenameFile()
   let old_name = expand('%')
-  let new_name = input('New file name: ', expand('<cword>'))
+  let new_name = input('New file name: ', expand('%'))
   if new_name != '' && new_name != old_name
     exec ':saveas ' . new_name
     exec ':silent !rm ' . old_name
@@ -176,15 +199,6 @@ let g:syntastic_error_symbol='✗'
 let g:syntastic_style_error_symbol='>'
 let g:syntastic_warning_symbol='⚠'
 let g:syntastic_style_warning_symbol='>'
-
-"set nofoldenable
-"set foldmethod=syntax " Pretty slow
-"set foldlevel=1
-"au BufRead * normal zR
-"au BufNewFile,BufReadPost *.rb setl nofoldenable
-"au BufNewFile,BufReadPost *.rb normal zi "default to unfolded
-"autocmd InsertEnter * let w:last_fdm=&foldmethod | setlocal foldmethod=manual
-"autocmd InsertLeave * let &l:foldmethod=w:last_fdm
 
 ""
 "" Colors/ Highlights
@@ -231,31 +245,6 @@ endfunction
 command! Invbg call ReverseBackground()
 noremap <F11> :Invbg<CR>
 
-function! s:RunShellCommand(cmdline)
-  let isfirst = 1
-  let words = []
-  for word in split(a:cmdline)
-    if isfirst
-      let isfirst = 0  " don't change first word (shell command)
-    else
-      if word[0] =~ '\v[%#<]'
-        let word = expand(word)
-      endif
-      let word = shellescape(word, 1)
-    endif
-    call add(words, word)
-  endfor
-  let expanded_cmdline = join(words)
-  botright new
-  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
-  call setline(1, 'You entered:  ' . a:cmdline)
-  call setline(2, 'Expanded to:  ' . expanded_cmdline)
-  call append(line('$'), substitute(getline(2), '.', '=', 'g'))
-  silent execute '$read !'. expanded_cmdline
-  1
-endfunction
-command! -complete=shellcmd -nargs=+ Shell call s:RunShellCommand(<q-args>)
-
 "
 "Text formatting
 "
@@ -270,17 +259,13 @@ set expandtab
 "
 " Maps
 "
-"inoremap <S-CR> <Esc>
-" Map ✠ (U+2720) to <S-CR>, so we have <S-CR> mapped to ✠ in iTerm2 and
-" ✠ mapped back to <S-CR> in Vim.
-"imap ✠ <S-CR>
 
 " easy align
 vmap <Enter> <Plug>(EasyAlign)
 
 " easy motion
-map / <Plug>(easymotion-sn)
-omap / <Plug>(easymotion-tn)
+map // <Plug>(easymotion-sn)
+omap // <Plug>(easymotion-tn)
 map <Leader>l <Plug>(easymotion-lineforward)
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
@@ -303,12 +288,7 @@ nnoremap <C-k> <C-w>k
 nnoremap <C-h> <C-w>h
 nnoremap <C-l> <C-w>l
 
-map <S-right> <ESC>
-
-"imap <up> <nop>
-"imap <down> <nop>
-"imap <left> <nop>
-"imap <right> <nop>
+"map <S-right> <ESC>
 
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
@@ -324,20 +304,7 @@ map <Leader>p :set paste!<CR>
 set mouse=a
 set ttymouse=xterm2
 
-"always center the screen
-"nmap n n zz
-"nmap N N zz
-map zo zO "open full level all the time
-
-" resize current buffer by +/- 5
-nnoremap <C-left> :vertical resize +3<cr>
-nnoremap <C-down> :resize +3<cr>
-nnoremap <C-up> :resize -3<cr>
-nnoremap <C-right> :vertical resize -3<cr>
-"nnoremap <Leader>hc :set cursorline! <CR>
-"nnoremap <Leader>hn :set nu! <CR>
 nnoremap <Leader>d :set hlsearch! <CR>
-" autocmd BufEnter * if expand("%:p:h") !~ '^/tmp' | silent! lcd %:p:h | endif " changes the cd to the directory of the current file except for /tmp/*
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 inoremap <tab> <c-r>=InsertTabWrapper()<cr>
 
@@ -347,6 +314,10 @@ inoremap <tab> <c-r>=InsertTabWrapper()<cr>
 "
 " Plugin settings
 "
+
+" ctrl-space
+"
+let g:ctrlspace_default_mapping_key ='<tab>'
 
 " NERDTree
 let g:NERDTreeMinimalUI = 1
@@ -363,15 +334,6 @@ augroup AuNERDTreeCmd
 augroup end
 map <Leader>m :NERDTreeToggle<CR>
 map <Leader>n :NERDTreeFind<CR>
-
-" CtrlP
-let g:ctrlp_map = '<space>'
-let g:ctrlp_cmd = 'CtrlP'
-let g:ctrlp_working_path_mode = 0
-let g:ctrlp_match_window_reversed = 0
-let g:ctrlp_extensions = ['tag']
-let g:ctrlp_custom_ignore = '\.git$'
-map <C-T> :CtrlPBuffer<CR>
 
 " vim-rspec
 "let g:rspec_command = "!zeus rspec {spec}"
@@ -392,9 +354,6 @@ let g:netrw_sort_options = 'i'
 " rails.vim
 autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
 :set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
-
-" coffeescript.vim
-"au BufNewFile,BufReadPost *.coffee setl foldmethod=indent nofoldenable
 
 " vim-powerline.vim
 let g:Powerline_symbols='skwp'
