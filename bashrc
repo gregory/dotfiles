@@ -9,6 +9,11 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export EDITOR='vim'
 export GREP_OPTIONS='--color=auto -n' GREP_COLOR='7;35'
+export ZEUSSOCK=/tmp/zeus.sock
+if [ -f ~/.git-prompt.sh ]; then
+  source ~/.git-prompt.sh
+  export PS1='\h \w$(__git_ps1 "(%s)") \$ '
+fi
 
 # Fix tmux vim color
 export LESSPIPE=`which src-hilite-lesspipe.sh`

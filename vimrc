@@ -180,10 +180,11 @@ let g:indent_guides_color_change_percent = 80
 "
 " Removes trailing spaces
 "
-function TrimWhiteSpace()
-  %s/\s*$//
-  silent! %!cat -s
-  ''
+function! TrimWhiteSpace()
+ let _s=@/
+ :g/^\n\{2,}/d
+ let @/=_s
+ ''
 endfunction
 
 nmap mm `
