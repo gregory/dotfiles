@@ -8,7 +8,7 @@ filetype off                       " required by Vundler
 set rtp+=~/.vim/bundle/Vundle.vim/
 call vundle#begin()
 
-Plugin 'gmarik/Vundle.vim'
+"Plugin 'gmarik/Vundle.vim'
 
 " Plugins
 "-------------------------------------------
@@ -86,7 +86,7 @@ set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 set secure  " Allow to write files without permissions?
 set smartindent
 set scrolloff=3
-set shell=zsh
+set shell=bash
 
 "" Search
 set hlsearch    " highlight matches
@@ -231,6 +231,9 @@ let g:syntastic_style_warning_symbol='>'
 ""
 "" Colors/ Highlights
 ""
+set t_Co=256
+"set term=screen-256color
+"let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
 
