@@ -21,14 +21,17 @@ Plugin 'tpope/vim-dispatch'
 Plugin 'Lokaltog/vim-easymotion'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'scrooloose/nerdtree'
-Plugin 'ervandew/supertab'
+
 Plugin 'junegunn/vim-easy-align'
 Plugin 'szw/vim-ctrlspace'
 
-Plugin 'mattn/emmet-vim'
-Plugin 'scrooloose/syntastic'
+Plugin 'ervandew/snipmate.vim'
+Plugin 'ervandew/supertab'
 Plugin 'MarcWeber/vim-addon-mw-utils'
 Plugin 'tomtom/tlib_vim'
+
+Plugin 'mattn/emmet-vim'
+Plugin 'scrooloose/syntastic'
 Plugin 'bling/vim-airline'
 Plugin 'tpope/vim-endwise'
 Plugin 'vim-scripts/EasyGrep'
@@ -74,11 +77,16 @@ endif
 set encoding=utf-8
 set fileencoding=utf-8
 set history=1000
-set nobackup  " Don't make a backup before overwriting a file.
+" Don't make backups at all
+set nobackup
 set noswapfile  " Don't create swap file
-set nowritebackup " And again
+set nowritebackup
+set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
+set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 set secure  " Allow to write files without permissions?
 set smartindent
+set scrolloff=3
+set shell=zsh
 
 "" Search
 set hlsearch    " highlight matches
@@ -109,14 +117,28 @@ let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val')
 " Fuzzy select one of those. Open the selected file with :e.
 nnoremap <space> :call SelectaCommand("git ls-files --exclude-standard" .g:excludes, "", ":e")<cr>
 
-function! SelectaBuffer()
-  let bufnrs = filter(range(1, bufnr("$")), 'buflisted(v:val)')
-  let buffers = map(bufnrs, 'bufname(v:val)')
-  call SelectaCommand('echo "' . join(buffers, "\n") . '"', "", ":b")
+function! SelectaFile(path)
+  call SelectaCommand("find " . a:path . "/* -type f", "", ":e")
 endfunction
 
-" Fuzzy select a buffer. Open the selected buffer with :b.
-nnoremap <C-t> :call SelectaBuffer()<cr>
+nnoremap fiv :call SelectaFile("app/views")<cr>
+nnoremap fic :call SelectaFile("app/controllers")<cr>
+nnoremap fim :call SelectaFile("app/models")<cr>
+nnoremap fih :call SelectaFile("app/helpers")<cr>
+nnoremap fil :call SelectaFile("lib")<cr>
+nnoremap fip :call SelectaFile("public")<cr>
+nnoremap fis :call SelectaFile("public/stylesheets")<cr>
+nnoremap fif :call SelectaFile("features")<cr>
+
+"Fuzzy select
+function! SelectaIdentifier()
+  " Yank the word under the cursor into the z register
+  normal "zyiw
+  " Fuzzy match files in the current directory, starting with the word under
+  " the cursor
+  call SelectaCommand("find * -type f", "-s " . @z, ":e")
+endfunction
+nnoremap <c-g> :call SelectaIdentifier()<cr>
 
 "set grepprg=git\ grep\ --exclude-standard\ -n\ $*
 
@@ -127,6 +149,12 @@ function! Grep()
   redraw!
 endfunction
 nmap <Leader>g :call Grep()<cr>
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Diff tab management: open the current git diff in a tab
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+command! GdiffInTab tabedit %|vsplit|Gdiff
+nnoremap <leader>d :GdiffInTab<cr>
+nnoremap <leader>D :tabclose<cr>
 
 "" List chars
 set wrap                          " wrap line when too long
@@ -203,14 +231,9 @@ let g:syntastic_style_warning_symbol='>'
 ""
 "" Colors/ Highlights
 ""
-set t_Co=256
-set term=screen-256color
-"let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
 
-"autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  ctermbg=NONE
-"autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=136
 hi ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
 hi IndentGuidesEven ctermbg=235
@@ -224,19 +247,19 @@ function! ReverseBackground()
     se bg=dark
     "highlight Normal guibg=black guifg=white
     "hi NonText ctermfg=NONE ctermbg=235
-    hi CursorLine cterm=bold,underline ctermbg=235 guibg=darkred guifg=white
-    hi Folded ctermfg=black ctermbg=137 cterm=NONE
-    hi Search cterm=underline ctermbg=59
+    "hi CursorLine cterm=bold,underline ctermbg=235 guibg=darkred guifg=white
+    "hi Folded ctermfg=black ctermbg=137 cterm=NONE
+    "hi Search cterm=underline ctermbg=59
     hi IndentGuidesEven ctermbg=235
     hi IndentGuidesOdd  ctermbg=NONE
   else
     se bg=light
     "hi NonText ctermfg=NONE ctermbg=235
-    hi CursorLine cterm=bold,underline ctermbg=235 guibg=white guifg=darkered
-    hi Folded ctermfg=black ctermbg=137 cterm=NONE
-    hi Search cterm=underline ctermbg=59
-    hi IndentGuidesEven ctermbg=222
-    "hi IndentGuidesEven ctermbg=280
+    "hi CursorLine cterm=bold,underline ctermbg=235 guibg=white guifg=darkered
+    "hi Folded ctermfg=black ctermbg=137 cterm=NONE
+    "hi Search cterm=underline ctermbg=59
+    "hi IndentGuidesEven ctermbg=222
+    hi IndentGuidesEven ctermbg=280
     hi IndentGuidesOdd  ctermbg=NONE
   endif
   exe "set syntax=" . Mysyn
@@ -304,9 +327,19 @@ map <Leader>p :set paste!<CR>
 set mouse=a
 set ttymouse=xterm2
 
-nnoremap <Leader>d :set hlsearch! <CR>
+nnoremap <Leader>h :set hlsearch! <CR>
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
-inoremap <tab> <c-r>=InsertTabWrapper()<cr>
+
+function! InsertTabWrapper()
+    let col = col('.') - 1
+    if !col || getline('.')[col - 1] !~ '\k'
+        return "\<tab>"
+    else
+        return "\<c-p>"
+    endif
+endfunction
+inoremap <expr> <tab> InsertTabWrapper()
+inoremap <s-tab> <c-n>
 
 "remap the ] ctrl
 "noremap <C-j> <C-]> "j for jump
@@ -314,6 +347,12 @@ inoremap <tab> <c-r>=InsertTabWrapper()<cr>
 "
 " Plugin settings
 "
+
+"
+" vim -ruby
+autocmd FileType ruby,eruby let g:rubycomplete_buffer_loading = 1
+autocmd FileType ruby,eruby let g:rubycomplete_classes_in_global = 1
+autocmd FileType ruby,eruby let g:rubycomplete_rails = 1
 
 " ctrl-space
 "
@@ -377,4 +416,3 @@ let g:gist_post_private = 1
 
 "Vim autoformat
 noremap <F3> :Autoformat<CR><CR>
-
