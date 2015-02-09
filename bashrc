@@ -12,7 +12,7 @@ export GREP_OPTIONS='--color=auto -n' GREP_COLOR='7;35'
 export ZEUSSOCK=/tmp/zeus.sock
 if [ -f ~/.git-prompt.sh ]; then
   source ~/.git-prompt.sh
-  export PS1='\h \w$(__git_ps1 "(%s)") \$ '
+  export PS1='\[\e[00;37m\]\u\[\e[01;37m\]:`[[ $(git status 2> /dev/null | head -n2 | tail -n1) != "# Changes to be committed:" ]] && echo "\[\e[31m\]" || echo "\[\e[33m\]"``[[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working directory clean" ]] || echo "\[\e[32m\]"`$(__git_ps1 "(%s)\[\e[00m\]")\[\e[01;34m\]\w\[\e[00m\]\$ '
 fi
 
 # Fix tmux vim color
