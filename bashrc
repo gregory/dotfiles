@@ -16,6 +16,7 @@ if [ -f ~/.git-prompt.sh ]; then
 fi
 
 # Fix tmux vim color
+# brew install source-highlight
 export LESSPIPE=`which src-hilite-lesspipe.sh`
 export LESSOPEN="| ${LESSPIPE} %s"
 export LESS='-RNf'

@@ -110,12 +110,13 @@ function! SelectaCommand(choice_command, selecta_args, vim_command)
   exec a:vim_command . " " . selection
 endfunction
 
-let ignore = [".git", "vendor", ".svg", ".eot", ".jpg", '\/\.', '^\..*'] " ignore hidden files
+let ignore = [".git", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
 let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
-nnoremap <space> :call SelectaCommand("git ls-files --exclude-standard" .g:excludes, "", ":e")<cr>
+nnoremap <space> :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
+"nnoremap <space> :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
 
 function! SelectaFile(path)
   call SelectaCommand("find " . a:path . "/* -type f", "", ":e")
@@ -182,9 +183,12 @@ let g:indent_guides_color_change_percent = 80
 "
 function! TrimWhiteSpace()
  let _s=@/
- :g/^\n\{2,}/d
+ let l = line(".")
+ let c = col(".")
+ :%s/\s\+$//e
+ :silent! g/^\n\{2,}/d
  let @/=_s
- ''
+ call cursor(l, c)
 endfunction
 
 nmap mm `
@@ -192,10 +196,10 @@ nmap mm `
 " Use ii to escape
 inoremap jk <ESC>:w<CR>
 
-autocmd FileWritePre * :call TrimWhiteSpace()
-autocmd FileAppendPre * :call TrimWhiteSpace()
-autocmd FilterWritePre * :call TrimWhiteSpace()
-autocmd BufWritePre * :call TrimWhiteSpace()
+autocmd FileWritePre * :silent! keepjumps call TrimWhiteSpace()
+autocmd FileAppendPre * :silent! keepjump scall TrimWhiteSpace()
+autocmd FilterWritePre * :silent! keepjump call TrimWhiteSpace()
+autocmd BufWritePre * :silent! keepjump call TrimWhiteSpace()
 
 " rename current file and new file path
 function! RenameFile()
