@@ -31,6 +31,7 @@ task :install do
       link_file(file)
     end
   end
+  system %Q{vim -c "silent! PluginInstall" -c "qa!" ~/.vimrc}
 end
 
 def replace_file(file)

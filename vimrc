@@ -236,7 +236,7 @@ set t_Co=256
 "set term=screen-256color
 "let g:solarized_termcolors=256
 set background=dark
-colorscheme solarized
+silent! colorscheme solarized
 
 hi ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
