@@ -154,7 +154,7 @@ nmap <Leader>g :call Grep()<cr>
 " Diff tab management: open the current git diff in a tab
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 command! GdiffInTab tabedit %|vsplit|Gdiff
-nnoremap <leader>d :GdiffInTab<cr>
+nnoremap diff :GdiffInTab<cr>
 nnoremap <leader>D :tabclose<cr>
 
 "" List chars
@@ -194,7 +194,7 @@ endfunction
 nmap mm `
 
 " Use ii to escape
-inoremap jk <ESC>:w<CR>
+noremap jk <ESC>:w<CR>
 
 autocmd FileWritePre * :silent! keepjumps call TrimWhiteSpace()
 autocmd FileAppendPre * :silent! keepjump scall TrimWhiteSpace()
@@ -321,6 +321,11 @@ nnoremap <C-l> <C-w>l
 
 "map <S-right> <ESC>
 
+imap <down> <nop>
+imap <up>   <nop>
+imap <right> <nop>
+imap <left> <nop>
+
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
 nnoremap <right> :copen<CR>
@@ -335,7 +340,7 @@ map <Leader>p :set paste!<CR>
 set mouse=a
 set ttymouse=xterm2
 
-nnoremap <Leader>h :set hlsearch! <CR>
+nnoremap d :set hlsearch! <CR>
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
 function! InsertTabWrapper()
