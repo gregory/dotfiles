@@ -193,8 +193,9 @@ endfunction
 
 nmap mm `
 
-" Use ii to escape
-noremap jk <ESC>:w<CR>
+" Use jk to escape
+inoremap jk <ESC>:w<CR>
+nnoremap s <ESC>:w<CR>
 
 autocmd FileWritePre * :silent! keepjumps call TrimWhiteSpace()
 autocmd FileAppendPre * :silent! keepjump scall TrimWhiteSpace()
@@ -340,7 +341,7 @@ map <Leader>p :set paste!<CR>
 set mouse=a
 set ttymouse=xterm2
 
-nnoremap d :set hlsearch! <CR>
+nnoremap hl :set hlsearch! <CR>
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
 function! InsertTabWrapper()
