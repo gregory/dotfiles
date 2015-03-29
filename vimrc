@@ -1,102 +1,178 @@
-"
-" Vundle setup
-"
+
 set nocompatible                  "We run vim not VI
-
-filetype off                       " required by Vundler
-
-set rtp+=~/.vim/bundle/Vundle.vim/
-call vundle#begin()
-
-"Plugin 'gmarik/Vundle.vim'
+call plug#begin('~/.vim/plugged')
 
 " Plugins
 "-------------------------------------------
 
-"Frameworks/languages
-Plugin 'tpope/vim-rails'
-Plugin 'tpope/vim-fugitive'
-Plugin 'thoughtbot/vim-rspec'
-Plugin 'tpope/vim-dispatch'
-Plugin 'Lokaltog/vim-easymotion'
-Plugin 'scrooloose/nerdcommenter'
-Plugin 'scrooloose/nerdtree'
+" Languages
+Plug 'tpope/vim-rails', { 'for': 'ruby' } "Rails tools
+Plug 'thoughtbot/vim-rspec', { 'for': 'ruby' } "Rspec tools
+Plug 'fatih/vim-go', { 'for': 'go' }
+Plug 'jbgutierrez/vim-partial', {'for': 'ruby' } " extract file to partial
 
-Plugin 'junegunn/vim-easy-align'
-Plugin 'szw/vim-ctrlspace'
+" Coding Tools
+Plug 'ervandew/supertab'
+Plug 'mbbill/undotree' " Display your undo history in a graph
+Plug 'junegunn/vim-easy-align' " easy align things
+Plug 'Chiel92/vim-autoformat' "  code formatting
+Plug 'tpope/vim-fugitive' " Git tools
+Plug 'mhinz/vim-signify' " show modified lines in gutter
+Plug 'scrooloose/nerdcommenter'
+Plug 'tpope/vim-dispatch' " asynchronous build and test dispatche
+Plug 'bling/vim-airline' "Bottom bar info
+Plug 'tpope/vim-endwise' "Add closing arg (end etc)
 
-Plugin 'ervandew/snipmate.vim'
-Plugin 'ervandew/supertab'
-Plugin 'MarcWeber/vim-addon-mw-utils'
-Plugin 'tomtom/tlib_vim'
+" Navigation
+Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTreeFind']}
+Plug 'Lokaltog/vim-easymotion'
+Plug 'gorkunov/smartpairs.vim'
+Plug 'szw/vim-ctrlspace'
 
-Plugin 'mattn/emmet-vim'
-Plugin 'scrooloose/syntastic'
-Plugin 'bling/vim-airline'
-Plugin 'tpope/vim-endwise'
-Plugin 'vim-scripts/EasyGrep'
-Plugin 'gorkunov/smartpairs.vim'
+" Syntax
+Plug 'scrooloose/syntastic' " Syntax check for languages
+Plug 'nathanaelkane/vim-indent-guides' "display indent guide
+Plug 'tpope/vim-haml',          { 'for': 'haml' }
+Plug 'slim-template/vim-slim',  { 'for': 'slim' }
+Plug 'vim-ruby/vim-ruby',       { 'for': 'ruby' }
+Plug 'pangloss/vim-javascript', { 'for': 'javascript' }
+Plug 'tpope/vim-markdown'
+Plug 'wavded/vim-stylus',       { 'for': 'stylus'}
+Plug 'digitaltoad/vim-jade'
+Plug 'kchmck/vim-coffee-script'
+Plug 'ervandew/snipmate.vim'
 
-"Doc
-Plugin 'rizzatti/funcoo.vim'
-Plugin 'rizzatti/dash.vim'
+"The Theme
+Plug 'altercation/vim-colors-solarized'
+Plug 'zeis/vim-kolor'
+call plug#end()
 
-"Syntaxes
-Plugin 'nathanaelkane/vim-indent-guides'
-Plugin 'tpope/vim-haml'
-Plugin 'slim-template/vim-slim'
-Plugin 'vim-ruby/vim-ruby'
-Plugin 'pangloss/vim-javascript'
-Plugin 'tpope/vim-markdown'
-Plugin 'wavded/vim-stylus'
-Plugin 'digitaltoad/vim-jade'
-Plugin 'kchmck/vim-coffee-script'
-Plugin 'Chiel92/vim-autoformat'
+let mapleader="," " change the mapleader from \ to ,
 
-"Theme
-Plugin 'altercation/vim-colors-solarized'
-
-call vundle#end()            " required
-""
-"" General settings
-""
-syntax enable                     " Turn on syntax highlighting.
-filetype plugin indent on         " Turn on file type detection.
-let mapleader = ","
-nnoremap \ ,
-
-"au FocusLost * :wa " Autosave everything
-set autowriteall "save file when buffer switched
-set ttyfast
-set lazyredraw
-set backspace=indent,eol,start    " Intuitive backspacing
-
-if $TMUX == ''
-  set clipboard+=unnamed
-endif
+"
+" Pimping vim
+"
+set autoindent                 " always set autoindenting on
+set backspace=indent,eol,start " allow backspacing over everything in insert mode
+set colorcolumn=90
+set copyindent                 " copy the previous indentation on autoindenting
+set cursorline
 set encoding=utf-8
+set expandtab
 set fileencoding=utf-8
-set history=1000
-" Don't make backups at all
+set hidden
+set hlsearch                   " highlight matches
+set ignorecase                 " ignore case when searching
+set incsearch                  " show search matches as you type
+set laststatus=2               " Show the status line all the time
+set lazyredraw                 " tells Vim not to bother redrawing during these scenarios, leading to faster macros
+set linebreak                  " tells Vim to only wrap at a character in the breakat option
+set listchars=tab:>.,trail:.,extends:#,nbsp:.
+set mouse=a
 set nobackup
-set noswapfile  " Don't create swap file
+set noerrorbells               " don't beep
+set nonumber                   " hide line numbers
+set noswapfile                 " Don't create swap file
+set nowrap                     " don't wrap lines
 set nowritebackup
-set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
-set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
-set secure  " Allow to write files without permissions?
-set smartindent
+set pastetoggle=<leader>p
 set scrolloff=3
 set shell=bash
+set shiftround                 " use multiple of shiftwidth when indenting with '<' and '>'
+set shiftwidth=2               " number of spaces to use for autoindenting
+set showcmd                    " Display last commands
+set showmatch                  " (set show matching parenthesis)
+set showmode                   " Display the mode
+set showtabline=2              " Show tabs bar
+set smartcase                  " ignore case if search pattern is all lowercase, case-sensitive otherwise
+set smartindent
+set smarttab                   " insert tabs on the start of a line according to shiftwidth, not tabstop
+set softtabstop=2
+set splitbelow                 "split below the buffer
+set splitright                 "split on the right of the buffer
+set tabstop=2                  " a tab is 2 spaces
+set title                      " change the terminal's title
+set ts=2 sw=2 et
+set ttyfast                    " fast scrolling
+set ttymouse=xterm2
+set undolevels=1000            " use many muchos levels of undo
+set visualbell                 " don't beep
+set wildignore=*.swp,*.bak,*.pyc,*.class
+set wildmenu                   " Enhanced command line completion
+set wildmode=list:longest      " Complete files like a shell
+set wrap                       " wrap line when too long
 
-"" Search
-set hlsearch    " highlight matches
-set incsearch   " incremental searching
-set ignorecase  " searches are case insensitive...
-set smartcase   " ... unless they contain at least one capital letter
+" rails.vim
+:set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
+" vim-rspec
+"let g:rspec_command = "!zeus rspec {spec}"
+"let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
+let g:rspec_command = "Dispatch rspec -f -d -c {spec}"
+"let g:rspec_command = "!rspec {spec}"
+
+" signify
+
+let g:signify_vcs_list = [ 'git' ]
+let g:signify_sign_change = '~'
+
+" ctrl-space
+"
+let g:ctrlspace_default_mapping_key ='<tab>'
+
+" NERDTree
+let g:NERDTreeMinimalUI = 1
+let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
+let g:NERDTreeWinSize = 20
+let g:NERDTreeDirArrows = 0
+let g:NERDTreeQuitOnOpen = 1
+
+" easymotion
+let g:EasyMotion_startofline = 0
+
+"vim-airline
+let g:airline#extensions#hunks#enabled=0
+
+"vim-javascript
+let javascript_enable_domhtmlcss=1
+
+set term=screen-256color
+syntax enable
+highlight clear SignColumn
+let g:kolor_italic=1                    " Enable italic. Default: 1
+let g:kolor_bold=1                      " Enable bold. Default: 1
+let g:kolor_underlined=0                " Enable underline. Default: 0
+let g:kolor_alternative_matchparen=0    " Gray 'MatchParen' color. Default: 0
+hi ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+
+" hlsearch
+let hlstate=0
+
+"
+"vim-indent-guides  tab
+"
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_auto_colors = 0
+let g:indent_guides_start_level = 2
+let g:indent_guides_guide_size = 2
+let g:indent_guides_color_change_percent = 80
+
+let g:undotree_SetFocusWhenToggle = 1
+
+" Custom Functions
+
+let ignore = [".git", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
+let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
 " Run a given vim command on the results of fuzzy selecting from a given shell
 " command. See usage below.
 " Note: I'm using Iterm2 and remapped ^[ to "Send Hex Codes: 0x03" which is == ^C
+
+if has("persistent_undo")
+    set undodir='~/.undodir/'
+    set undofile
+endif
+
 function! SelectaCommand(choice_command, selecta_args, vim_command)
   try
     let selection = system(a:choice_command . " | selecta " . a:selecta_args)
@@ -110,26 +186,9 @@ function! SelectaCommand(choice_command, selecta_args, vim_command)
   exec a:vim_command . " " . selection
 endfunction
 
-let ignore = [".git", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
-let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
-
-" Find all files in all non-dot directories starting in the working directory.
-" Fuzzy select one of those. Open the selected file with :e.
-nnoremap <space> :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
-"nnoremap <space> :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
-
 function! SelectaFile(path)
   call SelectaCommand("find " . a:path . "/* -type f", "", ":e")
 endfunction
-
-nnoremap fiv :call SelectaFile("app/views")<cr>
-nnoremap fic :call SelectaFile("app/controllers")<cr>
-nnoremap fim :call SelectaFile("app/models")<cr>
-nnoremap fih :call SelectaFile("app/helpers")<cr>
-nnoremap fil :call SelectaFile("lib")<cr>
-nnoremap fip :call SelectaFile("public")<cr>
-nnoremap fis :call SelectaFile("public/stylesheets")<cr>
-nnoremap fif :call SelectaFile("features")<cr>
 
 "Fuzzy select
 function! SelectaIdentifier()
@@ -139,44 +198,6 @@ function! SelectaIdentifier()
   " the cursor
   call SelectaCommand("find * -type f", "-s " . @z, ":e")
 endfunction
-nnoremap <c-g> :call SelectaIdentifier()<cr>
-
-"set grepprg=git\ grep\ --exclude-standard\ -n\ $*
-
-function! Grep()
-  let params = input('search for: ', expand('<cword>'))
-  exec ':silent Ggrep! -I' . params
-  cw
-  redraw!
-endfunction
-nmap <Leader>g :call Grep()<cr>
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Diff tab management: open the current git diff in a tab
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-command! GdiffInTab tabedit %|vsplit|Gdiff
-nnoremap diff :GdiffInTab<cr>
-nnoremap <leader>D :tabclose<cr>
-
-"" List chars
-set wrap                          " wrap line when too long
-set linebreak                     " tells Vim to only wrap at a character in the breakat option
-set listchars=""                  " Reset the listchars
-set listchars=tab:\ \             " a tab should display as "  ", trailing whitespace as "."
-set listchars+=trail:.            " show trailing spaces as dots
-set listchars+=extends:>          " The character to show in the last column when wrap is
-"" off and the line continues beyond the right of the screen
-set listchars+=precedes:<         " The character to show in the last column when wrap is
-"" off and the line continues beyond the left of the screen
-
-"
-"Tabs Indentations
-"
-set ts=2 sw=2 et
-let g:indent_guides_enable_on_vim_startup = 1
-let g:indent_guides_auto_colors = 0
-let g:indent_guides_start_level = 2
-let g:indent_guides_guide_size = 2
-let g:indent_guides_color_change_percent = 80
 
 "
 " Removes trailing spaces
@@ -191,17 +212,6 @@ function! TrimWhiteSpace()
  call cursor(l, c)
 endfunction
 
-nmap mm `
-
-" Use jk to escape
-inoremap jk <ESC>:w<CR>
-nnoremap s <ESC>:w<CR>
-
-autocmd FileWritePre * :silent! keepjumps call TrimWhiteSpace()
-autocmd FileAppendPre * :silent! keepjump scall TrimWhiteSpace()
-autocmd FilterWritePre * :silent! keepjump call TrimWhiteSpace()
-autocmd BufWritePre * :silent! keepjump call TrimWhiteSpace()
-
 " rename current file and new file path
 function! RenameFile()
   let old_name = expand('%')
@@ -213,119 +223,144 @@ function! RenameFile()
   endif
 endfunction
 
-nmap mv :call RenameFile()<cr>
-
-"
-" View
-"
-set cursorline
-set colorcolumn=90
-set laststatus=2    " Show the status line all the time
-set nonumber      " Show line numbers
-set showtabline=2    " Show tabs bar
-set showcmd      " Display incomplete commands
-set showmode      " Display the mode
-set visualbell     " No beeping
-set wildmenu     " Enhanced command line completion
-set wildmode=list:longest    " Complete files like a shell
-set wildignore+=*/.git/*,*/tmp/*,*/log/*,*/app/assets/images/*,*/vendor/assets/images/*,*/coverage/*,*/node_modules/*
-let g:syntastic_error_symbol='✗'
-let g:syntastic_style_error_symbol='>'
-let g:syntastic_warning_symbol='⚠'
-let g:syntastic_style_warning_symbol='>'
-
-""
-"" Colors/ Highlights
-""
-set t_Co=256
-"set term=screen-256color
-"let g:solarized_termcolors=256
-set background=dark
-silent! colorscheme solarized
-
-hi ExtraWhitespace ctermbg=red guibg=red
-match ExtraWhitespace /\s\+$/
-hi IndentGuidesEven ctermbg=235
-hi IndentGuidesOdd  ctermbg=NONE
-"
-"
-"highlight Normal guibg=black guifg=white
-function! ReverseBackground()
+function! LightBackground()
   let Mysyn=&syntax
-  if &bg=="light"
-    se bg=dark
-    "highlight Normal guibg=black guifg=white
-    "hi NonText ctermfg=NONE ctermbg=235
-    "hi CursorLine cterm=bold,underline ctermbg=235 guibg=darkred guifg=white
-    "hi Folded ctermfg=black ctermbg=137 cterm=NONE
-    "hi Search cterm=underline ctermbg=59
-    hi IndentGuidesEven ctermbg=235
-    hi IndentGuidesOdd  ctermbg=NONE
-  else
-    se bg=light
-    "hi NonText ctermfg=NONE ctermbg=235
-    "hi CursorLine cterm=bold,underline ctermbg=235 guibg=white guifg=darkered
-    "hi Folded ctermfg=black ctermbg=137 cterm=NONE
-    "hi Search cterm=underline ctermbg=59
-    "hi IndentGuidesEven ctermbg=222
-    hi IndentGuidesEven ctermbg=280
-    hi IndentGuidesOdd  ctermbg=NONE
-  endif
+  set background=light
+  colorscheme solarized
+  hi IndentGuidesEven ctermbg=280
+  hi IndentGuidesOdd  ctermbg=NONE
   exe "set syntax=" . Mysyn
-  echo "now syntax is "&syntax
 endfunction
-command! Invbg call ReverseBackground()
-noremap <F11> :Invbg<CR>
 
-"
-"Text formatting
-"
+function! DarkBackground()
+  let Mysyn=&syntax
+  colorscheme kolor
+  hi IndentGuidesEven ctermbg=280
+  hi IndentGuidesOdd  ctermbg=NONE
+  exe "set syntax=" . Mysyn
+endfunction
 
-"" text wrap
-"set tw=80 fo=cqt wm=0
-"" LeanData style
-set tabstop=2
-set softtabstop=2
-set shiftwidth=2
-set expandtab
-"
-" Maps
-"
+" Link function to commands
+command! GdiffInTab tabedit %|vsplit|Gdiff
+
+" File type setup
+
+filetype plugin indent on         " Turn on file type detection.
+
+augroup AuNERDTreeCmd
+  autocmd AuNERDTreeCmd VimEnter    * call s:CdIfDirectory(expand("<amatch>"))
+  autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
+  augroup AuNERDTreeCmd
+  autocmd!
+augroup end
+autocmd FileType ruby,eruby let g:rubycomplete_buffer_loading = 1
+autocmd FileType ruby,eruby let g:rubycomplete_classes_in_global = 1
+autocmd FileType ruby,eruby let g:rubycomplete_rails = 1
+autocmd FileType ruby setlocal tabstop=2
+autocmd FileType ruby setlocal shiftwidth=2
+autocmd FileType ruby setlocal softtabstop=2
+autocmd FileType ruby setlocal commentstring=#\ %s
+autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
+
+"set autowriteall "save file when buffer switched
+au! BufRead,BufNewFile     *.haml   set filetype=haml
+au! BufRead,BufNewFile     *.slim   set filetype=slim
+au! BufNewFile,BufReadPost *.styl   set filetype=stylus
+au! BufNewFile,BufReadPost *.stylus set filetype=stylus
+
+autocmd FileWritePre       * :silent! keepjumps call TrimWhiteSpace()
+autocmd FileAppendPre      * :silent! keepjump call TrimWhiteSpace()
+autocmd FilterWritePre     * :silent! keepjump call TrimWhiteSpace()
+autocmd BufWritePre        * :silent! keepjump call TrimWhiteSpace()
+autocmd BufLeave,FocusLost * :silent! wall
+
+" Mappings
+
+nnoremap <Leader>rr :Dispatch rake rubocop<CR>
+nnoremap <Leader>rs :call RunCurrentSpecFile()<CR>
+nnoremap <Leader>rn :call RunNearestSpec()<CR>
+nnoremap <Leader>rl :call RunLastSpec()<CR>
+nnoremap <Leader>ra :call RunAllSpecs()<CR>
+nnoremap <leader>d :GdiffInTab<cr>
+nnoremap <leader>D :tabclose<cr>
+nmap <leader>gb :Gblame<CR>
+nmap <leader>gs :Gstatus<CR>
+nmap <leader>gd :Gdiff<CR>
+nmap <leader>gl :Glog<CR>
+nmap <leader>gc :Gcommit<CR>
+nmap <leader>gp :Git push<CR>
+nnoremap B ^
+nnoremap E $
+
+map <Leader>m :NERDTreeToggle<CR>
+map <Leader>n :NERDTreeFind<CR>
 
 " easy align
 vmap <Enter> <Plug>(EasyAlign)
 
+nnoremap j gj
+nnoremap k gk
+nnoremap <leader>hl :if (hlstate%2 == 0) \| nohlsearch \| else \| set hlsearch \| endif \| let hlstate=hlstate+1<cr>
+
 " easy motion
-map // <Plug>(easymotion-sn)
-omap // <Plug>(easymotion-tn)
+map / <Plug>(easymotion-sn)
+omap / <Plug>(easymotion-tn)
 map <Leader>l <Plug>(easymotion-lineforward)
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
 map <Leader>h <Plug>(easymotion-linebackward)
-let g:EasyMotion_startofline = 0
 
-" faster split navigation
-set splitbelow
-set splitright
+" signify
+nmap <leader>gj <plug>(signify-next-hunk)
+nmap <leader>gk <plug>(signify-prev-hunk)
+
+"Vim autoformat
+noremap <F3> :Autoformat<CR><CR>
+
+" Invert background
+noremap <F6> :call LightBackground()<CR>
+noremap <F5> :call DarkBackground()<CR>
+
+" Toggle the undo tree
+nnoremap <backspace> :UndotreeToggle<cr>
+nnoremap U <C-r>
+" ma to mark position to a, mma to recover
+nmap mm `
+
+" Find all files in all non-dot directories starting in the working directory.
+" Fuzzy select one of those. Open the selected file with :e.
+nnoremap <space> :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
+"nnoremap <space> :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
+nnoremap fiv :call SelectaFile("app/views")<cr>
+nnoremap fic :call SelectaFile("app/controllers")<cr>
+nnoremap fim :call SelectaFile("app/models")<cr>
+nnoremap fih :call SelectaFile("app/helpers")<cr>
+nnoremap fil :call SelectaFile("lib")<cr>
+nnoremap fip :call SelectaFile("public")<cr>
+nnoremap fis :call SelectaFile("public/stylesheets")<cr>
+nnoremap fif :call SelectaFile("features")<cr>
+nnoremap <c-g> :call SelectaIdentifier()<cr>
+
+nmap mv :call RenameFile()<cr>
+
+" quick edit/reload vim file
+nmap <silent> <leader>ev :e $MYVIMRC<CR>
+
+" Use fd to save
+imap fd <ESC>:w<CR>
+nnoremap fd <ESC>:w<CR>
 
 map <Leader>w <C-w>
+
 " save the buffer before switching from insert mode
-imap <C-j> <ESC>:w<CR><C-j>
-imap <C-k> <ESC>:w<CR><C-k>
-imap <C-h> <ESC>:w<CR><C-h>
-imap <C-l> <ESC>:w<CR><C-l>
-
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-h> <C-w>h
-nnoremap <C-l> <C-w>l
-
-"map <S-right> <ESC>
-
-imap <down> <nop>
-imap <up>   <nop>
-imap <right> <nop>
-imap <left> <nop>
+inoremap <C-j> <ESC>:silent! w<CR><C-w>j
+inoremap <C-k> <ESC>:silent! w<CR><C-w>k
+inoremap <C-h> <ESC>:silent! w<CR><C-w>h
+inoremap <C-l> <ESC>:silent! w<CR><C-w>l
+nnoremap <C-j> <ESC>:silent! w<CR><C-w>j
+nnoremap <C-k> <ESC>:silent! w<CR><C-w>k
+nnoremap <C-h> <ESC>:silent! w<CR><C-w>h
+nnoremap <C-l> <ESC>:silent! w<CR><C-w>l
 
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
@@ -335,98 +370,7 @@ nnoremap <left> :cclose<CR>
 map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
 map <leader>t :tabe <CR>
-map <Leader>p :set paste!<CR>
 
-"remap the page up/down and disable the mouse
-set mouse=a
-set ttymouse=xterm2
-
-nnoremap hl :set hlsearch! <CR>
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
-function! InsertTabWrapper()
-    let col = col('.') - 1
-    if !col || getline('.')[col - 1] !~ '\k'
-        return "\<tab>"
-    else
-        return "\<c-p>"
-    endif
-endfunction
-inoremap <expr> <tab> InsertTabWrapper()
-inoremap <s-tab> <c-n>
-
-"remap the ] ctrl
-"noremap <C-j> <C-]> "j for jump
-
-"
-" Plugin settings
-"
-
-"
-" vim -ruby
-autocmd FileType ruby,eruby let g:rubycomplete_buffer_loading = 1
-autocmd FileType ruby,eruby let g:rubycomplete_classes_in_global = 1
-autocmd FileType ruby,eruby let g:rubycomplete_rails = 1
-
-" ctrl-space
-"
-let g:ctrlspace_default_mapping_key ='<tab>'
-
-" NERDTree
-let g:NERDTreeMinimalUI = 1
-let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
-let g:NERDTreeWinSize = 20
-let g:NERDTreeDirArrows = 0
-let g:NERDTreeQuitOnOpen = 1
-"let g:NERDTreeWinPos = "right"
-augroup AuNERDTreeCmd
-  autocmd AuNERDTreeCmd VimEnter * call s:CdIfDirectory(expand("<amatch>"))
-  autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
-  augroup AuNERDTreeCmd
-  autocmd!
-augroup end
-map <Leader>m :NERDTreeToggle<CR>
-map <Leader>n :NERDTreeFind<CR>
-
-" vim-rspec
-"let g:rspec_command = "!zeus rspec {spec}"
-"let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
-let g:rspec_command = "Dispatch rspec -f -d -c {spec}"
-"let g:rspec_command = "!rspec {spec}"
-
-map <Leader>rr :Dispatch rake rubocop<CR>
-map <Leader>rs :call RunCurrentSpecFile()<CR>
-map <Leader>rn :call RunNearestSpec()<CR>
-map <Leader>rl :call RunLastSpec()<CR>
-map <Leader>ra :call RunAllSpecs()<CR>
-
-let g:netrw_banner       = 0
-let g:netrw_liststyle    = 3
-let g:netrw_sort_options = 'i'
-
-" rails.vim
-autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
-:set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
-
-" vim-powerline.vim
-let g:Powerline_symbols='skwp'
-
-" Fugitive
-nmap <leader>gb :Gblame<CR>
-nmap <leader>gs :Gstatus<CR>
-nmap <leader>gd :Gdiff<CR>
-nmap <leader>gl :Glog<CR>
-nmap <leader>gc :Gcommit<CR>
-nmap <leader>gp :Git push<CR>
-
-"vim-javascript
-let javascript_enable_domhtmlcss=1
-
-" Gist
-let g:gist_clip_command = 'pbcopy'
-let g:gist_detect_filetype = 1
-let g:gist_open_browser_after_post = 1
-let g:gist_post_private = 1
-
-"Vim autoformat
-noremap <F3> :Autoformat<CR><CR>
+call LightBackground()

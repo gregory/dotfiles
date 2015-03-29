@@ -20,7 +20,7 @@
 	excludesfile = /Users/metakungfu/.gitignore
   editor = vim
   autocrlf = input
-  pager = less -r
+  pager = less -MN
 [apply]
   whitespace = nowarn
 [format]
@@ -30,7 +30,7 @@
 [mergetool]
   keepBackup = false
 [push]
-	default = upstream
+  default = upstream
 [pull]
   rebase = true
 [difftool "sourcetree"]
