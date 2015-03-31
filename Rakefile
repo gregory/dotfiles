@@ -5,6 +5,8 @@ require 'erb'
 desc "install the dot files into user's home directory"
 task :install do
   `bower install selecta`
+  `curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+      https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim`
 
   replace_all = false
   files = Dir['*'] - %w[Rakefile README.md LICENSE"]

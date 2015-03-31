@@ -53,6 +53,7 @@ let mapleader="," " change the mapleader from \ to ,
 " Pimping vim
 "
 set autoindent                 " always set autoindenting on
+set autowrite
 set backspace=indent,eol,start " allow backspacing over everything in insert mode
 set colorcolumn=90
 set copyindent                 " copy the previous indentation on autoindenting
@@ -77,7 +78,7 @@ set nowrap                     " don't wrap lines
 set nowritebackup
 set pastetoggle=<leader>p
 set scrolloff=3
-set shell=bash
+set shell=zsh
 set shiftround                 " use multiple of shiftwidth when indenting with '<' and '>'
 set shiftwidth=2               " number of spaces to use for autoindenting
 set showcmd                    " Display last commands
@@ -227,6 +228,7 @@ function! LightBackground()
   let Mysyn=&syntax
   set background=light
   colorscheme solarized
+  hi Normal ctermfg=black ctermbg=white
   hi IndentGuidesEven ctermbg=280
   hi IndentGuidesOdd  ctermbg=NONE
   exe "set syntax=" . Mysyn
@@ -234,7 +236,8 @@ endfunction
 
 function! DarkBackground()
   let Mysyn=&syntax
-  colorscheme kolor
+  set background=dark
+  colorscheme solarized
   hi IndentGuidesEven ctermbg=280
   hi IndentGuidesOdd  ctermbg=NONE
   exe "set syntax=" . Mysyn
@@ -300,7 +303,7 @@ vmap <Enter> <Plug>(EasyAlign)
 
 nnoremap j gj
 nnoremap k gk
-nnoremap <leader>hl :if (hlstate%2 == 0) \| nohlsearch \| else \| set hlsearch \| endif \| let hlstate=hlstate+1<cr>
+nnoremap s :if (hlstate%2 == 0) \| nohlsearch \| else \| set hlsearch \| endif \| let hlstate=hlstate+1<cr>
 
 " easy motion
 map / <Plug>(easymotion-sn)
@@ -337,8 +340,8 @@ nnoremap fim :call SelectaFile("app/models")<cr>
 nnoremap fih :call SelectaFile("app/helpers")<cr>
 nnoremap fil :call SelectaFile("lib")<cr>
 nnoremap fip :call SelectaFile("public")<cr>
-nnoremap fis :call SelectaFile("public/stylesheets")<cr>
-nnoremap fif :call SelectaFile("features")<cr>
+nnoremap fia :call SelectaFile("app/assets")<cr>
+nnoremap fis :call SelectaFile("spec")<cr>
 nnoremap <c-g> :call SelectaIdentifier()<cr>
 
 nmap mv :call RenameFile()<cr>
@@ -373,4 +376,4 @@ map <leader>t :tabe <CR>
 
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
-call LightBackground()
+call DarkBackground()
