@@ -45,6 +45,7 @@ Plug 'ervandew/snipmate.vim'
 "The Theme
 Plug 'altercation/vim-colors-solarized'
 Plug 'zeis/vim-kolor'
+Plug 't9md/vim-choosewin'
 call plug#end()
 
 let mapleader="," " change the mapleader from \ to ,
@@ -161,6 +162,9 @@ let g:indent_guides_color_change_percent = 80
 
 let g:undotree_SetFocusWhenToggle = 1
 
+" choosewin
+"
+let g:choosewin_overlay_enable = 1
 " Custom Functions
 
 let ignore = [".git", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
@@ -263,6 +267,9 @@ autocmd FileType ruby setlocal tabstop=2
 autocmd FileType ruby setlocal shiftwidth=2
 autocmd FileType ruby setlocal softtabstop=2
 autocmd FileType ruby setlocal commentstring=#\ %s
+autocmd FileType ruby noremap view :Eview<CR>
+autocmd FileType ruby noremap cont :Econtroller<CR>
+autocmd FileType ruby noremap test :A<CR>
 autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
 
 "set autowriteall "save file when buffer switched
@@ -277,6 +284,10 @@ autocmd FilterWritePre     * :silent! keepjump call TrimWhiteSpace()
 autocmd BufWritePre        * :silent! keepjump call TrimWhiteSpace()
 autocmd BufLeave,FocusLost * :silent! wall
 
+" Abbreviations/aliases
+"
+abbrev bp binding.pry
+
 " Mappings
 
 nnoremap <Leader>rr :Dispatch rake rubocop<CR>
@@ -290,8 +301,11 @@ nmap <leader>gb :Gblame<CR>
 nmap <leader>gs :Gstatus<CR>
 nmap <leader>gd :Gdiff<CR>
 nmap <leader>gl :Glog<CR>
-nmap <leader>gc :Gcommit<CR>
+nmap <leader>gco :Gcommit<CR>
+nmap <leader>gr :Git reset HEAD %<CR>
+nmap <leader>gc :Git checkout --  %<CR>
 nmap <leader>gp :Git push<CR>
+nnoremap rm :Git rm %<CR>
 nnoremap B ^
 nnoremap E $
 
@@ -301,10 +315,15 @@ map <Leader>n :NERDTreeFind<CR>
 " easy align
 vmap <Enter> <Plug>(EasyAlign)
 
+" choose win
+"
+nmap - <Plug>(choosewin)
+
 nnoremap j gj
 nnoremap k gk
 nnoremap s :if (hlstate%2 == 0) \| nohlsearch \| else \| set hlsearch \| endif \| let hlstate=hlstate+1<cr>
 
+nmap <Enter>  zz
 " easy motion
 map / <Plug>(easymotion-sn)
 omap / <Plug>(easymotion-tn)
@@ -328,7 +347,8 @@ noremap <F5> :call DarkBackground()<CR>
 nnoremap <backspace> :UndotreeToggle<cr>
 nnoremap U <C-r>
 " ma to mark position to a, mma to recover
-nmap mm `
+nmap ` gg
+nnoremap g `
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
