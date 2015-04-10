@@ -348,7 +348,7 @@ nnoremap <backspace> :UndotreeToggle<cr>
 nnoremap U <C-r>
 " ma to mark position to a, mma to recover
 nmap ` gg
-nnoremap g `
+nnoremap M `
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
