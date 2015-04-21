@@ -75,7 +75,6 @@ set nobackup
 set noerrorbells               " don't beep
 set nonumber                   " hide line numbers
 set noswapfile                 " Don't create swap file
-set nowrap                     " don't wrap lines
 set nowritebackup
 set pastetoggle=<leader>p
 set scrolloff=3
@@ -93,6 +92,7 @@ set softtabstop=2
 set splitbelow                 "split below the buffer
 set splitright                 "split on the right of the buffer
 set tabstop=2                  " a tab is 2 spaces
+set textwidth=90
 set title                      " change the terminal's title
 set ts=2 sw=2 et
 set ttyfast                    " fast scrolling
@@ -373,8 +373,6 @@ nmap <silent> <leader>ev :e $MYVIMRC<CR>
 imap fd <ESC>:w<CR>
 nnoremap fd <ESC>:w<CR>
 
-map <Leader>w <C-w>
-
 " save the buffer before switching from insert mode
 inoremap <C-j> <ESC>:silent! w<CR><C-w>j
 inoremap <C-k> <ESC>:silent! w<CR><C-w>k
@@ -384,6 +382,7 @@ nnoremap <C-j> <ESC>:silent! w<CR><C-w>j
 nnoremap <C-k> <ESC>:silent! w<CR><C-w>k
 nnoremap <C-h> <ESC>:silent! w<CR><C-w>h
 nnoremap <C-l> <ESC>:silent! w<CR><C-w>l
+nnoremap <C-r> <C-w><C-r>
 
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
@@ -396,4 +395,4 @@ map <leader>t :tabe <CR>
 
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
-call DarkBackground()
+call LightBackground()
