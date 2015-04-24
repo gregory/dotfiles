@@ -317,7 +317,8 @@ vmap <Enter> <Plug>(EasyAlign)
 
 " choose win
 "
-nmap - <Plug>(choosewin)
+nmap <F4> <Plug>(choosewin)
+imap <F4> <ESC>:silent! w<cr><Plug>(choosewin)
 
 nnoremap j gj
 nnoremap k gk
@@ -337,11 +338,11 @@ nmap <leader>gj <plug>(signify-next-hunk)
 nmap <leader>gk <plug>(signify-prev-hunk)
 
 "Vim autoformat
-noremap <F3> :Autoformat<CR><CR>
+noremap <F6> :Autoformat<CR><CR>
 
 " Invert background
-noremap <F6> :call LightBackground()<CR>
-noremap <F5> :call DarkBackground()<CR>
+noremap <F1> :call LightBackground()<CR>
+noremap <F2> :call DarkBackground()<CR>
 
 " Toggle the undo tree
 nnoremap <backspace> :UndotreeToggle<cr>
@@ -382,7 +383,7 @@ nnoremap <C-j> <ESC>:silent! w<CR><C-w>j
 nnoremap <C-k> <ESC>:silent! w<CR><C-w>k
 nnoremap <C-h> <ESC>:silent! w<CR><C-w>h
 nnoremap <C-l> <ESC>:silent! w<CR><C-w>l
-nnoremap <C-r> <C-w><C-r>
+nnoremap <F3> <C-w><C-r>
 
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
