@@ -4,7 +4,8 @@ require 'erb'
 
 desc "install the dot files into user's home directory"
 task :install do
-  `bower install selecta`
+  `brew install selecta`
+  `brew install reattach-to-user-namespace`
   `curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim`
 

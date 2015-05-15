@@ -374,6 +374,8 @@ nmap <silent> <leader>ev :e $MYVIMRC<CR>
 imap fd <ESC>:w<CR>
 nnoremap fd <ESC>:w<CR>
 
+inoremap <leader>w <c-w>
+nnoremap <leader>w <c-w>
 " save the buffer before switching from insert mode
 inoremap <C-j> <ESC>:silent! w<CR><C-w>j
 inoremap <C-k> <ESC>:silent! w<CR><C-w>k
