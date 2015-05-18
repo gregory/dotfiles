@@ -76,7 +76,6 @@ set noerrorbells               " don't beep
 set nonumber                   " hide line numbers
 set noswapfile                 " Don't create swap file
 set nowritebackup
-set pastetoggle=<leader>p
 set scrolloff=3
 set shell=zsh
 set shiftround                 " use multiple of shiftwidth when indenting with '<' and '>'
@@ -247,6 +246,10 @@ function! DarkBackground()
   exe "set syntax=" . Mysyn
 endfunction
 
+hi link EasyMotionTarget ErrorMsg
+hi EasyMotionTarget2First ctermbg=280
+hi link EasyMotionShade  Comment
+
 " Link function to commands
 command! GdiffInTab tabedit %|vsplit|Gdiff
 
@@ -317,14 +320,16 @@ vmap <Enter> <Plug>(EasyAlign)
 
 " choose win
 "
-nmap <F4> <Plug>(choosewin)
-imap <F4> <ESC>:silent! w<cr><Plug>(choosewin)
+map <space> <ESC>:silent! w<CR><Plug>(choosewin)
+
+map <leader>p :set paste<CR>i<esc>"*]p:set nopaste<cr>"
+imap <leader>p <ESC>:set paste<CR>i<esc>"*]p:set nopaste<cr>"
 
 nnoremap j gj
 nnoremap k gk
-nnoremap s :if (hlstate%2 == 0) \| nohlsearch \| else \| set hlsearch \| endif \| let hlstate=hlstate+1<cr>
+nnoremap s :set hlsearch!<cr>
 
-nmap <Enter>  zz
+nmap -  zz
 " easy motion
 map / <Plug>(easymotion-sn)
 omap / <Plug>(easymotion-tn)
@@ -353,7 +358,7 @@ nnoremap M `
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
-nnoremap <space> :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
+nnoremap <enter> :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
 "nnoremap <space> :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
 nnoremap fiv :call SelectaFile("app/views")<cr>
 nnoremap fic :call SelectaFile("app/controllers")<cr>
@@ -377,15 +382,15 @@ nnoremap fd <ESC>:w<CR>
 inoremap <leader>w <c-w>
 nnoremap <leader>w <c-w>
 " save the buffer before switching from insert mode
-inoremap <C-j> <ESC>:silent! w<CR><C-w>j
-inoremap <C-k> <ESC>:silent! w<CR><C-w>k
-inoremap <C-h> <ESC>:silent! w<CR><C-w>h
-inoremap <C-l> <ESC>:silent! w<CR><C-w>l
-nnoremap <C-j> <ESC>:silent! w<CR><C-w>j
-nnoremap <C-k> <ESC>:silent! w<CR><C-w>k
-nnoremap <C-h> <ESC>:silent! w<CR><C-w>h
-nnoremap <C-l> <ESC>:silent! w<CR><C-w>l
-nnoremap <F3> <C-w><C-r>
+"inoremap <C-j> <ESC>:silent! w<CR><C-w>j
+"inoremap <C-k> <ESC>:silent! w<CR><C-w>k
+inoremap <C-h> <ESC>:silent! w<CR>u
+inoremap <C-l> <ESC>:silent! w<CR><C-r>
+nnoremap <C-j> <c-d>
+nnoremap <C-k> <c-u>
+nnoremap <C-h> u
+nnoremap <C-l> <C-r>
+"nnoremap <F3> <C-w><C-r>
 
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
