@@ -17,6 +17,8 @@ Plug 'mbbill/undotree' " Display your undo history in a graph
 Plug 'junegunn/vim-easy-align' " easy align things
 Plug 'Chiel92/vim-autoformat' "  code formatting
 Plug 'tpope/vim-fugitive' " Git tools
+"Plug 'jgdavey/tslime.vim'
+Plug 'epeli/slimux'
 Plug 'mhinz/vim-signify' " show modified lines in gutter
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-dispatch' " asynchronous build and test dispatche
@@ -293,6 +295,7 @@ abbrev bp binding.pry
 
 " Mappings
 
+nnoremap Q <Nop>
 nnoremap <Leader>rr :Dispatch rake rubocop<CR>
 nnoremap <Leader>rs :call RunCurrentSpecFile()<CR>
 nnoremap <Leader>rn :call RunNearestSpec()<CR>
@@ -307,7 +310,7 @@ nmap <leader>gl :Glog<CR>
 nmap <leader>gco :Gcommit<CR>
 nmap <leader>gr :Git reset HEAD %<CR>
 nmap <leader>gc :Git checkout --  %<CR>
-nmap <leader>gp :Git push<CR>
+nmap <leader>gp :Git push -f<CR>
 nnoremap rm :Git rm %<CR>
 nnoremap B ^
 nnoremap E $
@@ -330,6 +333,9 @@ nnoremap k gk
 nnoremap s :set hlsearch!<cr>
 
 nmap -  zz
+map <Leader>r :SlimuxShellLast<CR>
+map <leader>t :SlimuxShellPrompt<CR>
+
 " easy motion
 map / <Plug>(easymotion-sn)
 omap / <Plug>(easymotion-tn)
@@ -384,12 +390,12 @@ nnoremap <leader>w <c-w>
 " save the buffer before switching from insert mode
 "inoremap <C-j> <ESC>:silent! w<CR><C-w>j
 "inoremap <C-k> <ESC>:silent! w<CR><C-w>k
-inoremap <C-h> <ESC>:silent! w<CR>u
-inoremap <C-l> <ESC>:silent! w<CR><C-r>
+"inoremap <C-h> <ESC>:silent! w<CR>u
+"inoremap <C-l> <ESC>:silent! w<CR><C-r>
 nnoremap <C-j> <c-d>
 nnoremap <C-k> <c-u>
-nnoremap <C-h> u
-nnoremap <C-l> <C-r>
+"nnoremap <C-h> u
+"nnoremap <C-l> <C-r>
 "nnoremap <F3> <C-w><C-r>
 
 nnoremap <down> :cn<CR>
@@ -399,7 +405,6 @@ nnoremap <left> :cclose<CR>
 
 map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
-map <leader>t :tabe <CR>
 
 nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
