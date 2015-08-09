@@ -30,7 +30,7 @@
 [mergetool]
   keepBackup = false
 [push]
-  default = upstream
+  default = simple
 [pull]
   rebase = true
 [difftool "sourcetree"]
