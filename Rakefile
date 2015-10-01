@@ -8,8 +8,7 @@ task :lunchtime do
 end
 
 task :install do
-  `brew install selecta`
-  `brew install reattach-to-user-namespace`
+  #`brew install reattach-to-user-namespace`
   `curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim`
 
@@ -24,14 +23,19 @@ task :install do
         replace_file(file)
       else
         print "overwrite ~/.#{file.sub(/\.erb$/, '')}? [ynaq] "
-        case $stdin.gets.chomp
-        when 'a'
-          replace_all = true
-          replace_file(file)
-        when 'y'
-          replace_file(file)
-        when 'q'
-          exit
+        gets = $stdin.gets
+        if gets
+          case gets.chomp
+          when 'a'
+            replace_all = true
+            replace_file(file)
+          when 'y'
+            replace_file(file)
+          when 'q'
+            exit
+          else
+            puts "skipping ~/.#{file.sub(/\.erb$/, '')}"
+          end
         else
           puts "skipping ~/.#{file.sub(/\.erb$/, '')}"
         end
