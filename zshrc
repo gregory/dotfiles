@@ -55,7 +55,6 @@ export dirstacksize=5
 plugins=(git bundler brew gem heroku rails)
 
 source $ZSH/oh-my-zsh.sh
-source ~/.bin/tmuxinator.zsh
 
 # User configuration
 

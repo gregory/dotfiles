@@ -12,11 +12,11 @@ task :install do
   `curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim`
 
-  replace_all = false
+  replace_all = ENV['REPLACE_ALL'] || false
   files = Dir['*'] - %w[Rakefile README.md LICENSE"]
   files.each do |file|
     system %Q{mkdir -p "$HOME/.#{File.dirname(file)}"} if file =~ /\//
-    if File.exist?(File.join(ENV['HOME'], ".#{file.sub(/\.erb$/, '')}"))
+    if File.exist?(File.join(ENV['PWD'], "#{file.sub(/\.erb$/, '')}"))
       if File.identical? file, File.join(ENV['HOME'], ".#{file.sub(/\.erb$/, '')}")
         puts "identical ~/.#{file.sub(/\.erb$/, '')}"
       elsif replace_all
@@ -43,7 +43,10 @@ task :install do
       link_file(file)
     end
   end
-  system %Q{vim -c "silent! PluginInstall" -c "qa!" ~/.vimrc}
+end
+
+task :vimify do
+  system %Q{vim -c "silent! PlugInstall" -c "qa!" ~/.vimrc}
 end
 
 def replace_file(file)
@@ -62,6 +65,6 @@ def link_file(file)
     system %Q{cp "$PWD/#{file}" "$HOME/.#{file}"}
   else
     puts "linking ~/.#{file}"
-    system %Q{ln -s "$PWD/#{file}" "$HOME/.#{file}"}
+    system %Q{ln -fs "$PWD/#{file}" "$HOME/.#{file}"}
   end
 end
