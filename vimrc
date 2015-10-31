@@ -123,7 +123,8 @@ let g:signify_sign_change = '~'
 
 " ctrl-space
 "
-let g:ctrlspace_default_mapping_key ='<tab>'
+let g:CtrlSpaceDefaultMappingKey ='<tab>'
+"nnoremap <silent><enter> :CtrlSpace O<CR>
 
 " NERDTree
 let g:NERDTreeMinimalUI = 1
@@ -275,7 +276,7 @@ endfunction
 function! LightBackground()
   let Mysyn=&syntax
   set background=light
-  colorscheme solarized
+  silent! colorscheme solarized
   hi Normal ctermfg=black ctermbg=white
   hi IndentGuidesEven ctermbg=280
   hi IndentGuidesOdd  ctermbg=NONE
@@ -285,10 +286,23 @@ endfunction
 function! DarkBackground()
   let Mysyn=&syntax
   set background=dark
-  colorscheme solarized
+  silent! colorscheme solarized
   hi IndentGuidesEven ctermbg=280
   hi IndentGuidesOdd  ctermbg=NONE
   exe "set syntax=" . Mysyn
+endfunction
+
+"" Zoom / Restore window.
+function! ZoomToggle() abort
+    if exists('t:zoomed') && t:zoomed
+        execute t:zoom_winrestcmd
+        let t:zoomed = 0
+    else
+        let t:zoom_winrestcmd = winrestcmd()
+        resize
+        vertical resize
+        let t:zoomed = 1
+    endif
 endfunction
 
 hi link EasyMotionTarget ErrorMsg
@@ -339,6 +353,7 @@ abbrev bp binding.pry
 " Mappings
 
 nnoremap Q <Nop>
+nnoremap <silent><C-o> :call ZoomToggle()<CR>
 nnoremap <Leader>rr :Dispatch rake rubocop<CR>
 nnoremap <Leader>rs :call RunCurrentSpecFile()<CR>
 nnoremap <Leader>rn :call RunNearestSpec()<CR>
@@ -405,21 +420,6 @@ nnoremap U <C-r>
 nmap ` gg
 nnoremap M `
 
-" Zoom / Restore window.
-function! s:ZoomToggle() abort
-    if exists('t:zoomed') && t:zoomed
-        execute t:zoom_winrestcmd
-        let t:zoomed = 0
-    else
-        let t:zoom_winrestcmd = winrestcmd()
-        resize
-        vertical resize
-        let t:zoomed = 1
-    endif
-endfunction
-command! ZoomToggle call s:ZoomToggle()
-nnoremap <silent> <leader>wz :ZoomToggle<CR>
-
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
 nnoremap <enter> :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
@@ -435,6 +435,7 @@ nnoremap fis :call SelectaFile("spec")<cr>
 nnoremap <c-g> :call SelectaIdentifier()<cr>
 
 nmap mv :call RenameFile()<cr>
+nnoremap cd :cd %:p:h<CR>:pwd<CR>
 
 " quick edit/reload vim file
 nmap <silent> <leader>ev :e $MYVIMRC<CR>
@@ -463,7 +464,5 @@ nnoremap <left> :cclose<CR>
 
 map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
-
-nnoremap ,cd :cd %:p:h<CR>:pwd<CR>
 
 call LightBackground()
