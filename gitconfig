@@ -10,6 +10,8 @@
   lw = whatchanged -p --abbrev-commit --pretty=medium
 	pr = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
 	pr-clean = "!git for-each-ref refs/heads/pr/* --format=\"%(refname)\" | while read ref ; do branch=${ref#refs/heads/} ; git branch -D $branch ; done"
+  b = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
+  bl ="!git for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'|less"
 [color]
   ui = true
   interactive = auto
@@ -45,5 +47,4 @@
 	clean = git media clean %f
 	smudge = git media smudge %f
 	required = true
-[credential]
-	helper = osxkeychain
+
