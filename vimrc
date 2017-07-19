@@ -23,6 +23,7 @@ Plug 'mhinz/vim-signify' " show modified lines in gutter
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-dispatch' " asynchronous build and test dispatche
 Plug 'bling/vim-airline' "Bottom bar info
+Plug 'vim-airline/vim-airline-themes'
 Plug 'tpope/vim-endwise' "Add closing arg (end etc)
 
 " Navigation
@@ -42,7 +43,13 @@ Plug 'tpope/vim-markdown'
 Plug 'wavded/vim-stylus',       { 'for': 'stylus'}
 Plug 'digitaltoad/vim-jade'
 Plug 'kchmck/vim-coffee-script'
-Plug 'ervandew/snipmate.vim'
+Plug 'cmather/vim-meteor-snippets'
+Plug 'garbas/vim-snipmate'
+Plug 'honza/vim-snippets'
+Plug 'vim-addon-mw-utils'
+Plug 'marcweber/vim-addon-mw-utils'
+Plug 'tomtom/tlib_vim'
+Plug 'Slava/vim-spacebars'
 
 "The Theme
 Plug 'altercation/vim-colors-solarized'
@@ -110,6 +117,7 @@ set wrap                       " wrap line when too long
 " rails.vim
 :set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
+:set runtimepath+=~/dotfiles/vim/plugged/,~/dotfiles/vim/snippets/
 " vim-rspec
 "let g:rspec_command = "!zeus rspec {spec}"
 "let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
@@ -138,6 +146,7 @@ let g:EasyMotion_startofline = 0
 
 "vim-airline
 let g:airline#extensions#hunks#enabled=0
+let g:airline#extensions#tabline#enabled = 1
 
 "vim-javascript
 let javascript_enable_domhtmlcss=1
