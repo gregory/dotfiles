@@ -12,17 +12,15 @@ export GREP_OPTIONS='--color=auto -n' GREP_COLOR='7;35'
 export ZEUSSOCK=/tmp/zeus.sock
 if [ -f ~/.git-prompt.sh ]; then
   source ~/.git-prompt.sh
-  export PS1='\[\e[00;37m\]\u\[\e[01;37m\]:`[[ $(git status 2> /dev/null | head -n2 | tail -n1) != "# Changes to be committed:" ]] && echo "\[\e[31m\]" || echo "\[\e[33m\]"``[[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working directory clean" ]] || echo "\[\e[32m\]"`$(__git_ps1 "(%s)\[\e[00m\]")\[\e[01;34m\]\w\[\e[00m\]\$ '
+  export PS1='\h \w$(__git_ps1 "(%s)") \$ '
 fi
 
 # Fix tmux vim color
-# brew install source-highlight
-export LESSPIPE=`which src-hilite-lesspipe.sh`
-export LESSOPEN="| ${LESSPIPE} %s"
-export LESS='-RNf'
+export LESS='-N'
+alias more='less'
 
 alias bower='noglob bower'
-alias tmux="TERM=screen-256color-bce tmux"
+alias tmux="TERM=screen-256color-bce $HOME/dotfiles/bin/tmux"
 
 # find a file and less it
 function lgrep {
@@ -66,5 +64,9 @@ function show {
 
 # go to working dir
 function cdw {
-  pushd $(find $(echo $WORK_PATHS | tr ':' ' ') -maxdepth 1 -type d | selecta)
+  pushd $(find $(echo $WORK_PATHS | tr ':' ' ') -maxdepth 3 -type d | selecta)
+}
+
+function cdpc {
+  eval "$(docker-machine env $1)"
 }

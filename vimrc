@@ -5,56 +5,69 @@ call plug#begin('~/.vim/plugged')
 " Plugins
 "-------------------------------------------
 
-" Languages
-Plug 'tpope/vim-rails', { 'for': 'ruby' } "Rails tools
-Plug 'thoughtbot/vim-rspec', { 'for': 'ruby' } "Rspec tools
-Plug 'fatih/vim-go', { 'for': 'go' }
-Plug 'jbgutierrez/vim-partial', {'for': 'ruby' } " extract file to partial
-
 " Coding Tools
-Plug 'ervandew/supertab'
 Plug 'mbbill/undotree' " Display your undo history in a graph
-Plug 'junegunn/vim-easy-align' " easy align things
-Plug 'Chiel92/vim-autoformat' "  code formatting
 Plug 'tpope/vim-fugitive' " Git tools
 "Plug 'jgdavey/tslime.vim'
 Plug 'epeli/slimux'
 Plug 'mhinz/vim-signify' " show modified lines in gutter
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-dispatch' " asynchronous build and test dispatche
-Plug 'bling/vim-airline' "Bottom bar info
-Plug 'vim-airline/vim-airline-themes'
+Plug 'stefandtw/quickfix-reflector.vim' "Replace text from the copen pane
+Plug 'editorconfig/editorconfig-vim'
+Plug 'jiangmiao/auto-pairs'
+Plug 'moll/vim-node'
+
+"Code Completion
+"Plug 'ervandew/supertab'
+Plug 'Shougo/neocomplete.vim'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+Plug 'cmather/vim-meteor-snippets'
 Plug 'tpope/vim-endwise' "Add closing arg (end etc)
+"Plug 'Chiel92/vim-autoformat' "  code formatting
 
 " Navigation
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTreeFind']}
 Plug 'Lokaltog/vim-easymotion'
 Plug 'gorkunov/smartpairs.vim'
 Plug 'szw/vim-ctrlspace'
+Plug 'kshenoy/vim-signature' "add and navigate to marks
+Plug 't9md/vim-choosewin'
 
 " Syntax
-Plug 'scrooloose/syntastic' " Syntax check for languages
+Plug 'tpope/vim-rails', { 'for': 'ruby' } "Rails tools
+Plug 'thoughtbot/vim-rspec', { 'for': 'ruby' } "Rspec tools
+Plug 'fatih/vim-go', { 'for': 'go' }
+Plug 'jbgutierrez/vim-partial', {'for': 'ruby' } " extract file to partial
+Plug 'groenewege/vim-less', {'for': 'less'}
 Plug 'nathanaelkane/vim-indent-guides' "display indent guide
 Plug 'tpope/vim-haml',          { 'for': 'haml' }
 Plug 'slim-template/vim-slim',  { 'for': 'slim' }
 Plug 'vim-ruby/vim-ruby',       { 'for': 'ruby' }
 Plug 'pangloss/vim-javascript', { 'for': 'javascript' }
+Plug 'mustache/vim-mustache-handlebars', { 'for': 'html' }
 Plug 'tpope/vim-markdown'
 Plug 'wavded/vim-stylus',       { 'for': 'stylus'}
 Plug 'digitaltoad/vim-jade'
 Plug 'kchmck/vim-coffee-script'
-Plug 'cmather/vim-meteor-snippets'
-Plug 'garbas/vim-snipmate'
-Plug 'honza/vim-snippets'
 Plug 'vim-addon-mw-utils'
 Plug 'marcweber/vim-addon-mw-utils'
 Plug 'tomtom/tlib_vim'
-Plug 'Slava/vim-spacebars'
+Plug 'Slava/vim-spacebars', {'for': 'html'}
+
+"Formaters & linters
+Plug 'w0rp/ale'
+Plug 'junegunn/vim-easy-align' " easy align things
+Plug 'prettier/vim-prettier', {
+      \ 'do': 'npm install -g',
+      \ 'for':    ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql'] }
 
 "The Theme
 Plug 'altercation/vim-colors-solarized'
 Plug 'zeis/vim-kolor'
-Plug 't9md/vim-choosewin'
+Plug 'vim-airline/vim-airline' "Bottom bar info
+Plug 'vim-airline/vim-airline-themes'
 call plug#end()
 
 let mapleader="," " change the mapleader from \ to ,
@@ -64,9 +77,8 @@ let mapleader="," " change the mapleader from \ to ,
 "
 set autoindent                 " always set autoindenting on
 set autowrite
-set autoread                   " refresh unchanged file
 set backspace=indent,eol,start " allow backspacing over everything in insert mode
-set colorcolumn=90
+set colorcolumn=80
 set copyindent                 " copy the previous indentation on autoindenting
 set cursorline
 set encoding=utf-8
@@ -76,14 +88,14 @@ set hidden
 set hlsearch                   " highlight matches
 set ignorecase                 " ignore case when searching
 set incsearch                  " show search matches as you type
-set laststatus=2               " Show the status line all the time
+set laststatus=1               " Show the status line all the time
 set lazyredraw                 " tells Vim not to bother redrawing during these scenarios, leading to faster macros
 set linebreak                  " tells Vim to only wrap at a character in the breakat option
 set listchars=tab:>.,trail:.,extends:#,nbsp:.
 set mouse=a
 set nobackup
 set noerrorbells               " don't beep
-"set nolist
+"set nolist                     " list disables linebreak
 set nonumber                   " hide line numbers
 set noswapfile                 " Don't create swap file
 set nowritebackup
@@ -102,7 +114,7 @@ set softtabstop=2
 set splitbelow                 "split below the buffer
 set splitright                 "split on the right of the buffer
 set tabstop=2                  " a tab is 2 spaces
-set textwidth=90
+set textwidth=80
 set title                      " change the terminal's title
 set ts=2 sw=2 et
 set ttyfast                    " fast scrolling
@@ -112,12 +124,26 @@ set visualbell                 " don't beep
 set wildignore=*.swp,*.bak,*.pyc,*.class
 set wildmenu                   " Enhanced command line completion
 set wildmode=list:longest      " Complete files like a shell
-set wrap                       " wrap line when too long
+"set wrap                       " wrap line when too long
+set formatoptions=l
+
+" check file change every 4 seconds ('CursorHold') and reload the buffer upon detecting change
+set autoread                   " refresh unchanged file
+au CursorHold,FocusLost * checktime " checkfile when cursor moved
 
 " rails.vim
-:set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
+set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
-:set runtimepath+=~/dotfiles/vim/plugged/,~/dotfiles/vim/snippets/
+set runtimepath+=~/dotfiles/vim/plugged/,~/dotfiles/vim/snippets/
+set path+=~/src/github.com/**
+"utilsnip
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<tab>"
+let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
+"smartpairs
+let g:smartpairs_uber_mode = 1
+"autopair
+let g:AutoPairsFlyMode = 1
 " vim-rspec
 "let g:rspec_command = "!zeus rspec {spec}"
 "let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
@@ -129,24 +155,102 @@ let g:rspec_command = "Dispatch rspec -f -d -c {spec}"
 let g:signify_vcs_list = [ 'git' ]
 let g:signify_sign_change = '~'
 
+noremap % v%
+map vib viB
+map cib ciB
+map yib yiB
+map Gf :e#<CR>
+
+nmap ( [
+"nmap ) ]
+"omap ( [
+"omap ) ]
+"xmap ( [
+"xmap ) ]
 " ctrl-space
 "
 let g:CtrlSpaceDefaultMappingKey ='<tab>'
+let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
+let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
+let g:CtrlSpaceSaveWorkspaceOnExit = 1
 "nnoremap <silent><enter> :CtrlSpace O<CR>
 
 " NERDTree
 let g:NERDTreeMinimalUI = 1
 let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
-let g:NERDTreeWinSize = 20
+let g:NERDTreeWinSize = 40
 let g:NERDTreeDirArrows = 0
 let g:NERDTreeQuitOnOpen = 1
 
+set statusline=1
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
+
+"Note: This option must be set in .vimrc(_vimrc).  NOT IN .gvimrc(_gvimrc)!
+" Disable AutoComplPop.
+let g:acp_enableAtStartup = 0
+" Use neocomplete.
+let g:neocomplete#enable_at_startup = 1
+" Use smartcase.
+let g:neocomplete#enable_smart_case = 1
+" Set minimum syntax keyword length.
+  let g:neocomplete#sources#syntax#min_keyword_length = 2
+
+" Define dictionary.
+let g:neocomplete#sources#dictionary#dictionaries = {
+    \ 'default' : '',
+    \ 'vimshell' : $HOME.'/.vimshell_hist',
+    \ 'scheme' : $HOME.'/.gosh_completions'
+        \ }
+" Recommended key-mappings.
+" <CR>: close popup and save indent.
+inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+function! s:my_cr_function()
+  "return (pumvisible() ? "\<C-y>" : "" ) . "\<CR>"
+  " For no inserting <CR> key.
+  return pumvisible() ? "\<C-y>" : "\<CR>"
+endfunction
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" <C-h>, <BS>: close popup and delete backword char.
+inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+" Close popup by <Space>.
+inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
+"
+let g:neocomplete#enable_auto_select = 1
+
+" Enable heavy omni completion.
+if !exists('g:neocomplete#sources#omni#input_patterns')
+  let g:neocomplete#sources#omni#input_patterns = {}
+endif
+"let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
+"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+
+"" syntastic
+"let g:syntastic_mode_map = { 'passive_filetypes': ['html'] }
+"let g:syntastic_always_populate_loc_list = 1
+"let g:syntastic_auto_loc_list = 1
+"let g:syntastic_check_on_open = 1
+"let g:syntastic_check_on_wq = 0
+
+"let g:syntastic_html_tidy_ignore_errors = [
+ "\ 'plain text isn''t allowed in <head> elements',
+ "\ '<template> is not recognized!',
+ "\ 'discarding unexpected <template>',
+ "\ 'discarding unexpected </template>'
+ "\ ]
+
 " easymotion
 let g:EasyMotion_startofline = 0
+let g:EasyMotion_smartcase = 1
 
 "vim-airline
 let g:airline#extensions#hunks#enabled=0
-let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#ale#enabled = 1
+"let g:airline#extensions#tabline#enabled = 1
 
 "vim-javascript
 let javascript_enable_domhtmlcss=1
@@ -180,7 +284,7 @@ let g:undotree_SetFocusWhenToggle = 1
 let g:choosewin_overlay_enable = 1
 " Custom Functions
 
-let ignore = [".git", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
+let ignore = [".git", "node_modules","packages", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
 let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
 " Run a given vim command on the results of fuzzy selecting from a given shell
 " command. See usage below.
@@ -285,9 +389,9 @@ endfunction
 function! LightBackground()
   let Mysyn=&syntax
   set background=light
-  silent! colorscheme solarized
+  colorscheme solarized
   hi Normal ctermfg=black ctermbg=white
-  hi IndentGuidesEven ctermbg=280
+  hi IndentGuidesEven ctermbg=252
   hi IndentGuidesOdd  ctermbg=NONE
   exe "set syntax=" . Mysyn
 endfunction
@@ -295,7 +399,7 @@ endfunction
 function! DarkBackground()
   let Mysyn=&syntax
   set background=dark
-  silent! colorscheme solarized
+  colorscheme solarized
   hi IndentGuidesEven ctermbg=280
   hi IndentGuidesOdd  ctermbg=NONE
   exe "set syntax=" . Mysyn
@@ -325,6 +429,16 @@ command! GdiffInTab tabedit %|vsplit|Gdiff
 
 filetype plugin indent on         " Turn on file type detection.
 
+"set autowriteall "save file when buffer switched
+au! BufRead,BufNewFile     *.haml   set filetype=haml
+au! BufRead,BufNewFile     *.slim   set filetype=slim
+au! BufNewFile,BufReadPost *.styl   set filetype=stylus
+au! BufNewFile,BufReadPost *.stylus set filetype=stylus
+au! BufNewFile,BufReadPost *.builder set filetype=ruby
+au! BufNewFile,BufReadPost *.voxml set filetype=ruby
+autocmd BufNewFile,BufRead *.less set filetype=less
+au! BufRead,BufNewFile * set updatetime=2000 " set file diff checkevery 2 sec
+
 augroup AuNERDTreeCmd
   autocmd AuNERDTreeCmd VimEnter    * call s:CdIfDirectory(expand("<amatch>"))
   autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
@@ -341,19 +455,46 @@ autocmd FileType ruby setlocal commentstring=#\ %s
 autocmd FileType ruby noremap view :Eview<CR>
 autocmd FileType ruby noremap cont :Econtroller<CR>
 autocmd FileType ruby noremap test :A<CR>
+autocmd FileType slim set formatoptions-=t
+autocmd FileType slim set nolist
+
+autocmd FileType html,javascript set shiftwidth=2 tabstop=2 showtabline=2
+autocmd FileType html,javascript set nowrap nolist
+autocmd FileType html,javascript let g:indent_guides_start_level=1
+autocmd FileType html,javascript let g:indent_guides_guide_size=2
+
+autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+autocmd FileType less set omnifunc=csscomplete#CompleteCSS
+
+let g:prettier#autoformat = 0
+let g:prettier#config#trailing_comma = 'none'
+let g:prettier#config#bracket_spacing = 'true'
+let g:prettier#config#print_width = 80
+autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+"autocmd FileWritePre *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+
 autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
 
-"set autowriteall "save file when buffer switched
-au! BufRead,BufNewFile     *.haml   set filetype=haml
-au! BufRead,BufNewFile     *.slim   set filetype=slim
-au! BufNewFile,BufReadPost *.styl   set filetype=stylus
-au! BufNewFile,BufReadPost *.stylus set filetype=stylus
-
-autocmd FileWritePre       * :silent! keepjumps call TrimWhiteSpace()
+"autocmd FileWritePre       * :silent! keepjumps call TrimWhiteSpace()
 autocmd FileAppendPre      * :silent! keepjump call TrimWhiteSpace()
 autocmd FilterWritePre     * :silent! keepjump call TrimWhiteSpace()
 autocmd BufWritePre        * :silent! keepjump call TrimWhiteSpace()
 autocmd BufLeave,FocusLost * :silent! wall
+
+" NOTE: more events here: http://vimdoc.sourceforge.net/htmldoc/autocmd.html
+let term=$TERM
+if term == 'screen-256color'
+  autocmd VimEnter * silent !echo -ne "\033Ptmux;\033\033]1337;SetKeyLabel=F6=Format\a\033\\"
+  autocmd VimLeave * silent !echo -ne "\033Ptmux;\033\033]1337;SetKeyLabel=F6=F6\a\033\\"
+else
+  autocmd VimEnter * silent !echo -ne "\033]1337;SetKeyLabel=F6=Format\a"
+  autocmd VimLeave * silent !echo -ne "\033]1337;SetKeyLabel=F6=F6\a"
+endif
+noremap <F6> :Prettier<CR><CR>
 
 " Abbreviations/aliases
 "
@@ -386,17 +527,30 @@ map <Leader>m :NERDTreeToggle<CR>
 map <Leader>n :NERDTreeFind<CR>
 
 " easy align
-vmap <Enter> <Plug>(EasyAlign)
+augroup VCenterCursor
+  au!
+  au BufEnter,WinEnter,WinNew,VimResized *,*.*
+        \ let &scrolloff=winheight(win_getid())/2
+augroup END
+vmap <Enter> <Plug>(EasyAlign) VCenterCursor
 
 " choose win
 "
-map <space> <ESC>:silent! w<CR><Plug>(choosewin)
+"map <space> <ESC>:silent! w<CR><Plug>(choosewin)
+map <space> <ESC><Plug>(choosewin)
 
-map <leader>p :set paste<CR>i<esc>"*]p:set nopaste<cr>"
-imap <leader>p <ESC>:set paste<CR>i<esc>"*]p:set nopaste<cr>"
+set clipboard=unnamed
+"nmap <silent> <leader>p :r !pbpaste<CR>
+nmap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>
+nmap <silent> <leader>P :set paste<CR>:o<CR>"*p:set nopaste<CR>
+"imap <leader>p <ESC>:set paste<CR>"*]p:set nopaste<CR>i
+"map <leader>p :set paste<CR>i<esc>"*]p:set nopaste<cr>"
+"imap <leader>p <ESC>:set paste<CR>i<esc>"*]p:set nopaste<cr>"
 
-nnoremap j gj
-nnoremap k gk
+"nnoremap j gj
+"nnoremap k gk
+nnoremap j jzz
+nnoremap k kzz
 nnoremap s :set hlsearch!<cr>
 
 nmap -  zz
@@ -410,20 +564,18 @@ map <Leader>l <Plug>(easymotion-lineforward)
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
 map <Leader>h <Plug>(easymotion-linebackward)
+map  <Leader>f <Plug>(easymotion-bd-w)
+nmap <Leader>f <Plug>(easymotion-overwin-w)
 
 " signify
 nmap <leader>gj <plug>(signify-next-hunk)
 nmap <leader>gk <plug>(signify-prev-hunk)
-
-"Vim autoformat
-noremap <F6> :Autoformat<CR><CR>
-
 " Invert background
 noremap <F1> :call LightBackground()<CR>
 noremap <F2> :call DarkBackground()<CR>
 
 " Toggle the undo tree
-nnoremap <backspace> :UndotreeToggle<cr>
+nnoremap <C-u> :UndotreeToggle<cr>
 nnoremap U <C-r>
 " ma to mark position to a, mma to recover
 nmap ` gg
@@ -450,8 +602,17 @@ nnoremap cd :cd %:p:h<CR>:pwd<CR>
 nmap <silent> <leader>ev :e $MYVIMRC<CR>
 
 " Use fd to save
-imap fd <ESC>:w<CR>
-nnoremap fd <ESC>:w<CR>
+imap <silent> fd <ESC>:w<CR>:redraw!<CR>
+nnoremap <silent> fd <ESC>:w<CR>:redraw!<CR>
+cnoremap <silent> w<CR> <ESC>:w<CR>:redraw!<CR>
+
+"ino " ""<left>
+"ino ' ''<left>
+"ino ( ()<left>
+"ino [ []<left>
+"ino { {}<left>
+"ino {<CR> {<CR>}<ESC>O
+"ino {;<CR> {<CR>};<ESC>O
 
 inoremap <leader>w <c-w>
 nnoremap <leader>w <c-w>
@@ -460,12 +621,23 @@ nnoremap <leader>w <c-w>
 "inoremap <C-k> <ESC>:silent! w<CR><C-w>k
 "inoremap <C-h> <ESC>:silent! w<CR>u
 "inoremap <C-l> <ESC>:silent! w<CR><C-r>
-nnoremap <C-j> <c-d>
-nnoremap <C-k> <c-u>
+nnoremap J 5j
+nnoremap K 5k
+nnoremap H 5h
+nnoremap L 5l
+"nnoremap J <c-d>
+"nnoremap K <c-u>
 "nnoremap <C-h> u
 "nnoremap <C-l> <C-r>
 "nnoremap <F3> <C-w><C-r>
 
+nnoremap <C-r> <C-w>r
+
+"Move the current window to far:
+nnoremap <leader>wh <C-w>H
+nnoremap <leader>wj <C-w>J
+nnoremap <leader>wk <C-w>K
+nnoremap <leader>wl <C-w>L
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
 nnoremap <right> :copen<CR>

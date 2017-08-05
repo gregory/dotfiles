@@ -2,7 +2,7 @@
   user = gregory
 [user]
 	name = gregory
-	email = public+github@gregory.io
+	email = greg2502@gmail.com
 [alias]
   l  = log --stat --abbrev-commit
   ll = log --graph --pretty=format:'%C(yellow)%h%C(cyan)%d%Creset %s %C(white)-%an, %ar%Creset'

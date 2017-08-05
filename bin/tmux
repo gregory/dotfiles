@@ -1,0 +1,13 @@
+#!/bin/bash
+NAME=tmux_$RANDOM
+APP=$HOME/dotfiles/bin/it2setkeylabel
+# Save existing labels"
+$APP push $NAME
+$APP set F10 x
+$APP set F5 \#
+$APP set F8 +
+$APP set F7 \<
+$APP set F9 \>
+tmux $@
+# Restore labels to their p
+$APP pop $NAME

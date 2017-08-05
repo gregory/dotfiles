@@ -85,5 +85,3 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 [[ -s ~/.zsh.local ]] && source ~/.zsh.local
-[[ -s ~/.docker_profile ]] && source ~/.docker_profile
-export BOOT2DOCKER_PROFILE=/Users/gregory.horion/.boot2docker/profile
