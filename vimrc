@@ -9,7 +9,6 @@ call plug#begin('~/.vim/plugged')
 Plug 'mbbill/undotree' " Display your undo history in a graph
 Plug 'tpope/vim-fugitive' " Git tools
 "Plug 'jgdavey/tslime.vim'
-Plug 'epeli/slimux'
 Plug 'mhinz/vim-signify' " show modified lines in gutter
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-dispatch' " asynchronous build and test dispatche
@@ -17,6 +16,7 @@ Plug 'stefandtw/quickfix-reflector.vim' "Replace text from the copen pane
 Plug 'editorconfig/editorconfig-vim'
 Plug 'jiangmiao/auto-pairs'
 Plug 'moll/vim-node'
+Plug 'tpope/vim-rhubarb'
 
 "Code Completion
 "Plug 'ervandew/supertab'
@@ -25,15 +25,19 @@ Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 Plug 'cmather/vim-meteor-snippets'
 Plug 'tpope/vim-endwise' "Add closing arg (end etc)
-"Plug 'Chiel92/vim-autoformat' "  code formatting
+Plug 'Chiel92/vim-autoformat' "  code formatting
 
 " Navigation
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTreeFind']}
-Plug 'Lokaltog/vim-easymotion'
+Plug 'easymotion/vim-easymotion'
+Plug 'haya14busa/incsearch.vim'
+Plug 'haya14busa/incsearch-fuzzy.vim'
+Plug 'haya14busa/incsearch-easymotion.vim'
 Plug 'gorkunov/smartpairs.vim'
 Plug 'szw/vim-ctrlspace'
 Plug 'kshenoy/vim-signature' "add and navigate to marks
 Plug 't9md/vim-choosewin'
+Plug 'haya14busa/vim-asterisk'
 
 " Syntax
 Plug 'tpope/vim-rails', { 'for': 'ruby' } "Rails tools
@@ -75,6 +79,16 @@ let mapleader="," " change the mapleader from \ to ,
 "
 " Pimping vim
 "
+set foldmethod=syntax "slow
+set foldlevel=2
+set nofoldenable
+" cheatsheet: zO zm/M(minimize) zr/R(fold) zi(toggle zoom)
+map zo zO
+nnoremap zz zi
+nnoremap z+ zr
+nnoremap z- zm
+nnoremap z1 zR
+nnoremap z0 zM
 set autoindent                 " always set autoindenting on
 set autowrite
 set backspace=indent,eol,start " allow backspacing over everything in insert mode
@@ -84,11 +98,13 @@ set cursorline
 set encoding=utf-8
 set expandtab
 set fileencoding=utf-8
+set ignorecase
+set smartcase
 set hidden
 set hlsearch                   " highlight matches
 set ignorecase                 " ignore case when searching
 set incsearch                  " show search matches as you type
-set laststatus=1               " Show the status line all the time
+set laststatus=2               " Show the status line all the time
 set lazyredraw                 " tells Vim not to bother redrawing during these scenarios, leading to faster macros
 set linebreak                  " tells Vim to only wrap at a character in the breakat option
 set listchars=tab:>.,trail:.,extends:#,nbsp:.
@@ -123,7 +139,7 @@ set undolevels=1000            " use many muchos levels of undo
 set visualbell                 " don't beep
 set wildignore=*.swp,*.bak,*.pyc,*.class
 set wildmenu                   " Enhanced command line completion
-set wildmode=list:longest      " Complete files like a shell
+set wildmode=longest:full:full      " Complete files like a shell
 "set wrap                       " wrap line when too long
 set formatoptions=l
 
@@ -134,8 +150,11 @@ au CursorHold,FocusLost * checktime " checkfile when cursor moved
 " rails.vim
 set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
+nnoremap <tab> gt
+nnoremap <s-tab> gT
 set runtimepath+=~/dotfiles/vim/plugged/,~/dotfiles/vim/snippets/
-set path+=~/src/github.com/**
+set path+=**
+let g:github_enterprise_urls = ['https://github.com/workturbo']
 "utilsnip
 let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
@@ -161,18 +180,25 @@ map cib ciB
 map yib yiB
 map Gf :e#<CR>
 
-nmap ( [
+"nmap ( [
 "nmap ) ]
 "omap ( [
 "omap ) ]
 "xmap ( [
 "xmap ) ]
+
 " ctrl-space
 "
-let g:CtrlSpaceDefaultMappingKey ='<tab>'
+let g:CtrlSpaceDefaultMappingKey ='<enter>'
 let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
 let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
 let g:CtrlSpaceSaveWorkspaceOnExit = 1
+nnoremap dir :CtrlSpace E<CR>
+nmap <silent> Q :CtrlSpace Q<CR>
+nmap <silent> F :CtrlSpace A<CR>
+"nmap <silent> B :CtrlSpace H<CR>
+nmap <silent> T :CtrlSpace L<CR>
+"nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
 
 " NERDTree
@@ -182,7 +208,8 @@ let g:NERDTreeWinSize = 40
 let g:NERDTreeDirArrows = 0
 let g:NERDTreeQuitOnOpen = 1
 
-set statusline=1
+"set statusline=1
+set statusline=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P
 "set statusline+=%#warningmsg#
 "set statusline+=%{SyntasticStatuslineFlag()}
 "set statusline+=%*
@@ -222,9 +249,9 @@ inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
 let g:neocomplete#enable_auto_select = 1
 
 " Enable heavy omni completion.
-if !exists('g:neocomplete#sources#omni#input_patterns')
-  let g:neocomplete#sources#omni#input_patterns = {}
-endif
+"if !exists('g:neocomplete#sources#omni#input_patterns')
+  "let g:neocomplete#sources#omni#input_patterns = {}
+"endif
 "let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
 "let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
 "let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
@@ -244,6 +271,7 @@ endif
  "\ ]
 
 " easymotion
+let g:EasyMotion_do_mapping = 0
 let g:EasyMotion_startofline = 0
 let g:EasyMotion_smartcase = 1
 
@@ -286,6 +314,39 @@ let g:choosewin_overlay_enable = 1
 
 let ignore = [".git", "node_modules","packages", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
 let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
+function! FollowSymlink()
+  let current_file = expand('%:p')
+  " check if file type is a symlink
+  if getftype(current_file) == 'link'
+    " if it is a symlink resolve to the actual file path
+    "   and open the actual file
+    let actual_file = resolve(current_file)
+    silent! execute 'file ' . actual_file
+  end
+endfunction
+function! SetProjectRoot()
+  " default to the current file's directory
+  if expand("%:p:h") !~ g:excludes
+    lcd %:p:h
+    let git_dir = system("git rev-parse --show-toplevel")
+    " See if the command output starts with 'fatal' (if it does, not in a git repo)
+    let is_not_git_dir = matchstr(git_dir, '^fatal:.*')
+    " if git project, change local directory to git project root
+    if empty(is_not_git_dir)
+      lcd `=git_dir`
+    endif
+  endif
+endfunction
+autocmd BufEnter * if expand("%:p:h") !~ g:excludes | silent! lcd %:p:h | endif
+autocmd BufRead *
+  \ call FollowSymlink() |
+  \ call SetProjectRoot()
+autocmd CursorMoved silent *
+  " short circuit for non-netrw files
+  \ if &filetype == 'netrw' |
+  \   call FollowSymlink() |
+  \   call SetProjectRoot() |
+  \ endif
 " Run a given vim command on the results of fuzzy selecting from a given shell
 " command. See usage below.
 " Note: I'm using Iterm2 and remapped ^[ to "Send Hex Codes: 0x03" which is == ^C
@@ -296,16 +357,25 @@ if has("persistent_undo")
 endif
 
 function! SelectaCommand(choice_command, selecta_args, vim_command)
+  lcd %:p:h
+  let git_dir = system("git rev-parse --show-toplevel")
+  " See if the command output starts with 'fatal' (if it does, not in a git repo)
+  let is_not_git_dir = matchstr(git_dir, '^fatal:.*')
+  " if git project, change local directory to git project root
+  if empty(is_not_git_dir)
+    lcd `=git_dir`
+    endif
   try
     let selection = system(a:choice_command . " | selecta " . a:selecta_args)
   catch /Vim:Interrupt/
     " Swallow the ^C so that the redraw below happens; otherwise there will be
     " leftovers from selecta on the screen
+    lcd %:p:h
     redraw!
     return ''
   endtry
   redraw!
-  exec a:vim_command . " " . selection
+  exec a:vim_command . " " . "" .selection . ""
 endfunction
 
 function! SelectaFile(path)
@@ -425,6 +495,9 @@ hi link EasyMotionShade  Comment
 " Link function to commands
 command! GdiffInTab tabedit %|vsplit|Gdiff
 
+cabbrev grep Ggrep
+cabbrev log Glog -10 --
+
 " File type setup
 
 filetype plugin indent on         " Turn on file type detection.
@@ -438,6 +511,12 @@ au! BufNewFile,BufReadPost *.builder set filetype=ruby
 au! BufNewFile,BufReadPost *.voxml set filetype=ruby
 autocmd BufNewFile,BufRead *.less set filetype=less
 au! BufRead,BufNewFile * set updatetime=2000 " set file diff checkevery 2 sec
+
+autocmd BufReadPost fugitive://* set bufhidden=delete
+autocmd User fugitive
+  \ if fugitive#buffer().type() =~# '^\%(tree\|blob\)$' |
+  \   nnoremap <buffer> .. :edit %:h<CR> |
+  \ endif
 
 augroup AuNERDTreeCmd
   autocmd AuNERDTreeCmd VimEnter    * call s:CdIfDirectory(expand("<amatch>"))
@@ -479,11 +558,12 @@ autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
 
 autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
 
-"autocmd FileWritePre       * :silent! keepjumps call TrimWhiteSpace()
+autocmd FileWritePre       * :silent! keepjumps call TrimWhiteSpace()
 autocmd FileAppendPre      * :silent! keepjump call TrimWhiteSpace()
 autocmd FilterWritePre     * :silent! keepjump call TrimWhiteSpace()
 autocmd BufWritePre        * :silent! keepjump call TrimWhiteSpace()
-autocmd BufLeave,FocusLost * :silent! wall
+"autocmd BufLeave,FocusLost * :silent! wall
+"autocmd BufEnter * :call EasyMotion#S(2,1,0)<CR>
 
 " NOTE: more events here: http://vimdoc.sourceforge.net/htmldoc/autocmd.html
 let term=$TERM
@@ -494,7 +574,7 @@ else
   autocmd VimEnter * silent !echo -ne "\033]1337;SetKeyLabel=F6=Format\a"
   autocmd VimLeave * silent !echo -ne "\033]1337;SetKeyLabel=F6=F6\a"
 endif
-noremap <F6> :Prettier<CR><CR>
+noremap <F6> :Autoformat<CR><CR>
 
 " Abbreviations/aliases
 "
@@ -502,7 +582,7 @@ abbrev bp binding.pry
 
 " Mappings
 
-nnoremap Q <Nop>
+"nnoremap Q <Nop>
 nnoremap <silent><C-o> :call ZoomToggle()<CR>
 nnoremap <Leader>rr :Dispatch rake rubocop<CR>
 nnoremap <Leader>rs :call RunCurrentSpecFile()<CR>
@@ -520,11 +600,10 @@ nmap <leader>gr :Git reset HEAD %<CR>
 nmap <leader>gc :Git checkout --  %<CR>
 nmap <leader>gp :Git push -f<CR>
 nnoremap rm :Git rm %<CR>
-nnoremap B ^
-nnoremap E $
 
-map <Leader>m :NERDTreeToggle<CR>
-map <Leader>n :NERDTreeFind<CR>
+" Disabling temporarily to see if used
+"map <Leader>m :NERDTreeToggle<CR>
+"map <Leader>n :NERDTreeFind<CR>
 
 " easy align
 augroup VCenterCursor
@@ -536,10 +615,13 @@ vmap <Enter> <Plug>(EasyAlign) VCenterCursor
 
 " choose win
 "
-"map <space> <ESC>:silent! w<CR><Plug>(choosewin)
-map <space> <ESC><Plug>(choosewin)
+nnoremap <silent> <C-r> :ChooseWinSwapStay<CR>
+"nnoremap <silent> <C-r> :ChooseWinSwap<CR>
+"nmap <space> <Plug>(choosewin)
+map <space> <Plug>(easymotion-overwin-line)
 
-set clipboard=unnamed
+" clipboard unamed will yank vim to clipboard
+"set clipboard=unnamed
 "nmap <silent> <leader>p :r !pbpaste<CR>
 nmap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>
 nmap <silent> <leader>P :set paste<CR>:o<CR>"*p:set nopaste<CR>
@@ -549,16 +631,15 @@ nmap <silent> <leader>P :set paste<CR>:o<CR>"*p:set nopaste<CR>
 
 "nnoremap j gj
 "nnoremap k gk
-nnoremap j jzz
-nnoremap k kzz
 nnoremap s :set hlsearch!<cr>
 
-nmap -  zz
-map <Leader>r :SlimuxShellLast<CR>
-map <leader>t :SlimuxShellPrompt<CR>
+"ropen the previous file
+nmap -  :e#<CR>
+
+"nmap <space> <Plug>(easymotion-overwin-line)
 
 " easy motion
-map / <Plug>(easymotion-sn)
+"map / <Plug>(easymotion-sn)
 omap / <Plug>(easymotion-tn)
 map <Leader>l <Plug>(easymotion-lineforward)
 map <Leader>j <Plug>(easymotion-j)
@@ -566,6 +647,26 @@ map <Leader>k <Plug>(easymotion-k)
 map <Leader>h <Plug>(easymotion-linebackward)
 map  <Leader>f <Plug>(easymotion-bd-w)
 nmap <Leader>f <Plug>(easymotion-overwin-w)
+function! s:incsearch_config(...) abort
+  " Add   \     incsearch#config#fuzzyspell#converter() for spell converter
+  return incsearch#util#deepextend(deepcopy({
+  \   'modules': [incsearch#config#easymotion#module({'overwin': 1})],
+  \   'keymap': {
+  \     "\<CR>": '<Over>(easymotion)'
+  \   },
+  \   'is_expr': 0
+  \ }), get(a:, 1, {}))
+endfunction
+noremap <silent><expr> /  incsearch#go(<SID>incsearch_config())
+noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
+noremap <silent><expr> g/ incsearch#go(<SID>incsearch_config({'is_stay': 1}))
+noremap <silent><expr> f incsearch#go(<SID>incsearch_config({'converters': [incsearch#config#fuzzy#converter()]}))
+
+let g:asterisk#keeppos = 1
+map *  <Plug>(asterisk-z*)
+map #  <Plug>(asterisk-z#)
+map g* <Plug>(asterisk-gz*)
+map g# <Plug>(asterisk-gz#)
 
 " signify
 nmap <leader>gj <plug>(signify-next-hunk)
@@ -583,8 +684,10 @@ nnoremap M `
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
-nnoremap <enter> :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
-"nnoremap <space> :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
+"nnoremap gt :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
+"nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
+nnoremap cd :call SelectaCommand("find * -type d" .g:excludes, "", "lcd")<cr>
+nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
 nnoremap fiv :call SelectaFile("app/views")<cr>
 nnoremap fic :call SelectaFile("app/controllers")<cr>
 nnoremap fim :call SelectaFile("app/models")<cr>
@@ -596,7 +699,7 @@ nnoremap fis :call SelectaFile("spec")<cr>
 nnoremap <c-g> :call SelectaIdentifier()<cr>
 
 nmap mv :call RenameFile()<cr>
-nnoremap cd :cd %:p:h<CR>:pwd<CR>
+"nnoremap cd :cd %:p:h<CR>:pwd<CR>
 
 " quick edit/reload vim file
 nmap <silent> <leader>ev :e $MYVIMRC<CR>
@@ -621,17 +724,21 @@ nnoremap <leader>w <c-w>
 "inoremap <C-k> <ESC>:silent! w<CR><C-w>k
 "inoremap <C-h> <ESC>:silent! w<CR>u
 "inoremap <C-l> <ESC>:silent! w<CR><C-r>
+nnoremap j jzz
+nnoremap k kzz
+nnoremap l e
+nnoremap h b
 nnoremap J 5j
 nnoremap K 5k
-nnoremap H 5h
-nnoremap L 5l
+nnoremap H 5b
+nnoremap L 5e
 "nnoremap J <c-d>
 "nnoremap K <c-u>
 "nnoremap <C-h> u
 "nnoremap <C-l> <C-r>
 "nnoremap <F3> <C-w><C-r>
 
-nnoremap <C-r> <C-w>r
+"nnoremap <C-r> <C-w>r
 
 "Move the current window to far:
 nnoremap <leader>wh <C-w>H
