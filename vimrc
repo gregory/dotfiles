@@ -24,6 +24,14 @@ Plug 'honza/vim-snippets'
 Plug 'cmather/vim-meteor-snippets'
 Plug 'tpope/vim-endwise' "Add closing arg (end etc)
 Plug 'Chiel92/vim-autoformat' "  code formatting
+" Memo:
+" S( will surround with (  ) the visual block
+" ys+motion +( will surround motion with (
+" cs([ will change surround ( by [
+" ds( will remove surround (
+" dst will remove tags around the current position
+" yss{ will wrap sentence in {
+Plug 'tpope/vim-surround'
 
 " Navigation
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTreeFind']}
@@ -32,6 +40,9 @@ Plug 'haya14busa/incsearch.vim'
 Plug 'haya14busa/incsearch-fuzzy.vim'
 Plug 'haya14busa/incsearch-easymotion.vim'
 Plug 'gorkunov/smartpairs.vim'
+Plug 'jiangmiao/auto-pairs'
+let g:AutoPairsFlyMode = 1
+let g:AutoPairsShortcutBackInsert = '<c-b>'
 Plug 'szw/vim-ctrlspace'
 Plug 'kshenoy/vim-signature' "add and navigate to marks
 Plug 't9md/vim-choosewin'
@@ -87,6 +98,11 @@ nnoremap z+ zr
 nnoremap z- zm
 nnoremap z1 zR
 nnoremap z0 zM
+cnoremap $t <CR>:t''<CR>
+cnoremap $T <CR>:T''<CR>
+cnoremap $m <CR>:m''<CR>
+cnoremap $M <CR>:M''<CR>
+cnoremap $d <CR>:d<CR>``
 set autoindent                 " always set autoindenting on
 set autowrite
 set backspace=indent,eol,start " allow backspacing over everything in insert mode
@@ -148,9 +164,10 @@ au CursorHold,FocusLost * checktime " checkfile when cursor moved
 " rails.vim
 set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
-nnoremap <tab> gt
-nnoremap <s-tab> gT
-set runtimepath+=~/dotfiles/vim/plugged/,~/dotfiles/vim/snippets/
+"nnoremap <tab> gt
+"nnoremap <s-tab> gT
+let vimDir = '$HOME/.vim'
+let &runtimepath.=','.vimDir
 set path+=**
 let g:github_enterprise_urls = ['https://github.com/workturbo']
 "utilsnip
@@ -182,16 +199,18 @@ map Gf :e#<CR>
 " ctrl-space
 "
 let g:CtrlSpaceDefaultMappingKey ='<enter>'
-let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
-let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
-let g:CtrlSpaceSaveWorkspaceOnExit = 1
+"let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
+"let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
+"let g:CtrlSpaceSaveWorkspaceOnExit = 1
 nnoremap dir :CtrlSpace E<CR>
 nmap <silent> Q :CtrlSpace Q<CR>
-nmap <silent> F :CtrlSpace A<CR>
-"nmap <silent> B :CtrlSpace H<CR>
-nmap <silent> T :CtrlSpace L<CR>
+nmap <silent> F :CtrlSpace a<CR>
+nmap <silent> B :CtrlSpace h<CR>
+nmap <silent> T :CtrlSpace l<CR>
 "nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
+nnoremap <silent><tab> :bnext<CR>
+nnoremap <silent><s-tab> :bprev<CR>
 
 " NERDTree
 let g:NERDTreeMinimalUI = 1
@@ -234,7 +253,7 @@ endfunction
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 " <C-h>, <BS>: close popup and delete backword char.
 inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+"inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " Close popup by <Space>.
 inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
 "
@@ -270,7 +289,7 @@ let g:EasyMotion_smartcase = 1
 "vim-airline
 let g:airline#extensions#hunks#enabled=0
 let g:airline#extensions#ale#enabled = 1
-"let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#enabled = 1
 
 "vim-javascript
 let javascript_enable_domhtmlcss=1
@@ -325,6 +344,7 @@ function! SetProjectRoot()
     let is_not_git_dir = matchstr(git_dir, '^fatal:.*')
     " if git project, change local directory to git project root
     if empty(is_not_git_dir)
+      let $GIT_DIR =git_dir
       lcd `=git_dir`
     endif
   endif
@@ -344,8 +364,11 @@ autocmd CursorMoved silent *
 " Note: I'm using Iterm2 and remapped ^[ to "Send Hex Codes: 0x03" which is == ^C
 
 if has("persistent_undo")
-    set undodir='~/.undodir/'
-    set undofile
+  "let myUndoDir = expand(vimDir . '/undodir')
+  "call system('mkdir ' . vimDir)
+  "call system('mkdir ' . myUndoDir)
+  "let &undodir = myUndoDir
+  "set undofile
 endif
 
 function! SelectaCommand(choice_command, selecta_args, vim_command)
@@ -449,6 +472,7 @@ function! RenameFile()
 endfunction
 
 function! LightBackground()
+  let g:solarized_termtrans = 0
   let Mysyn=&syntax
   set background=light
   colorscheme solarized
@@ -459,6 +483,7 @@ function! LightBackground()
 endfunction
 
 function! DarkBackground()
+  let g:solarized_termtrans = 1
   let Mysyn=&syntax
   set background=dark
   colorscheme solarized
@@ -541,12 +566,16 @@ autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 autocmd FileType less set omnifunc=csscomplete#CompleteCSS
 
+let b:autopairs_enabled=0
+autocmd FileType html,javascript,css,less let b:autopairs_enabled=1
+autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <left> <ESC>:call search('["\[''({]','bW')<CR>a
+autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <right> <ESC>:call search('["\]'')}]','W')<CR>a
 let g:prettier#autoformat = 0
 let g:prettier#config#trailing_comma = 'none'
 let g:prettier#config#bracket_spacing = 'true'
 let g:prettier#config#print_width = 80
-autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
-"autocmd FileWritePre *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+"autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+autocmd FileWritePre *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
 
 autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
 
@@ -576,11 +605,6 @@ abbrev bp binding.pry
 
 "nnoremap Q <Nop>
 nnoremap <silent><C-o> :call ZoomToggle()<CR>
-nnoremap <Leader>rr :Dispatch rake rubocop<CR>
-nnoremap <Leader>rs :call RunCurrentSpecFile()<CR>
-nnoremap <Leader>rn :call RunNearestSpec()<CR>
-nnoremap <Leader>rl :call RunLastSpec()<CR>
-nnoremap <Leader>ra :call RunAllSpecs()<CR>
 nnoremap <leader>d :GdiffInTab<cr>
 nnoremap <leader>D :tabclose<cr>
 nmap <leader>gb :Gblame<CR>
@@ -607,23 +631,25 @@ vmap <Enter> <Plug>(EasyAlign) VCenterCursor
 
 " choose win
 "
-nnoremap <silent> <C-r> :ChooseWinSwapStay<CR>
+nnoremap <silent> <space> :ChooseWinSwapStay<CR>
 "nnoremap <silent> <C-r> :ChooseWinSwap<CR>
 "nmap <space> <Plug>(choosewin)
-map <space> <Plug>(easymotion-overwin-line)
+"map <space> <Plug>(easymotion-overwin-line)
+"map <space> <Plug>(easymotion-overwin-w)
+nnoremap ? :<C-u>call EasyMotion#OverwinF(2)<cr>
 
 " clipboard unamed will yank vim to clipboard
 "set clipboard=unnamed
 "nmap <silent> <leader>p :r !pbpaste<CR>
-nmap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>
-nmap <silent> <leader>P :set paste<CR>:o<CR>"*p:set nopaste<CR>
+nmap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>a
+imap <silent> <leader>p <ESC>"*pa
 "imap <leader>p <ESC>:set paste<CR>"*]p:set nopaste<CR>i
 "map <leader>p :set paste<CR>i<esc>"*]p:set nopaste<cr>"
 "imap <leader>p <ESC>:set paste<CR>i<esc>"*]p:set nopaste<cr>"
 
 "nnoremap j gj
 "nnoremap k gk
-nnoremap s :set hlsearch!<cr>
+nnoremap S :set hlsearch!<cr>
 
 "ropen the previous file
 nmap -  :e#<CR>
@@ -632,13 +658,14 @@ nmap -  :e#<CR>
 
 " easy motion
 "map / <Plug>(easymotion-sn)
-omap / <Plug>(easymotion-tn)
+"omap / <Plug>(easymotion-tn)
 map <Leader>l <Plug>(easymotion-lineforward)
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
 map <Leader>h <Plug>(easymotion-linebackward)
 map  <Leader>f <Plug>(easymotion-bd-w)
 nmap <Leader>f <Plug>(easymotion-overwin-w)
+
 function! s:incsearch_config(...) abort
   " Add   \     incsearch#config#fuzzyspell#converter() for spell converter
   return incsearch#util#deepextend(deepcopy({
@@ -650,15 +677,19 @@ function! s:incsearch_config(...) abort
   \ }), get(a:, 1, {}))
 endfunction
 noremap <silent><expr> /  incsearch#go(<SID>incsearch_config())
-noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
+"noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
 noremap <silent><expr> g/ incsearch#go(<SID>incsearch_config({'is_stay': 1}))
 noremap <silent><expr> f incsearch#go(<SID>incsearch_config({'converters': [incsearch#config#fuzzy#converter()]}))
 
 let g:asterisk#keeppos = 1
-map *  <Plug>(asterisk-z*)
-map #  <Plug>(asterisk-z#)
-map g* <Plug>(asterisk-gz*)
-map g# <Plug>(asterisk-gz#)
+let g:incsearch#auto_nohlsearch = 1
+map n  <Plug>(incsearch-nohl-n)
+map N  <Plug>(incsearch-nohl-N)
+map *  <Plug>(incsearch-nohl-*)
+map #  <Plug>(incsearch-nohl-#)
+map g* <Plug>(incsearch-nohl-g*)
+map g# <Plug>(incsearch-nohl-g#)
+"nnoremap <backspace> mzJ`z
 
 " signify
 nmap <leader>gj <plug>(signify-next-hunk)
@@ -679,7 +710,10 @@ nnoremap M `
 "nnoremap gt :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
 "nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
 nnoremap cd :call SelectaCommand("find * -type d" .g:excludes, "", "lcd")<cr>
-nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
+nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":tabe")<cr>
+nnoremap ge :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
+nnoremap gv :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":vs")<cr>
+nnoremap gs :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":sp")<cr>
 nnoremap fiv :call SelectaFile("app/views")<cr>
 nnoremap fic :call SelectaFile("app/controllers")<cr>
 nnoremap fim :call SelectaFile("app/models")<cr>
@@ -720,10 +754,14 @@ nnoremap j jzz
 nnoremap k kzz
 nnoremap l e
 nnoremap h b
-nnoremap J 5j
-nnoremap K 5k
-nnoremap H 5b
-nnoremap L 5e
+nnoremap J <c-w>j
+nnoremap K <c-w>k
+nnoremap H <c-w>h
+nnoremap L <c-w>l
+"nnoremap J 5j
+"nnoremap K 5k
+"nnoremap H 5b
+"nnoremap L 5e
 "nnoremap J <c-d>
 "nnoremap K <c-u>
 "nnoremap <C-h> u
@@ -733,10 +771,10 @@ nnoremap L 5e
 "nnoremap <C-r> <C-w>r
 
 "Move the current window to far:
-nnoremap <leader>wh <C-w>H
-nnoremap <leader>wj <C-w>J
-nnoremap <leader>wk <C-w>K
-nnoremap <leader>wl <C-w>L
+"nnoremap <leader>wh <C-w>H
+"nnoremap <leader>wj <C-w>J
+"nnoremap <leader>wk <C-w>K
+"nnoremap <leader>wl <C-w>L
 nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
 nnoremap <right> :copen<CR>
