@@ -11,10 +11,8 @@ Plug 'tpope/vim-fugitive' " Git tools
 "Plug 'jgdavey/tslime.vim'
 Plug 'mhinz/vim-signify' " show modified lines in gutter
 Plug 'scrooloose/nerdcommenter'
-Plug 'tpope/vim-dispatch' " asynchronous build and test dispatche
 Plug 'stefandtw/quickfix-reflector.vim' "Replace text from the copen pane
 Plug 'editorconfig/editorconfig-vim'
-Plug 'jiangmiao/auto-pairs'
 Plug 'moll/vim-node'
 Plug 'tpope/vim-rhubarb'
 
@@ -161,13 +159,7 @@ let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 "smartpairs
 let g:smartpairs_uber_mode = 1
-"autopair
-let g:AutoPairsFlyMode = 1
 " vim-rspec
-"let g:rspec_command = "!zeus rspec {spec}"
-"let g:rspec_command = "!zeus rescue rspec -f d -c {spec}"
-let g:rspec_command = "Dispatch rspec -f -d -c {spec}"
-"let g:rspec_command = "!rspec {spec}"
 
 " signify
 
