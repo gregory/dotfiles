@@ -88,7 +88,8 @@ let mapleader="," " change the mapleader from \ to ,
 "
 " Pimping vim
 "
-set foldmethod=syntax "slow
+"set foldmethod=syntax "slow
+set foldmethod=indent
 set foldlevel=2
 set nofoldenable
 " cheatsheet: zO zm/M(minimize) zr/R(fold) zi(toggle zoom)
@@ -169,7 +170,6 @@ set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 let vimDir = '$HOME/.vim'
 let &runtimepath.=','.vimDir
 set path+=**
-let g:github_enterprise_urls = ['https://github.com/workturbo']
 "utilsnip
 let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
@@ -187,7 +187,6 @@ noremap % v%
 map vib viB
 map cib ciB
 map yib yiB
-map Gf :e#<CR>
 
 "nmap ( [
 "nmap ) ]
@@ -204,13 +203,13 @@ let g:CtrlSpaceDefaultMappingKey ='<enter>'
 "let g:CtrlSpaceSaveWorkspaceOnExit = 1
 nnoremap dir :CtrlSpace E<CR>
 nmap <silent> Q :CtrlSpace Q<CR>
-nmap <silent> F :CtrlSpace a<CR>
-nmap <silent> B :CtrlSpace h<CR>
+nmap <silent> <s-tab> :CtrlSpace a<CR>
+nmap <silent> <tab> :CtrlSpace h<CR>
 nmap <silent> T :CtrlSpace l<CR>
 "nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
-nnoremap <silent><tab> :bnext<CR>
-nnoremap <silent><s-tab> :bprev<CR>
+"nnoremap <silent><tab> :bnext<CR>
+"nnoremap <silent><s-tab> :bprev<CR>
 
 " NERDTree
 let g:NERDTreeMinimalUI = 1
@@ -334,6 +333,20 @@ function! FollowSymlink()
     let actual_file = resolve(current_file)
     silent! execute 'file ' . actual_file
   end
+endfunction
+function! UpdateCurrentPwd()
+  " default to the current file's directory
+  if expand("%:p:h") !~ g:excludes
+    lcd %:p:h
+    let git_dir = system("git rev-parse --show-toplevel")
+    " See if the command output starts with 'fatal' (if it does, not in a git repo)
+    let is_not_git_dir = matchstr(git_dir, '^fatal:.*')
+    " if git project, change local directory to git project root
+    if empty(is_not_git_dir)
+      let $GIT_DIR =git_dir
+      lcd `=git_dir`
+    endif
+  endif
 endfunction
 function! SetProjectRoot()
   " default to the current file's directory
@@ -472,7 +485,7 @@ function! RenameFile()
 endfunction
 
 function! LightBackground()
-  let g:solarized_termtrans = 0
+  let g:solarized_termtrans = 1
   let Mysyn=&syntax
   set background=light
   colorscheme solarized
@@ -513,7 +526,6 @@ hi link EasyMotionShade  Comment
 command! GdiffInTab tabedit %|vsplit|Gdiff
 
 cabbrev grep Ggrep
-cabbrev log Glog -10 --
 
 " File type setup
 
@@ -568,14 +580,14 @@ autocmd FileType less set omnifunc=csscomplete#CompleteCSS
 
 let b:autopairs_enabled=0
 autocmd FileType html,javascript,css,less let b:autopairs_enabled=1
-autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <left> <ESC>:call search('["\[''({]','bW')<CR>a
-autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <right> <ESC>:call search('["\]'')}]','W')<CR>a
-let g:prettier#autoformat = 0
+"autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <left> <ESC>:call search('["\[''({]','bW')<CR>a
+"autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <right> <ESC>:call search('["\]'')}]','W')<CR>a
+let g:prettier#autoformat = 1
 let g:prettier#config#trailing_comma = 'none'
 let g:prettier#config#bracket_spacing = 'true'
 let g:prettier#config#print_width = 80
 "autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
-autocmd FileWritePre *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+"autocmd FileWritePre,BufWrite *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
 
 autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
 
@@ -595,7 +607,7 @@ else
   autocmd VimEnter * silent !echo -ne "\033]1337;SetKeyLabel=F6=Format\a"
   autocmd VimLeave * silent !echo -ne "\033]1337;SetKeyLabel=F6=F6\a"
 endif
-noremap <F6> :Autoformat<CR><CR>
+noremap <F6> :Prettier<CR><CR>
 
 " Abbreviations/aliases
 "
@@ -610,15 +622,16 @@ nnoremap <leader>D :tabclose<cr>
 nmap <leader>gb :Gblame<CR>
 nmap <leader>gs :Gstatus<CR>
 nmap <leader>gd :Gdiff<CR>
-nmap <leader>gl :Glog<CR>
+nmap <leader>gl :Glog -15 --<CR>
 nmap <leader>gco :Gcommit<CR>
 nmap <leader>gr :Git reset HEAD %<CR>
 nmap <leader>gc :Git checkout --  %<CR>
 nmap <leader>gp :Git push -f<CR>
+nnoremap a hea
 nnoremap rm :Git rm %<CR>
 
 " Disabling temporarily to see if used
-"map <Leader>m :NERDTreeToggle<CR>
+map <Leader>m :NERDTreeToggle<CR>
 "map <Leader>n :NERDTreeFind<CR>
 
 " easy align
@@ -631,12 +644,13 @@ vmap <Enter> <Plug>(EasyAlign) VCenterCursor
 
 " choose win
 "
-nnoremap <silent> <space> :ChooseWinSwapStay<CR>
-"nnoremap <silent> <C-r> :ChooseWinSwap<CR>
-"nmap <space> <Plug>(choosewin)
+"nnoremap <silent> <space> :ChooseWinSwapStay<CR>
+nnoremap <silent> <C-r> :ChooseWinSwap<CR>
+nmap <space> <Plug>(choosewin)
 "map <space> <Plug>(easymotion-overwin-line)
 "map <space> <Plug>(easymotion-overwin-w)
-nnoremap ? :<C-u>call EasyMotion#OverwinF(2)<cr>
+"nnoremap ? :<C-u>call EasyMotion#OverwinF(2)<cr>
+nnoremap s :<C-u>call EasyMotion#OverwinF(2)<cr>
 
 " clipboard unamed will yank vim to clipboard
 "set clipboard=unnamed
@@ -677,7 +691,7 @@ function! s:incsearch_config(...) abort
   \ }), get(a:, 1, {}))
 endfunction
 noremap <silent><expr> /  incsearch#go(<SID>incsearch_config())
-"noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
+noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
 noremap <silent><expr> g/ incsearch#go(<SID>incsearch_config({'is_stay': 1}))
 noremap <silent><expr> f incsearch#go(<SID>incsearch_config({'converters': [incsearch#config#fuzzy#converter()]}))
 
@@ -689,7 +703,7 @@ map *  <Plug>(incsearch-nohl-*)
 map #  <Plug>(incsearch-nohl-#)
 map g* <Plug>(incsearch-nohl-g*)
 map g# <Plug>(incsearch-nohl-g#)
-"nnoremap <backspace> mzJ`z
+nnoremap <backspace> mzJ`z
 
 " signify
 nmap <leader>gj <plug>(signify-next-hunk)
@@ -731,9 +745,10 @@ nmap mv :call RenameFile()<cr>
 nmap <silent> <leader>ev :e $MYVIMRC<CR>
 
 " Use fd to save
-imap <silent> fd <ESC>:w<CR>:redraw!<CR>
-nnoremap <silent> fd <ESC>:w<CR>:redraw!<CR>
-cnoremap <silent> w<CR> <ESC>:w<CR>:redraw!<CR>
+imap fd <ESC>:update<CR>
+nnoremap fd <ESC>:w<CR>
+vnoremap fd <ESC>:w<CR>gv
+"cnoremap <silent> w<CR> <ESC>:w<CR>:redraw!<CR>
 
 "ino " ""<left>
 "ino ' ''<left>
@@ -754,14 +769,14 @@ nnoremap j jzz
 nnoremap k kzz
 nnoremap l e
 nnoremap h b
-nnoremap J <c-w>j
-nnoremap K <c-w>k
-nnoremap H <c-w>h
-nnoremap L <c-w>l
-"nnoremap J 5j
-"nnoremap K 5k
-"nnoremap H 5b
-"nnoremap L 5e
+"nnoremap J <c-w>j
+"nnoremap K <c-w>k
+"nnoremap H <c-w>h
+"nnoremap L <c-w>l
+nnoremap J 5j
+nnoremap K 5k
+nnoremap H 5b
+nnoremap L 5e
 "nnoremap J <c-d>
 "nnoremap K <c-u>
 "nnoremap <C-h> u
