@@ -15,10 +15,21 @@ Plug 'stefandtw/quickfix-reflector.vim' "Replace text from the copen pane
 Plug 'editorconfig/editorconfig-vim'
 Plug 'moll/vim-node'
 Plug 'tpope/vim-rhubarb'
+Plug 'terryma/vim-multiple-cursors'
 
 "Code Completion
 "Plug 'ervandew/supertab'
 Plug 'Shougo/neocomplete.vim'
+"let g:deoplete#enable_at_startup = 1
+"Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern'  }
+"Plug 'Shougo/deoplete.nvim'
+"Plug 'roxma/nvim-yarp'
+"Plug 'roxma/vim-hug-neovim-rpc'
+
+Plug 'hashivim/vim-terraform'
+Plug 'vim-syntastic/syntastic'
+Plug 'juliosueiras/vim-terraform-completion'
+
 Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 Plug 'cmather/vim-meteor-snippets'
@@ -49,6 +60,8 @@ Plug 't9md/vim-choosewin'
 Plug 'haya14busa/vim-asterisk'
 
 " Syntax
+Plug 'jparise/vim-graphql', {'for': 'javascript'}
+Plug 'elixir-editors/vim-elixir', {'for': 'elixir'}
 Plug 'tpope/vim-rails', { 'for': 'ruby' } "Rails tools
 Plug 'thoughtbot/vim-rspec', { 'for': 'ruby' } "Rspec tools
 Plug 'fatih/vim-go', { 'for': 'go' }
@@ -70,13 +83,14 @@ Plug 'tomtom/tlib_vim'
 Plug 'Slava/vim-spacebars', {'for': 'html'}
 
 "Formaters & linters
-Plug 'w0rp/ale'
+"Plug 'w0rp/ale'
 Plug 'junegunn/vim-easy-align' " easy align things
 Plug 'prettier/vim-prettier', {
       \ 'do': 'npm install -g',
       \ 'for':    ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql'] }
 
 "The Theme
+Plug 'flazz/vim-colorschemes'
 Plug 'altercation/vim-colors-solarized'
 Plug 'zeis/vim-kolor'
 Plug 'vim-airline/vim-airline' "Bottom bar info
@@ -92,6 +106,7 @@ let mapleader="," " change the mapleader from \ to ,
 set foldmethod=indent
 set foldlevel=2
 set nofoldenable
+nnoremap <Leader>f :set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
 " cheatsheet: zO zm/M(minimize) zr/R(fold) zi(toggle zoom)
 map zo zO
 nnoremap zz zi
@@ -107,7 +122,7 @@ cnoremap $d <CR>:d<CR>``
 set autoindent                 " always set autoindenting on
 set autowrite
 set backspace=indent,eol,start " allow backspacing over everything in insert mode
-set colorcolumn=80
+set colorcolumn=100
 set copyindent                 " copy the previous indentation on autoindenting
 set cursorline
 set encoding=utf-8
@@ -123,18 +138,19 @@ set laststatus=2               " Show the status line all the time
 set lazyredraw                 " tells Vim not to bother redrawing during these scenarios, leading to faster macros
 set linebreak                  " tells Vim to only wrap at a character in the breakat option
 set listchars=tab:>.,trail:.,extends:#,nbsp:.
-set mouse=a
+set mouse-=a
 set nobackup
 set noerrorbells               " don't beep
 "set nolist                     " list disables linebreak
 set nonumber                   " hide line numbers
+":set number relativenumber
+":set nonumber norelativenumber  " turn hybrid line numbers off
 set noswapfile                 " Don't create swap file
 set nowritebackup
 set scrolloff=3
 set shell=zsh
 set shiftround                 " use multiple of shiftwidth when indenting with '<' and '>'
 set shiftwidth=2               " number of spaces to use for autoindenting
-set showcmd                    " Display last commands
 set showmatch                  " (set show matching parenthesis)
 set showmode                   " Display the mode
 set showtabline=2              " Show tabs bar
@@ -203,8 +219,8 @@ let g:CtrlSpaceDefaultMappingKey ='<enter>'
 "let g:CtrlSpaceSaveWorkspaceOnExit = 1
 nnoremap dir :CtrlSpace E<CR>
 nmap <silent> Q :CtrlSpace Q<CR>
-nmap <silent> <s-tab> :CtrlSpace a<CR>
-nmap <silent> <tab> :CtrlSpace h<CR>
+nmap <silent> <s-tab> :CtrlSpace h<CR>
+nmap <silent> <tab> :CtrlSpace a<CR>
 nmap <silent> T :CtrlSpace l<CR>
 "nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
@@ -255,6 +271,8 @@ inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
 "inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " Close popup by <Space>.
 inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
+let g:terraform_completion_keys = 1
+let g:terraform_registry_module_completion = 0
 "
 let g:neocomplete#enable_auto_select = 1
 
@@ -295,7 +313,6 @@ let javascript_enable_domhtmlcss=1
 
 set term=screen-256color
 syntax enable
-highlight clear SignColumn
 let g:kolor_italic=1                    " Enable italic. Default: 1
 let g:kolor_bold=1                      " Enable bold. Default: 1
 let g:kolor_underlined=0                " Enable underline. Default: 0
@@ -311,9 +328,9 @@ let hlstate=0
 "
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
-let g:indent_guides_start_level = 2
-let g:indent_guides_guide_size = 2
-let g:indent_guides_color_change_percent = 80
+let g:indent_guides_start_level = 1
+let g:indent_guides_guide_size = 1
+let g:indent_guides_color_change_percent = 100
 
 let g:undotree_SetFocusWhenToggle = 1
 
@@ -366,23 +383,23 @@ autocmd BufEnter * if expand("%:p:h") !~ g:excludes | silent! lcd %:p:h | endif
 autocmd BufRead *
   \ call FollowSymlink() |
   \ call SetProjectRoot()
-autocmd CursorMoved silent *
-  " short circuit for non-netrw files
-  \ if &filetype == 'netrw' |
-  \   call FollowSymlink() |
-  \   call SetProjectRoot() |
-  \ endif
-" Run a given vim command on the results of fuzzy selecting from a given shell
-" command. See usage below.
-" Note: I'm using Iterm2 and remapped ^[ to "Send Hex Codes: 0x03" which is == ^C
+"autocmd CursorMoved silent *
+  "" short circuit for non-netrw files
+  "\ if &filetype == 'netrw' |
+  "\   call FollowSymlink() |
+  "\   call SetProjectRoot() |
+  "\ endif
+"" Run a given vim command on the results of fuzzy selecting from a given shell
+"" command. See usage below.
+"" Note: I'm using Iterm2 and remapped ^[ to "Send Hex Codes: 0x03" which is == ^C
 
-if has("persistent_undo")
-  "let myUndoDir = expand(vimDir . '/undodir')
-  "call system('mkdir ' . vimDir)
-  "call system('mkdir ' . myUndoDir)
-  "let &undodir = myUndoDir
-  "set undofile
-endif
+"if has("persistent_undo")
+  ""let myUndoDir = expand(vimDir . '/undodir')
+  ""call system('mkdir ' . vimDir)
+  ""call system('mkdir ' . myUndoDir)
+  ""let &undodir = myUndoDir
+  ""set undofile
+"endif
 
 function! SelectaCommand(choice_command, selecta_args, vim_command)
   lcd %:p:h
@@ -488,21 +505,30 @@ function! LightBackground()
   let g:solarized_termtrans = 1
   let Mysyn=&syntax
   set background=light
+  syntax enable
   colorscheme solarized
-  hi Normal ctermfg=black ctermbg=white
+  "hi Normal guibg=NONE ctermbg=NONE
   hi IndentGuidesEven ctermbg=252
   hi IndentGuidesOdd  ctermbg=NONE
-  exe "set syntax=" . Mysyn
+  "highlight clear SignColumn
+  hi ColorColumn cterm=bold ctermbg=280 guibg=#343d46
+  "exe "set syntax=" . Mysyn
 endfunction
 
 function! DarkBackground()
   let g:solarized_termtrans = 1
   let Mysyn=&syntax
   set background=dark
+  syntax enable
+  "colorscheme OceanicNext
   colorscheme solarized
   hi IndentGuidesEven ctermbg=280
   hi IndentGuidesOdd  ctermbg=NONE
-  exe "set syntax=" . Mysyn
+  highlight Comment cterm=italic
+  "highlight clear SignColumn
+  "hi Normal guibg=NONE ctermbg=NONE
+  hi ColorColumn cterm=bold ctermbg=280 guibg=#343d46
+  "exe "set syntax=" . Mysyn
 endfunction
 
 "" Zoom / Restore window.
@@ -538,6 +564,7 @@ au! BufNewFile,BufReadPost *.styl   set filetype=stylus
 au! BufNewFile,BufReadPost *.stylus set filetype=stylus
 au! BufNewFile,BufReadPost *.builder set filetype=ruby
 au! BufNewFile,BufReadPost *.voxml set filetype=ruby
+au! BufNewFile,BufReadPost *.ex,*.exs set filetype=elixir
 autocmd BufNewFile,BufRead *.less set filetype=less
 au! BufRead,BufNewFile * set updatetime=2000 " set file diff checkevery 2 sec
 
@@ -566,10 +593,12 @@ autocmd FileType ruby noremap test :A<CR>
 autocmd FileType slim set formatoptions-=t
 autocmd FileType slim set nolist
 
+autocmd FileType html,xml,json set colorcolumn=0
+
 autocmd FileType html,javascript set shiftwidth=2 tabstop=2 showtabline=2
 autocmd FileType html,javascript set nowrap nolist
 autocmd FileType html,javascript let g:indent_guides_start_level=1
-autocmd FileType html,javascript let g:indent_guides_guide_size=2
+autocmd FileType html,javascript let g:indent_guides_guide_size=1
 
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
@@ -585,7 +614,7 @@ autocmd FileType html,javascript,css,less let b:autopairs_enabled=1
 let g:prettier#autoformat = 1
 let g:prettier#config#trailing_comma = 'none'
 let g:prettier#config#bracket_spacing = 'true'
-let g:prettier#config#print_width = 80
+let g:prettier#config#print_width = 100
 "autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
 "autocmd FileWritePre,BufWrite *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
 
@@ -619,20 +648,20 @@ abbrev bp binding.pry
 nnoremap <silent><C-o> :call ZoomToggle()<CR>
 nnoremap <leader>d :GdiffInTab<cr>
 nnoremap <leader>D :tabclose<cr>
-nmap <leader>gb :Gblame<CR>
-nmap <leader>gs :Gstatus<CR>
-nmap <leader>gd :Gdiff<CR>
-nmap <leader>gl :Glog -15 --<CR>
-nmap <leader>gco :Gcommit<CR>
-nmap <leader>gr :Git reset HEAD %<CR>
-nmap <leader>gc :Git checkout --  %<CR>
-nmap <leader>gp :Git push -f<CR>
+nmap gb :Gblame<CR>
+nmap gst :Gstatus<CR>
+nmap gd :Gdiff<CR>
+nmap gl :Glog -15 --<CR>
+nmap gco :Gcommit<CR>
+nmap gr :Git reset HEAD %<CR>
+nmap gc :Git checkout --  %<CR>
+nmap gp :Git push -f<CR>
 nnoremap a hea
 nnoremap rm :Git rm %<CR>
 
 " Disabling temporarily to see if used
 map <Leader>m :NERDTreeToggle<CR>
-"map <Leader>n :NERDTreeFind<CR>
+map <Leader>n :NERDTreeFind<CR>
 
 " easy align
 augroup VCenterCursor
@@ -640,7 +669,8 @@ augroup VCenterCursor
   au BufEnter,WinEnter,WinNew,VimResized *,*.*
         \ let &scrolloff=winheight(win_getid())/2
 augroup END
-vmap <Enter> <Plug>(EasyAlign) VCenterCursor
+"vmap <Enter> <Plug>(EasyAlign) VCenterCursor
+vmap <Enter> <Plug>(EasyAlign)
 
 " choose win
 "
@@ -677,8 +707,8 @@ map <Leader>l <Plug>(easymotion-lineforward)
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
 map <Leader>h <Plug>(easymotion-linebackward)
-map  <Leader>f <Plug>(easymotion-bd-w)
-nmap <Leader>f <Plug>(easymotion-overwin-w)
+"map  <Leader>f <Plug>(easymotion-bd-w)
+"nmap <Leader>f <Plug>(easymotion-overwin-w)
 
 function! s:incsearch_config(...) abort
   " Add   \     incsearch#config#fuzzyspell#converter() for spell converter
@@ -706,11 +736,11 @@ map g# <Plug>(incsearch-nohl-g#)
 nnoremap <backspace> mzJ`z
 
 " signify
-nmap <leader>gj <plug>(signify-next-hunk)
-nmap <leader>gk <plug>(signify-prev-hunk)
+nmap gj <plug>(signify-next-hunk)
+nmap gk <plug>(signify-prev-hunk)
 " Invert background
-noremap <F1> :call LightBackground()<CR>
-noremap <F2> :call DarkBackground()<CR>
+noremap <F2> :call LightBackground()<CR>
+noremap <F1> :call DarkBackground()<CR>
 
 " Toggle the undo tree
 nnoremap <C-u> :UndotreeToggle<cr>
@@ -724,10 +754,10 @@ nnoremap M `
 "nnoremap gt :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
 "nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
 nnoremap cd :call SelectaCommand("find * -type d" .g:excludes, "", "lcd")<cr>
-nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":tabe")<cr>
-nnoremap ge :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
-nnoremap gv :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":vs")<cr>
-nnoremap gs :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":sp")<cr>
+nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":tabe")<cr>
+nnoremap ge :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":e")<cr>
+nnoremap gv :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":vs")<cr>
+nnoremap gs :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":sp")<cr>
 nnoremap fiv :call SelectaFile("app/views")<cr>
 nnoremap fic :call SelectaFile("app/controllers")<cr>
 nnoremap fim :call SelectaFile("app/models")<cr>
@@ -798,4 +828,4 @@ nnoremap <left> :cclose<CR>
 map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
 
-call LightBackground()
+call DarkBackground()

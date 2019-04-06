@@ -7,6 +7,7 @@
   lg = log -g --format=raw --date=relative
   l  = log --format=raw --name-status --abbrev-commit --date=relative
   ll = log --graph --pretty=format:'%C(yellow)%h%C(cyan)%d%Creset %s %C(white)-%an, %ar%Creset'
+  me = log --pretty=oneline --format=fuller --author=gregory
   lp = log --pretty=oneline
   wtf = log -g --abbrev-commit --format=raw --date=local --decorate=full --pretty=oneline --all
   lw = log -p --format=fuller --abbrev-commit --date=local

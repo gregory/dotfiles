@@ -16,7 +16,7 @@ if [ -f ~/.git-prompt.sh ]; then
 fi
 
 # Fix tmux vim color
-export LESS='-N'
+export LESS='-NR'
 alias more='less'
 
 alias bower='noglob bower'
