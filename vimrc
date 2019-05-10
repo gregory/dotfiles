@@ -515,6 +515,7 @@ function! LightBackground()
   hi IndentGuidesOdd  ctermbg=NONE
   "highlight clear SignColumn
   hi ColorColumn cterm=bold ctermbg=280 guibg=#343d46
+  hi Comment cterm=italic ctermfg=10 ctermbg=0 guifg=#80a0ff
   "exe "set syntax=" . Mysyn
 endfunction
 
@@ -531,7 +532,8 @@ function! DarkBackground()
   colorscheme solarized
   hi IndentGuidesEven ctermbg=280
   hi IndentGuidesOdd  ctermbg=NONE
-  highlight Comment cterm=italic
+  hi Comment cterm=italic ctermfg=0 ctermbg=10 guifg=#80a0ff
+  hi cursorline ctermbg=0 ctermfg=094108112
   "highlight clear SignColumn
   "hi Normal guibg=NONE ctermbg=NONE
   hi ColorColumn cterm=bold ctermbg=280 guibg=#343d46
