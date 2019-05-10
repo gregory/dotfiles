@@ -502,10 +502,13 @@ function! RenameFile()
 endfunction
 
 function! LightBackground()
+  syntax enable
+  set t_Co=256
+  let g:solarized_visibility = "high"
+  let g:solarized_contrast = "high"
   let g:solarized_termtrans = 1
   let Mysyn=&syntax
   set background=light
-  syntax enable
   colorscheme solarized
   "hi Normal guibg=NONE ctermbg=NONE
   hi IndentGuidesEven ctermbg=252
@@ -516,10 +519,14 @@ function! LightBackground()
 endfunction
 
 function! DarkBackground()
+  syntax enable
+  set t_Co=256
+  let g:solarized_visibility = "high"
+  let g:solarized_contrast = "high"
+  let g:solarized_termtrans = 1
   let g:solarized_termtrans = 1
   let Mysyn=&syntax
   set background=dark
-  syntax enable
   "colorscheme OceanicNext
   colorscheme solarized
   hi IndentGuidesEven ctermbg=280
@@ -570,7 +577,7 @@ au! BufRead,BufNewFile * set updatetime=2000 " set file diff checkevery 2 sec
 
 autocmd BufReadPost fugitive://* set bufhidden=delete
 autocmd User fugitive
-  \ if fugitive#buffer().type() =~# '^\%(tree\|blob\)$' |
+  \ if get(b:, 'fugitive_type', '') =~# '^\%(tree\|blob\)$' |
   \   nnoremap <buffer> .. :edit %:h<CR> |
   \ endif
 
