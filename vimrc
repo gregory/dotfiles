@@ -18,13 +18,11 @@ Plug 'tpope/vim-rhubarb'
 Plug 'terryma/vim-multiple-cursors'
 
 "Code Completion
-"Plug 'ervandew/supertab'
-Plug 'Shougo/neocomplete.vim'
-"let g:deoplete#enable_at_startup = 1
-"Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern'  }
-"Plug 'Shougo/deoplete.nvim'
-"Plug 'roxma/nvim-yarp'
-"Plug 'roxma/vim-hug-neovim-rpc'
+Plug 'ervandew/supertab'
+"Plug 'Shougo/neocomplete.vim'
+"Plug 'Shougo/neosnippet'
+"Plug 'ternjs/tern_for_vim', { 'do': 'npm install -g tern' }
+"
 
 Plug 'hashivim/vim-terraform'
 Plug 'vim-syntastic/syntastic'
@@ -33,8 +31,10 @@ Plug 'juliosueiras/vim-terraform-completion'
 Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 Plug 'cmather/vim-meteor-snippets'
+
 Plug 'tpope/vim-endwise' "Add closing arg (end etc)
 Plug 'Chiel92/vim-autoformat' "  code formatting
+Plug 'tpope/vim-repeat'
 " Memo:
 " S( will surround with (  ) the visual block
 " ys+motion +( will surround motion with (
@@ -55,46 +55,47 @@ Plug 'jiangmiao/auto-pairs'
 let g:AutoPairsFlyMode = 1
 let g:AutoPairsShortcutBackInsert = '<c-b>'
 Plug 'szw/vim-ctrlspace'
+Plug 'MattesGroeger/vim-bookmarks'
 Plug 'kshenoy/vim-signature' "add and navigate to marks
-Plug 't9md/vim-choosewin'
+"Plug 't9md/vim-choosewin'  " NOTE: disavling this to force me to use easymotion
 Plug 'haya14busa/vim-asterisk'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
 
 " Syntax
-Plug 'jparise/vim-graphql', {'for': 'javascript'}
-Plug 'elixir-editors/vim-elixir', {'for': 'elixir'}
-Plug 'tpope/vim-rails', { 'for': 'ruby' } "Rails tools
+Plug 'sheerun/vim-polyglot'
+Plug 'jparise/vim-graphql', {'for': 'graphql'}
 Plug 'thoughtbot/vim-rspec', { 'for': 'ruby' } "Rspec tools
 Plug 'fatih/vim-go', { 'for': 'go' }
-Plug 'jbgutierrez/vim-partial', {'for': 'ruby' } " extract file to partial
 Plug 'groenewege/vim-less', {'for': 'less'}
 Plug 'nathanaelkane/vim-indent-guides' "display indent guide
-Plug 'tpope/vim-haml',          { 'for': 'haml' }
-Plug 'slim-template/vim-slim',  { 'for': 'slim' }
-Plug 'vim-ruby/vim-ruby',       { 'for': 'ruby' }
-Plug 'pangloss/vim-javascript', { 'for': 'javascript' }
-Plug 'mustache/vim-mustache-handlebars', { 'for': 'html' }
-Plug 'tpope/vim-markdown'
-Plug 'wavded/vim-stylus',       { 'for': 'stylus'}
-Plug 'digitaltoad/vim-jade'
-Plug 'kchmck/vim-coffee-script'
 Plug 'vim-addon-mw-utils'
 Plug 'marcweber/vim-addon-mw-utils'
 Plug 'tomtom/tlib_vim'
 Plug 'Slava/vim-spacebars', {'for': 'html'}
 
 "Formaters & linters
-"Plug 'w0rp/ale'
+Plug 'w0rp/ale', {
+      \ 'for': ['javascript', 'css', 'json','graphql'],  'do': 'npm install -g eslint' }
+let g:ale_fixers = {
+\   '*': ['remove_trailing_lines', 'trim_whitespace'],
+\   'javascript': ['eslint'],
+\}
+let g:ale_fix_on_save = 1
+"let g:ale_linters_explicit = 1
+let g:ale_lint_on_text_changed = 'never'
 Plug 'junegunn/vim-easy-align' " easy align things
 Plug 'prettier/vim-prettier', {
       \ 'do': 'npm install -g',
-      \ 'for':    ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql'] }
+      \ 'for':    ['javascript', 'typescript', 'css', 'less', 'scss', 'jsx', 'json', 'graphql'] }
 
 "The Theme
-Plug 'flazz/vim-colorschemes'
+Plug 'rakr/vim-one'
+Plug 'joshdick/onedark.vim'
 Plug 'altercation/vim-colors-solarized'
-Plug 'zeis/vim-kolor'
-Plug 'vim-airline/vim-airline' "Bottom bar info
-Plug 'vim-airline/vim-airline-themes'
+"Plug 'vim-airline/vim-airline' "Bottom bar info
+"Plug 'vim-airline/vim-airline-themes'
+Plug 'itchyny/lightline.vim'
 call plug#end()
 
 let mapleader="," " change the mapleader from \ to ,
@@ -109,11 +110,20 @@ set nofoldenable
 nnoremap <Leader>f :set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
 " cheatsheet: zO zm/M(minimize) zr/R(fold) zi(toggle zoom)
 map zo zO
+nmap bm <Plug>BookmarkToggle
+nmap bi <Plug>BookmarkAnnotate
+nmap bn <Plug>BookmarkNext
+nmap bp <Plug>BookmarkPrev
+nmap ba <Plug>BookmarkShowAll
+nmap bC <Plug>BookmarkClearAll
+nmap bx <Plug>BookmarkClear
+
 nnoremap zz zi
 nnoremap z+ zr
 nnoremap z- zm
 nnoremap z1 zR
 nnoremap z0 zM
+
 cnoremap $t <CR>:t''<CR>
 cnoremap $T <CR>:T''<CR>
 cnoremap $m <CR>:m''<CR>
@@ -152,7 +162,7 @@ set shell=zsh
 set shiftround                 " use multiple of shiftwidth when indenting with '<' and '>'
 set shiftwidth=2               " number of spaces to use for autoindenting
 set showmatch                  " (set show matching parenthesis)
-set showmode                   " Display the mode
+set noshowmode                   " Dont Display the mode nymore since powerline
 set showtabline=2              " Show tabs bar
 set smartcase                  " ignore case if search pattern is all lowercase, case-sensitive otherwise
 set smartindent
@@ -168,6 +178,7 @@ set ttyfast                    " fast scrolling
 set ttymouse=xterm2
 set undolevels=1000            " use many muchos levels of undo
 set visualbell                 " don't beep
+set viminfo='100,f1
 set wildignore=*.swp,*.bak,*.pyc,*.class
 set wildmenu                   " Enhanced command line completion
 set wildmode=longest:full:full      " Complete files like a shell
@@ -181,7 +192,6 @@ au CursorHold,FocusLost * checktime " checkfile when cursor moved
 " rails.vim
 set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
-"nnoremap <tab> gt
 "nnoremap <s-tab> gT
 let vimDir = '$HOME/.vim'
 let &runtimepath.=','.vimDir
@@ -190,10 +200,22 @@ set path+=**
 let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
+let g:UltiSnipsEditSplit="vertical"
 "smartpairs
 let g:smartpairs_uber_mode = 1
 " vim-rspec
 
+" Vim fzf
+function! s:build_quickfix_list(lines)
+  call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
+  copen
+  cc
+endfunction
+let g:fzf_action = {
+  \ 'ctrl-o': 'tab split',
+  \ 'ctrl-s': 'split',
+  \ 'ctrl-v': 'vsplit',
+  \ 'ctrl-q': function('s:build_quickfix_list') }
 " signify
 
 let g:signify_vcs_list = [ 'git' ]
@@ -211,17 +233,23 @@ map yib yiB
 "xmap ( [
 "xmap ) ]
 
+" vim-bookmarks
+let g:bookmark_save_per_working_dir = 1
+let g:bookmark_auto_save = 1
 " ctrl-space
 "
-let g:CtrlSpaceDefaultMappingKey ='<enter>'
+"let g:CtrlSpaceDefaultMappingKey ='<enter>'
 "let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
-"let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
+let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
 "let g:CtrlSpaceSaveWorkspaceOnExit = 1
 nnoremap dir :CtrlSpace E<CR>
 nmap <silent> Q :CtrlSpace Q<CR>
-nmap <silent> <s-tab> :CtrlSpace h<CR>
-nmap <silent> <tab> :CtrlSpace a<CR>
+nmap <silent> <tab> :CtrlSpace h<CR>
+nmap <silent> <space> :Windows<CR>
+"nmap <silent> O :CtrlSpace O<CR>
 nmap <silent> T :CtrlSpace l<CR>
+nmap <silent> W :CtrlSpace w<CR>
+nmap <enter> :GFiles<cr>
 "nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
 "nnoremap <silent><tab> :bnext<CR>
@@ -233,6 +261,8 @@ let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
 let g:NERDTreeWinSize = 40
 let g:NERDTreeDirArrows = 0
 let g:NERDTreeQuitOnOpen = 1
+let g:NERDTreeAutoDeleteBuffer = 1
+let NERDTreeIgnore = ['^node_modules$[[dir]]', '^coverage$[[dir]]']
 
 "set statusline=1
 set statusline=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P
@@ -243,12 +273,12 @@ set statusline=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P
 "Note: This option must be set in .vimrc(_vimrc).  NOT IN .gvimrc(_gvimrc)!
 " Disable AutoComplPop.
 let g:acp_enableAtStartup = 0
-" Use neocomplete.
+"" Use neocomplete.
 let g:neocomplete#enable_at_startup = 1
 " Use smartcase.
 let g:neocomplete#enable_smart_case = 1
 " Set minimum syntax keyword length.
-  let g:neocomplete#sources#syntax#min_keyword_length = 2
+let g:neocomplete#sources#syntax#min_keyword_length = 2
 
 " Define dictionary.
 let g:neocomplete#sources#dictionary#dictionaries = {
@@ -264,12 +294,12 @@ function! s:my_cr_function()
   " For no inserting <CR> key.
   return pumvisible() ? "\<C-y>" : "\<CR>"
 endfunction
-" <TAB>: completion.
+"" <TAB>: completion.
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-" <C-h>, <BS>: close popup and delete backword char.
-inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-"inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
-" Close popup by <Space>.
+"" <C-h>, <BS>: close popup and delete backword char.
+"inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+"" Close popup by <Space>.
 inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
 let g:terraform_completion_keys = 1
 let g:terraform_registry_module_completion = 0
@@ -277,26 +307,9 @@ let g:terraform_registry_module_completion = 0
 let g:neocomplete#enable_auto_select = 1
 
 " Enable heavy omni completion.
-"if !exists('g:neocomplete#sources#omni#input_patterns')
-  "let g:neocomplete#sources#omni#input_patterns = {}
-"endif
-"let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
-"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
-
-"" syntastic
-"let g:syntastic_mode_map = { 'passive_filetypes': ['html'] }
-"let g:syntastic_always_populate_loc_list = 1
-"let g:syntastic_auto_loc_list = 1
-"let g:syntastic_check_on_open = 1
-"let g:syntastic_check_on_wq = 0
-
-"let g:syntastic_html_tidy_ignore_errors = [
- "\ 'plain text isn''t allowed in <head> elements',
- "\ '<template> is not recognized!',
- "\ 'discarding unexpected <template>',
- "\ 'discarding unexpected </template>'
- "\ ]
+if !exists('g:neocomplete#sources#omni#input_patterns')
+  let g:neocomplete#sources#omni#input_patterns = {}
+endif
 
 " easymotion
 let g:EasyMotion_do_mapping = 0
@@ -308,10 +321,67 @@ let g:airline#extensions#hunks#enabled=0
 let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#tabline#enabled = 1
 
+let g:tcd_blacklist = '\v(cheat40|denite|gundo|help|nerdtree|netrw|peekaboo|quickmenu|startify|tagbar|undotree|unite|vimfiler|vimshell|fzf)'
+function! LightlineFilename()
+  let root = fnamemodify(get(b:, 'git_dir'), ':h')
+  let path = expand('%:p')
+  if path[:len(root)-1] ==# root
+    return &filetype !~# g:tcd_blacklist && winwidth(0) > 70 ? path[len(root)+1:] : ''
+  endif
+  return &filetype !~# g:tcd_blacklist && winwidth(0) > 70 ? expand('%') : &filetype
+endfunction
+function! LightlineMode()
+  return expand('%:t') ==# '__Tagbar__' ? 'Tagbar':
+        \ expand('%:t') ==# 'ControlP' ? 'CtrlP' :
+        \ &filetype ==# 'vimfiler' ? 'VimFiler' :
+        \ &filetype ==# 'javascript.jsx' ? '[JS]' :
+        \ &filetype ==# '' ? lightline#mode() : '[' . &filetype . ']'
+endfunction
+function! LightlineFileEncoding()
+  return winwidth(0) > 100 ? &fileencoding: ''
+endfunction
+
+function! LightlineFiletype()
+  return winwidth(0) > 100 ? (&filetype !=# '' ? '' : '<NO FILETYPE>') : ''
+endfunction
+
+  let g:lightline = {
+        \ 'active': {
+        \   'left': [ [ 'mode', 'paste', 'readonly'],
+        \ ['gitbranch'],
+        \             [ 'filename', 'modified' ] ],
+        \   'right': [ [ 'lineinfo' ],
+        \              [ 'percent' ],
+        \              [ 'filetype', 'fileencoding'] ,
+        \ ['syntastic']
+        \ ]
+        \ },
+        \ 'component_function': {
+        \   'gitbranch': 'fugitive#head',
+        \   'filename': 'LightlineFilename',
+        \   'fileencoding': 'LightlineFileEncoding',
+        \   'filetype': 'LightlineFiletype', 'mode': 'LightlineMode',
+        \ },
+        \ 'component': {
+        \   'charvaluehex': '0x%B',
+        \ },
+        \ 'component_expand': {'syntastic': 'SyntasticStatuslineFlag'},
+        \ 'component_type': {'syntastic': 'error'},
+        \ 'subseparator': { 'left': ">", 'right': ">" },
+        \ 'separator': { 'left': "", 'right': "" },
+        \ }
+
+let g:lightline.inactive = {
+		    \ 'left': [ [ 'filename' ] ],
+		    \ 'right': [ [ 'lineinfo' ],
+		    \            [ 'percent' ] ] }
 "vim-javascript
 let javascript_enable_domhtmlcss=1
 
-set term=screen-256color
+set term=xterm-256color
+let &t_ZH="\e[3m" " for italic comments end
+let &t_ZR="\e[23m" " for italic comments start
+
 syntax enable
 let g:kolor_italic=1                    " Enable italic. Default: 1
 let g:kolor_bold=1                      " Enable bold. Default: 1
@@ -339,7 +409,7 @@ let g:undotree_SetFocusWhenToggle = 1
 let g:choosewin_overlay_enable = 1
 " Custom Functions
 
-let ignore = [".git", "node_modules","packages", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
+let ignore = [".git", "node_modules/","packages", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
 let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
 function! FollowSymlink()
   let current_file = expand('%:p')
@@ -495,49 +565,38 @@ function! RenameFile()
   let old_name = expand('%')
   let new_name = input('New file name: ', expand('%'))
   if new_name != '' && new_name != old_name
-    exec ':saveas ' . new_name
-    exec ':silent !rm ' . old_name
-    redraw!
+    exec ':Gmove ' . new_name
+    "exec ':saveas ' . new_name
+    "exec ':silent !rm ' . old_name
+    "redraw!
   endif
 endfunction
 
+hi! link IndentGuidesEven ColorColumn
+set t_Co=256
 function! LightBackground()
   syntax enable
-  set t_Co=256
-  let g:solarized_visibility = "high"
-  let g:solarized_contrast = "high"
-  let g:solarized_termtrans = 1
-  let Mysyn=&syntax
-  set background=light
-  colorscheme solarized
-  "hi Normal guibg=NONE ctermbg=NONE
-  hi IndentGuidesEven ctermbg=252
-  hi IndentGuidesOdd  ctermbg=NONE
-  "highlight clear SignColumn
-  hi ColorColumn cterm=bold ctermbg=280 guibg=#343d46
-  hi Comment cterm=italic ctermfg=10 ctermbg=0 guifg=#80a0ff
-  "exe "set syntax=" . Mysyn
+  "let g:solarized_visibility = "high"
+  "let g:solarized_contrast = "high"
+  "let g:solarized_termtrans = 0
+
+  set background=light        " for the light version
+  let g:one_allow_italics = 1 " I love italic for comments
+  set t_8b=^[[48;2;%lu;%lu;%lum
+  set t_8f=^[[38;2;%lu;%lu;%lum
+  colorscheme one
+  "hi jsStorageClass ctermfg=170 guifg=#C678DD
+  hi Comment cterm=italic
 endfunction
 
 function! DarkBackground()
-  syntax enable
-  set t_Co=256
-  let g:solarized_visibility = "high"
-  let g:solarized_contrast = "high"
-  let g:solarized_termtrans = 1
-  let g:solarized_termtrans = 1
-  let Mysyn=&syntax
-  set background=dark
-  "colorscheme OceanicNext
-  colorscheme solarized
-  hi IndentGuidesEven ctermbg=280
-  hi IndentGuidesOdd  ctermbg=NONE
-  hi Comment cterm=italic ctermfg=0 ctermbg=10 guifg=#80a0ff
-  hi cursorline ctermbg=0 ctermfg=094108112
-  "highlight clear SignColumn
-  "hi Normal guibg=NONE ctermbg=NONE
-  hi ColorColumn cterm=bold ctermbg=280 guibg=#343d46
-  "exe "set syntax=" . Mysyn
+  syntax on
+  "let g:solarized_visibility = "high"
+  "let g:solarized_contrast = "high"
+  "let g:solarized_termtrans = 0
+  let g:onedark_termcolors=256
+  hi Comment cterm=italic
+  colorscheme onedark
 endfunction
 
 "" Zoom / Restore window.
@@ -612,6 +671,14 @@ autocmd FileType html,javascript let g:indent_guides_guide_size=1
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
 autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+"if exists('g:plugs["tern_for_vim"]')
+  "let g:tern#command = ['/usr/local/bin/tern', '--no-port-file']
+  "let g:tern_show_argument_hints = 'on_hold'
+  "let g:tern_show_signature_in_pum = 1
+
+  "autocmd FileType javascript setlocal omnifunc=tern#Complete
+"endif
+
 autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 autocmd FileType less set omnifunc=csscomplete#CompleteCSS
@@ -649,7 +716,7 @@ noremap <F6> :Prettier<CR><CR>
 
 " Abbreviations/aliases
 "
-abbrev bp binding.pry
+"abbrev bp binding.pry
 
 " Mappings
 
@@ -659,6 +726,7 @@ nnoremap <leader>d :GdiffInTab<cr>
 nnoremap <leader>D :tabclose<cr>
 nmap gb :Gblame<CR>
 nmap gst :Gstatus<CR>
+
 nmap gd :Gdiff<CR>
 nmap gl :Glog -15 --<CR>
 nmap gco :Gcommit<CR>
@@ -684,10 +752,7 @@ vmap <Enter> <Plug>(EasyAlign)
 " choose win
 "
 "nnoremap <silent> <space> :ChooseWinSwapStay<CR>
-nnoremap <silent> <C-r> :ChooseWinSwap<CR>
-nmap <space> <Plug>(choosewin)
-"map <space> <Plug>(easymotion-overwin-line)
-"map <space> <Plug>(easymotion-overwin-w)
+"nnoremap <silent> <C-r> :ChooseWinSwap<CR>
 "nnoremap ? :<C-u>call EasyMotion#OverwinF(2)<cr>
 nnoremap s :<C-u>call EasyMotion#OverwinF(2)<cr>
 
@@ -732,7 +797,18 @@ endfunction
 noremap <silent><expr> /  incsearch#go(<SID>incsearch_config())
 noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
 noremap <silent><expr> g/ incsearch#go(<SID>incsearch_config({'is_stay': 1}))
-noremap <silent><expr> f incsearch#go(<SID>incsearch_config({'converters': [incsearch#config#fuzzy#converter()]}))
+"noremap <silent><expr> f incsearch#go(<SID>incsearch_config({'converters': [incsearch#config#fuzzy#converter()]}))
+
+augroup incsearch-keymap
+  autocmd!
+  autocmd VimEnter * call s:incsearch_keymap()
+augroup END
+function! s:incsearch_keymap()
+  IncSearchNoreMap <Right> <Over>(incsearch-next)
+  IncSearchNoreMap <Left>  <Over>(incsearch-prev)
+  IncSearchNoreMap <Tab>  <Over>(incsearch-scroll-f)
+  IncSearchNoreMap <S-Tab>    <Over>(incsearch-scroll-b)
+endfunction
 
 let g:asterisk#keeppos = 1
 let g:incsearch#auto_nohlsearch = 1
@@ -755,28 +831,72 @@ noremap <F1> :call DarkBackground()<CR>
 nnoremap <C-u> :UndotreeToggle<cr>
 nnoremap U <C-r>
 " ma to mark position to a, mma to recover
-nmap ` gg
-nnoremap M `
+"nmap ` gg
+nmap m `
+nnoremap M m
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
 "nnoremap gt :call SelectaCommand("find * -type f" .g:excludes, "", ":e")<cr>
 "nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes, "", ":e")<cr>
 nnoremap cd :call SelectaCommand("find * -type d" .g:excludes, "", "lcd")<cr>
-nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":tabe")<cr>
-nnoremap ge :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":e")<cr>
-nnoremap gv :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":vs")<cr>
-nnoremap gs :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":sp")<cr>
-nnoremap fiv :call SelectaFile("app/views")<cr>
-nnoremap fic :call SelectaFile("app/controllers")<cr>
-nnoremap fim :call SelectaFile("app/models")<cr>
-nnoremap fih :call SelectaFile("app/helpers")<cr>
-nnoremap fil :call SelectaFile("lib")<cr>
-nnoremap fip :call SelectaFile("public")<cr>
-nnoremap fia :call SelectaFile("app/assets")<cr>
-nnoremap fis :call SelectaFile("spec")<cr>
-nnoremap <c-g> :call SelectaIdentifier()<cr>
+"nnoremap gt :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":tabe")<cr>
+"nnoremap ge :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":e")<cr>
+"nnoremap ge :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":e")<cr>
+"nnoremap gv :call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":vs")<cr>
+nnoremap gs :GFiles?<cr>
+nnoremap ? :BLines<cr>
 
+"nnoremap fiv :call SelectaFile("app/views")<cr>
+"nnoremap fic :call SelectaFile("app/controllers")<cr>
+"nnoremap fim :call SelectaFile("app/models")<cr>
+"nnoremap fih :call SelectaFile("app/helpers")<cr>
+"nnoremap fil :call SelectaFile("lib")<cr>
+"nnoremap fip :call SelectaFile("public")<cr>
+"nnoremap fia :call SelectaFile("app/assets")<cr>
+"nnoremap fis :call SelectaFile("spec")<cr>
+"nnoremap <c-g> :call SelectaIdentifier()<cr>
+
+" Command for git grep
+" - fzf#vim#grep(command, with_column, [options], [fullscreen])
+"command! -bang -nargs=* GGrep
+  "\ call fzf#vim#grep(
+  "\   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape(<q-args>), 1,
+  "\   <bang>0 ? fzf#vim#with_preview('up:60%')
+  "\           : fzf#vim#with_preview('right:50%:hidden', '?'),
+  "\   <bang>0)
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" NOTE: Remap :CtrlSpace a to this function
+function! PrintFooBar(k)
+  :Windows
+  "echo "Foo Bar!"
+  "call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":e")
+endfunction
+let g:CtrlSpaceKeys = { "Buffer": { "a": "PrintFooBar" } }
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"if executable("ag")
+  "let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
+"endif
+inoremap <expr> <c-g> fzf#vim#complete(fzf#wrap({
+  \ 'prefix': '^.*$',
+  \ 'source': 'rg -n ^ --color always',
+  \ 'options': '--ansi --delimiter : --nth 3..',
+  \ 'reducer': { lines -> join(split(lines[0], ':\zs')[2:], '') }}))
+command! -bang -nargs=* GGrep
+  \ call fzf#vim#grep(
+  \   'git grep --line-number '.shellescape(<q-args>), 0,
+  \   { 'options':'--exact', 'dir': systemlist('git rev-parse --show-toplevel')[0] }, <bang>0)
+
+nnoremap mru :call fzf#run({
+\  'source':  v:oldfiles,
+\  'sink':    'e',
+\  'options': '-m -x +s --exact',
+\  'down':    '20%'})<cr>
+
+nnoremap ge :GFiles<cr>
+nnoremap <c-g> :GGrep<cr>
 nmap mv :call RenameFile()<cr>
 "nnoremap cd :cd %:p:h<CR>:pwd<CR>
 
@@ -833,8 +953,20 @@ nnoremap <down> :cn<CR>
 nnoremap <up> :cp<CR>
 nnoremap <right> :copen<CR>
 nnoremap <left> :cclose<CR>
+nnoremap <c-down> :lne<CR>
+nnoremap <c-up> :lpr<CR>
+nnoremap <c-right> :lop<CR>
+nnoremap <c-left> :lcl<CR>
 
 map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
 
-call DarkBackground()
+" Color scheme based on time
+if strftime("%H") < 8
+  call LightBackground()
+  set background=dark
+elseif strftime("%H") < 18
+  call LightBackground()
+else
+  call DarkBackground()
+endif
