@@ -52,8 +52,6 @@ let s:coc_extensions = [
 \   'coc-html',
 \   'coc-json',
 \   'coc-yaml',
-\   'coc-emmet',
-\   'coc-vetur',
 "\   'coc-tslint-plugin',
 \   'coc-prettier',
 \   'coc-tsserver',
@@ -87,7 +85,7 @@ Plug 'haya14busa/incsearch.vim'
 Plug 'haya14busa/incsearch-fuzzy.vim'
 Plug 'haya14busa/incsearch-easymotion.vim'
 Plug 'gorkunov/smartpairs.vim'
-"Plug 'jiangmiao/auto-pairs'
+Plug 'jiangmiao/auto-pairs'
 let g:AutoPairsFlyMode = 1
 let g:AutoPairsShortcutBackInsert = '<c-b>'
 Plug 'szw/vim-ctrlspace'
@@ -141,7 +139,7 @@ let mapleader="," " change the mapleader from \ to ,
 set foldmethod=indent
 set foldlevel=2
 set nofoldenable
-set notimeout ttimeout timeoutlen=100
+"set notimeout ttimeout timeoutlen=100
 " cheatsheet: zO zm/M(minimize) zr/R(fold) zi(toggle zoom)
 map zo zO
 nmap bm <Plug>BookmarkToggle
@@ -151,6 +149,8 @@ nmap bp <Plug>BookmarkPrev
 nmap ba <Plug>BookmarkShowAll
 nmap bC <Plug>BookmarkClearAll
 nmap bx <Plug>BookmarkClear
+"since i am opening vim in the main process, ctrl-z wont work
+nmap <c-z> <nop>
 
 nnoremap zz zi
 nnoremap z+ zr
@@ -182,9 +182,10 @@ set laststatus=2               " Show the status line all the time
 set lazyredraw                 " tells Vim not to bother redrawing during these scenarios, leading to faster macros
 set linebreak                  " tells Vim to only wrap at a character in the breakat option
 set listchars=tab:>.,trail:.,extends:#,nbsp:.
-set mouse-=a
+set mouse=nv
 set nobackup
 set noerrorbells               " don't beep
+set noea                       "Dont resize buffers when other closes
 "set nolist                     " list disables linebreak
 set nonumber                   " hide line numbers
 ":set number relativenumber
@@ -266,6 +267,11 @@ map vib viB
 map cib ciB
 map yib yiB
 
+"cmap w!! w !sudo tee % >/dev/null
+
+map <silent><F3> <ESC>:exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
+tmap <silent><F3> <c-w>: exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
+
 "nmap ( [
 "nmap ) ]
 "omap ( [
@@ -285,11 +291,12 @@ let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
 nnoremap <nowait> dir :CtrlSpace E<CR>
 nmap <silent><nowait> Q :CtrlSpace Q<CR>
 nmap <silent><nowait> <tab> :CtrlSpace a<CR>
-nnoremap <Leader>f :set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
+"nnoremap <nowait>ls :set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
+nnoremap <nowait><leader>f :echo join(sort(map(filter(range(0, bufnr('$')), 'bufwinnr(v:val)>=0'), 'fnamemodify(bufname(v:val), ":t")'), 'n'), "\n")
 nnoremap <expr><silent><space> v:count ? ":\<c-u> ". v:count ." wincmd w\<cr>" : "\<c-w>"
 nmap <silent><nowait> T :CtrlSpace l<CR>
 nmap <silent><nowait> W :CtrlSpace w<CR>
-nmap <nowait> <enter> :GFiles<cr>
+nmap <nowait> <enter> :GFiles -cmo --exclude-standard<cr>
 "nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
 "nnoremap <silent><tab> :bnext<CR>
@@ -716,7 +723,7 @@ augroup AuNERDTreeCmd
     autocmd VimLeave * silent !echo -ne "\033]1337;SetKeyLabel=F6=F6\a"
   endif
   command! -nargs=0 Prettier :CocCommand prettier.formatFile
-  noremap <special> <F6> :Prettier<CR><CR>
+  noremap <silent><special> <F6> :Prettier<CR>
 
   " Abbreviations/aliases
   "
@@ -881,8 +888,8 @@ imap <C-j> <Plug>(coc-snippets-expand-jump)
 " Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
 
 inoremap <silent><expr> <TAB>
-      "\ pumvisible() ? coc#_select_confirm() :
-      \ pumvisible() ? "\<C-n>" :
+      \ pumvisible() ? coc#_select_confirm() :
+      "\ pumvisible() ? "\<C-n>" :
       \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
       \ <SID>check_back_space() ? "\<TAB>" :
       \ coc#refresh()
@@ -895,7 +902,7 @@ endfunction
 
 " Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
 " Coc only does snippet and additional edit on confirm.
-inoremap <silent><expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+inoremap <silent><expr><cr> pumvisible() ? "\<C-y>" : "\<CR>"
 
 let g:coc_snippet_next = '<tab>'
 let g:coc_node_path='/usr/local/bin/node'
@@ -981,8 +988,10 @@ omap <leader><tab> <plug>(fzf-maps-o)
   nnoremap <silent> <s-down> :resize -5<cr>
   nnoremap <silent> <s-left> :vertical resize +5<cr>
   nnoremap <silent> <s-right> :vertical resize -5<cr>
+
   if has("terminal")
-    tnoremap <special> <Esc> <C-W>N
+    tnoremap <Leader>f <c-w>: set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
+    tnoremap <nowait> <c-f>: <c-w>:
     tnoremap <nowait> fd <c-w>N
     tnoremap <nowait> :q <c-w>: q!
     tnoremap <silent> <c-k> <c-w>: wincmd k<cr>
@@ -1012,7 +1021,7 @@ omap <leader><tab> <plug>(fzf-maps-o)
   "nnoremap <c-j> ]`
   "nnoremap <c-k> [`
   "
-  nmap mm m,
+  "nmap mm m,
   nnoremap <silent> M :Marks<cr>
   nnoremap j jzz
   nnoremap k kzz
@@ -1043,8 +1052,7 @@ omap <leader><tab> <plug>(fzf-maps-o)
 
   " Color scheme based on time
   if strftime("%H") < 8
-    call LightBackground()
-    set background=dark
+    call DarkBackground()
   elseif strftime("%H") < 20
     call LightBackground()
   else
