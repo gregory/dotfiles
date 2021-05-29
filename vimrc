@@ -36,7 +36,7 @@ call plug#begin('~/.vim/plugged')
 " Coding Tools
 Plug 'mbbill/undotree' " Display your undo history in a graph
 Plug 'tpope/vim-fugitive' " Git tools "Plug 'jgdavey/tslime.vim'
-Plug 'mhinz/vim-signify' " show modified lines in gutter
+"Plug 'mhinz/vim-signify' " show modified lines in gutter
 Plug 'scrooloose/nerdcommenter'
 Plug 'stefandtw/quickfix-reflector.vim' "Replace text from the copen pane
 Plug 'editorconfig/editorconfig-vim'
@@ -48,24 +48,27 @@ Plug 'terryma/vim-multiple-cursors'
 "Plug 'ervandew/supertab'
 
 let s:coc_extensions = [
-\   'coc-css',
-\   'coc-html',
-\   'coc-json',
-\   'coc-yaml',
-"\   'coc-tslint-plugin',
-\   'coc-prettier',
-\   'coc-tsserver',
-\   'coc-ultisnips'
-\ ]
-Plug 'neoclide/coc.nvim', {'do': function('PlugCoc')}
-Plug 'SirVer/ultisnips', {'do': function('PlugRemotePlugins')}
+      \   'coc-css',
+      \   'coc-html',
+      \   'coc-json',
+      \   'coc-yaml',
+      "\   'coc-eslint',
+      "\   'coc-tslint',
+      "\   'coc-tslint-plugin',
+      \   'coc-prettier',
+      "\   'coc-tsserver',
+      "\   'coc-ultisnips'
+      "\   'coc-neosnippet'
+      \ ]
+Plug 'neoclide/coc.nvim', {'branch':'release', 'do': function('PlugCoc')}
+"Plug 'SirVer/ultisnips', {'do': function('PlugRemotePlugins')}
 Plug 'honza/vim-snippets'
 Plug 'hashivim/vim-terraform'
 Plug 'vim-syntastic/syntastic'
 Plug 'juliosueiras/vim-terraform-completion'
 Plug 'cmather/vim-meteor-snippets'
 
-"Plug 'tpope/vim-endwise' "Add closing arg (end etc)
+Plug 'tpope/vim-endwise' "Add closing arg (end etc)
 Plug 'Chiel92/vim-autoformat' "  code formatting
 Plug 'tpope/vim-repeat'
 " Memo:
@@ -84,10 +87,8 @@ Plug 'kana/vim-submode'
 Plug 'haya14busa/incsearch.vim'
 Plug 'haya14busa/incsearch-fuzzy.vim'
 Plug 'haya14busa/incsearch-easymotion.vim'
-Plug 'gorkunov/smartpairs.vim'
+"Plug 'gorkunov/smartpairs.vim'
 Plug 'jiangmiao/auto-pairs'
-let g:AutoPairsFlyMode = 1
-let g:AutoPairsShortcutBackInsert = '<c-b>'
 Plug 'szw/vim-ctrlspace'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 'kshenoy/vim-signature' "add and navigate to marks
@@ -96,19 +97,35 @@ Plug 'haya14busa/vim-asterisk'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 
+Plug 'tomtom/tlib_vim'
+
 " Syntax
 Plug 'sheerun/vim-polyglot'
+Plug 'othree/yajs.vim'
 Plug 'jparise/vim-graphql', {'for': 'graphql'}
-Plug 'thoughtbot/vim-rspec', { 'for': 'ruby' } "Rspec tools
-Plug 'nathanaelkane/vim-indent-guides' "display indent guide
-Plug 'vim-addon-mw-utils'
+"Plug 'nathanaelkane/vim-indent-guides' "display indent guide
 Plug 'marcweber/vim-addon-mw-utils'
-Plug 'tomtom/tlib_vim'
-Plug 'Slava/vim-spacebars', {'for': 'html'}
+"Plug 'Slava/vim-spacebars', {'for': 'html'}
 
 "Formaters & linters
-Plug 'w0rp/ale', {
-      \ 'for': ['javascript', 'css', 'json','graphql'],  'do': 'npm install -g eslint' }
+"Plug 'w0rp/ale', {
+      "\ 'for': ['javascript', 'css', 'json','graphql'],  'do': 'npm install -g eslint' }
+Plug 'junegunn/vim-easy-align' " easy align things
+
+"The Theme
+Plug 'morhetz/gruvbox'
+Plug 'rakr/vim-one'
+Plug 'joshdick/onedark.vim'
+"Plug 'altercation/vim-colors-solarized'
+"Plug 'vim-airline/vim-airline' "Bottom bar info
+"Plug 'vim-airline/vim-airline-themes'
+Plug 'itchyny/lightline.vim'
+call plug#end()
+
+let g:polyglot_disabled = ['javascript']
+let g:AutoPairsFlyMode = 1
+let g:AutoPairsMapCR=0
+let g:AutoPairsShortcutBackInsert = '<c-b>'
 let g:ale_fixers = {
       \   '*': ['remove_trailing_lines', 'trim_whitespace'],
       \   'javascript': ['eslint'],
@@ -119,16 +136,6 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_keep_list_window_open = 1
 "let g:ale_open_list = 1
 let g:ale_set_loclist = 1
-Plug 'junegunn/vim-easy-align' " easy align things
-
-"The Theme
-Plug 'rakr/vim-one'
-Plug 'joshdick/onedark.vim'
-"Plug 'altercation/vim-colors-solarized'
-"Plug 'vim-airline/vim-airline' "Bottom bar info
-"Plug 'vim-airline/vim-airline-themes'
-Plug 'itchyny/lightline.vim'
-call plug#end()
 
 let mapleader="," " change the mapleader from \ to ,
 
@@ -136,8 +143,9 @@ let mapleader="," " change the mapleader from \ to ,
 " Pimping vim
 "
 "set foldmethod=syntax "slow
-set foldmethod=indent
-set foldlevel=2
+"augroup fold_manual
+  "au FileType javascript setlocal re=1 foldmethod=syntax foldlevel=2
+"augroup END
 set nofoldenable
 "set notimeout ttimeout timeoutlen=100
 " cheatsheet: zO zm/M(minimize) zr/R(fold) zi(toggle zoom)
@@ -169,14 +177,12 @@ set backspace=indent,eol,start " allow backspacing over everything in insert mod
 set colorcolumn=100
 set copyindent                 " copy the previous indentation on autoindenting
 set cursorline
+set nocursorline "disable this for the moment: https://superuser.com/a/625994
 set encoding=utf-8
 set expandtab
 set fileencoding=utf-8
-set ignorecase
-set smartcase
 set hidden
 set hlsearch                   " highlight matches
-set ignorecase                 " ignore case when searching
 set incsearch                  " show search matches as you type
 set laststatus=2               " Show the status line all the time
 set lazyredraw                 " tells Vim not to bother redrawing during these scenarios, leading to faster macros
@@ -185,7 +191,8 @@ set listchars=tab:>.,trail:.,extends:#,nbsp:.
 set mouse=nv
 set nobackup
 set noerrorbells               " don't beep
-set noea                       "Dont resize buffers when other closes
+"set noea                       "Dont resize buffers when other closes
+set ead=ver                    " Only auto resize vertical buffers
 "set nolist                     " list disables linebreak
 set nonumber                   " hide line numbers
 ":set number relativenumber
@@ -202,9 +209,11 @@ set shell=/bin/zsh
 set shiftround                 " use multiple of shiftwidth when indenting with '<' and '>'
 set shiftwidth=2               " number of spaces to use for autoindenting
 set showmatch                  " (set show matching parenthesis)
+set noshowmatch "disable this for the moment: https://superuser.com/a/625994
 set noshowmode                   " Dont Display the mode nymore since powerline
 set showtabline=2              " Show tabs bar
 set smartcase                  " ignore case if search pattern is all lowercase, case-sensitive otherwise
+set ignorecase
 set smartindent
 set smarttab                   " insert tabs on the start of a line according to shiftwidth, not tabstop
 set softtabstop=2
@@ -212,12 +221,13 @@ set splitbelow                 "split below the buffer
 set splitright                 "split on the right of the buffer
 set tabstop=2                  " a tab is 2 spaces
 set textwidth=80
-set title                      " change the terminal's title
+set title                      " change the erminal's title
 set ts=2 sw=2 et
 set ttyfast                    " fast scrolling
 set ttymouse=xterm2
 set undolevels=1000            " use many muchos levels of undo
 set visualbell                 " don't beep
+set t_vb=     "disable visual belt
 set viminfo='100,f1
 set wildignore=*.swp,*.bak,*.pyc,*.class
 set wildmenu                   " Enhanced command line completion
@@ -227,20 +237,33 @@ set formatoptions=l
 
 " check file change every 4 seconds ('CursorHold') and reload the buffer upon detecting change
 set autoread                   " refresh unchanged file
-au CursorHold,FocusLost * checktime " checkfile when cursor moved
 
 " rails.vim
 set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
 
+let html_no_rendering=1 "disable this for the moment: https://superuser.com/a/625994
 "nnoremap <s-tab> gT
 let vimDir = '$HOME/.vim'
 
 let &runtimepath.=','.vimDir
 set path+=**
+let g:EasyMotion_smartcase = 1
 "utilsnip
-let g:UltiSnipsExpandTrigger="<c-%>"
-let g:UltiSnipsJumpForwardTrigger="<tab>"
-let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
+""let g:UltiSnipsExpandTrigger="<c-%>"
+"let g:UltiSnipsExpandTrigger="<nop>"
+"let g:endwise_no_mappings = 1
+"let g:ulti_expand_or_jump_res = 0
+"function! <SID>ExpandSnippetOrReturn()
+  "let snippet = UltiSnips#ExpandSnippetOrJump()
+  "if g:ulti_expand_or_jump_res > 0
+    "return snippet
+  "else
+    "return "\<C-Y>"
+  "endif
+"endfunction
+"inoremap <expr> <CR> pumvisible() ? "\<C-R>=<SID>ExpandSnippetOrReturn()\<CR>" : "\<CR>\<C-R>=EndwiseDiscretionary()\<CR>"
+"let g:UltiSnipsJumpForwardTrigger="<tab>"
+"let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 "let g:UltiSnipsEditSplit="vertical"
 "smartpairs
 let g:smartpairs_uber_mode = 1
@@ -271,6 +294,13 @@ map yib yiB
 
 map <silent><F3> <ESC>:exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
 tmap <silent><F3> <c-w>: exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
+tmap <silent><F9> <c-w>: tabnext<cr>
+tmap <silent><F7> <c-w>: tabprevious<cr>
+tmap <silent><F8> <c-w>: tabnew<cr>
+nmap <silent><F9> <c-w>: tabnext<cr>
+nmap <silent><F7> <c-w>: tabprevious<cr>
+nmap <silent><F8> <c-w>: tabnew<cr>
+nmap <s-tab> <c-w>: CtrlSpace List
 
 "nmap ( [
 "nmap ) ]
@@ -297,6 +327,7 @@ nnoremap <expr><silent><space> v:count ? ":\<c-u> ". v:count ." wincmd w\<cr>" :
 nmap <silent><nowait> T :CtrlSpace l<CR>
 nmap <silent><nowait> W :CtrlSpace w<CR>
 nmap <nowait> <enter> :GFiles -cmo --exclude-standard<cr>
+nmap <nowait> ge :GGrep<cr>
 "nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
 "nnoremap <silent><tab> :bnext<CR>
@@ -304,7 +335,7 @@ nmap <nowait> <enter> :GFiles -cmo --exclude-standard<cr>
 
 " NERDTree
 let g:NERDTreeMinimalUI = 1
-let g:NERDTreeChDirMode=1 "2 would update the cwd anytime i change the root
+"let g:NERDTreeChDirMode=2 "2 would update the cwd anytime i change the root
 let g:NERDTreeWinSize = 40
 let g:NERDTreeDirArrows = 0
 let g:NERDTreeQuitOnOpen = 1
@@ -325,9 +356,27 @@ let g:EasyMotion_startofline = 0
 let g:EasyMotion_smartcase = 1
 
 let g:tcd_blacklist = '\v(cheat40|denite|gundo|help|nerdtree|netrw|peekaboo|quickmenu|startify|tagbar|undotree|unite|vimfiler|vimshell|fzf)'
+fu! ToggleCurline ()
+  if &cursorline && &cursorcolumn
+    "set nocursorline
+    set nocursorcolumn
+  else
+    "set cursorline
+    set cursorcolumn
+  endif
+endfunction
+
+nmap <nowait> cl :call ToggleCurline()<CR>
+augroup BgHighlight
+    autocmd!
+    autocmd WinEnter * set cul
+    autocmd WinEnter * set colorcolumn=100
+    autocmd WinLeave * set nocul
+    autocmd WinLeave * set colorcolumn=0
+augroup END
 
 "set statusline=1
-set statusline=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P
+"set statusline=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P
 "set statusline+=%#warningmsg#
 "set statusline+=%{SyntasticStatuslineFlag()}
 "set statusline+=%*
@@ -335,7 +384,8 @@ function! LightlineFilename()
   let root = fnamemodify(get(b:, 'git_dir'), ':h')
   let path = expand('%:p')
   if path[:len(root)-1] ==# root
-    return &filetype !~# g:tcd_blacklist && winwidth(0) > 70 ? path[len(root)+1:] : ''
+    let file = path[len(root)+1:]
+    return &filetype !~# g:tcd_blacklist && winwidth(0) <= len(file) ?  '' : file
   endif
   return &filetype !~# g:tcd_blacklist && winwidth(0) > 70 ? expand('%') : &filetype
 endfunction
@@ -354,31 +404,33 @@ endfunction
 function! LightlineFiletype()
   return winwidth(0) > 100 ? (&filetype !=# '' ? '' : '<>') : ''
 endfunction
+function! CocCurrentFunction()
+  return get(b:, 'coc_current_function', '')
+endfunction
 
 let g:lightline = {
       \ 'active': {
-      \   'left': [ [ 'mode', 'paste', 'readonly'],
-      \             ['gitbranch'],
-      \             [ 'filename', 'modified', 'cocstatus']
+      \   'left': [ [ 'mode',  'paste'],
+      \             [ 'filename', 'modified']
       \           ],
-      \   'right': [ [ 'position' ],
-      \              [ 'percent' ],
-      \              [ 'filetype', 'fileencoding'] ,
-      \              ['syntastic']
+      \   'right': [ ['position', 'modified'],
+      \              [ 'percent' , 'filetype', 'fileencoding'],
+      \              ['syntastic', 'cocstatus']
       \            ]
       \ },
       \ 'inactive': {
       \   'left': [
-      \             [ 'filename', 'modified' ]
+      \             [ 'filename',  'modified']
       \           ],
-      \   'right': [ [ 'position' ],
+      \   'right': [ ['position'],
       \            ]
       \ },
       \ 'component_function': {
-      \   'gitbranch': 'fugitive#head',
+      "\   'gitbranch': 'fugitive#head',
       \   'filename': 'LightlineFilename',
       \   'fileencoding': 'LightlineFileEncoding',
-      \   'filetype': 'LightlineFiletype', 'mode': 'LightlineMode', 'cocstatus':'coc#status'
+      \   'filetype': 'LightlineFiletype', 'mode': 'LightlineMode', 'cocstatus':'coc#status',
+      \   'currentfunction': 'CocCurrentFunction'
       \ },
       \ 'component': {
       \   'charvaluehex': '0x%B',
@@ -391,8 +443,15 @@ let g:lightline = {
       \ }
 
 let g:lightline.tab = {
-		    \ 'active': [ 'tabnum', 'filename', 'modified' ],
-		    \ 'inactive': [ 'tabnum', 'filename', 'modified' ] }
+      \ 'active': [ 'tabnum', 'filename', 'modified' ],
+      \ 'inactive': [ 'tabnum', 'filename', 'modified' ] }
+
+let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#one#palette)
+"let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#onedark#palette)
+let g:lightline#colorscheme#Greg#palette.inactive.right[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+"let g:lightline#colorscheme#Greg#palette.inactive.left[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+let g:lightline#colorscheme#Greg#palette.inactive.left[0] = g:lightline#colorscheme#Greg#palette.normal.left[1]
+
 "vim-javascript
 let javascript_enable_domhtmlcss=1
 
@@ -420,6 +479,7 @@ let g:choosewin_overlay_enable = 1
 
 let ignore = [".git", "node_modules/","packages", "vendor", ".svg", ".eot", "log/", ".jpg", '\/\.', '^\..*'] " ignore hidden files
 let excludes= " \| GREP_OPTIONS=\'\' egrep -v -e \'" . join(map(ignore, 'v:val'), "\|") . "\'"
+
 function! FollowSymlink()
   let current_file = expand('%:p')
   " check if file type is a symlink
@@ -430,38 +490,86 @@ function! FollowSymlink()
     silent! execute 'file ' . actual_file
   end
 endfunction
-function! UpdateCurrentPwd()
-  " default to the current file's directory
-  if expand("%:p:h") !~ g:excludes
-    lcd %:p:h
-    let git_dir = system("git rev-parse --show-toplevel")
-    " See if the command output starts with 'fatal' (if it does, not in a git repo)
-    let is_not_git_dir = matchstr(git_dir, '^fatal:.*')
-    " if git project, change local directory to git project root
-    if empty(is_not_git_dir)
-      let $GIT_DIR =git_dir
-      lcd `=git_dir`
-    endif
-  endif
-endfunction
+
 function! SetProjectRoot()
   " default to the current file's directory
-  if expand("%:p:h") !~ g:excludes
-    lcd %:p:h
-    let git_dir = system("git rev-parse --show-toplevel")
-    " See if the command output starts with 'fatal' (if it does, not in a git repo)
-    let is_not_git_dir = matchstr(git_dir, '^fatal:.*')
-    " if git project, change local directory to git project root
-    if empty(is_not_git_dir)
-      let $GIT_DIR =git_dir
-      lcd `=git_dir`
-    endif
+  lcd %:p:h
+  let git_dir = system("git rev-parse --show-toplevel")
+  " See if the command output starts with 'fatal' (if it does, not in a git repo)
+  let is_not_git_dir = matchstr(git_dir, '^fatal:.*')
+  " if git project, change local directory to git project root
+  if empty(is_not_git_dir)
+    lcd `=git_dir`
   endif
 endfunction
-autocmd BufEnter * if expand("%:p:h") !~ g:excludes | silent! lcd %:p:h | endif
-autocmd BufRead *
-      \ call FollowSymlink() |
-      \ call SetProjectRoot()
+
+augroup custom_augroup
+  au!
+  autocmd FileType ruby,eruby let g:rubycomplete_buffer_loading = 1
+  autocmd FileType ruby,eruby let g:rubycomplete_classes_in_global = 1
+  autocmd FileType ruby,eruby let g:rubycomplete_rails = 1
+  autocmd FileType ruby setlocal tabstop=2
+  autocmd FileType ruby setlocal shiftwidth=2
+  autocmd FileType ruby setlocal softtabstop=2
+  autocmd FileType ruby setlocal commentstring=#\ %s
+  autocmd FileType ruby noremap view :Eview<CR>
+  autocmd FileType ruby noremap cont :Econtroller<CR>
+  autocmd FileType ruby noremap test :A<CR>
+  autocmd FileType slim set formatoptions-=t
+  autocmd FileType slim set nolist
+
+  autocmd FileType html,xml,json set colorcolumn=0
+  autocmd FileType json syntax match Comment +\/\/.\+$+
+
+  autocmd FileType html,javascript set shiftwidth=2 tabstop=2 showtabline=2
+  autocmd FileType html,javascript set nowrap nolist
+  autocmd FileType html,javascript let g:indent_guides_start_level=2
+  autocmd FileType html,javascript let g:indent_guides_guide_size=2
+
+  autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+  autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+  autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+  autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+  autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+  autocmd FileType less set omnifunc=csscomplete#CompleteCSS
+
+  au CursorHold,FocusLost * checktime " checkfile when cursor moved
+  autocmd BufEnter * if expand("%:p:h") !~ g:excludes | silent! lcd %:p:h | endif
+  autocmd BufRead *
+        \ call FollowSymlink() |
+        \ call SetProjectRoot()
+  "set autowriteall "save file when buffer switched
+  au! BufRead,BufNewFile .envrc,.env set filetype=config
+  au! BufRead,BufNewFile     *.haml   set filetype=haml
+  au! BufRead,BufNewFile     *.slim   set filetype=slim
+  au! BufNewFile,BufReadPost *.styl   set filetype=stylus
+  au! BufNewFile,BufReadPost *.stylus set filetype=stylus
+  au! BufNewFile,BufReadPost *.builder set filetype=ruby
+  au! BufNewFile,BufReadPost *.voxml set filetype=ruby
+  au! BufNewFile,BufReadPost *.ex,*.exs set filetype=elixir
+  autocmd BufNewFile,BufRead *.less set filetype=less
+  au! BufRead,BufNewFile * set updatetime=2000 " set file diff checkevery 2 sec
+
+  autocmd BufReadPost fugitive://* set bufhidden=delete
+  autocmd User fugitive
+        \ if get(b:, 'fugitive_type', '') =~# '^\%(tree\|blob\)$' |
+        \   nnoremap <buffer> .. :edit %:h<CR> |
+        \ endif
+  autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
+
+  autocmd FileWritePre       * :silent! keepjumps call TrimWhiteSpace()
+  autocmd FileAppendPre      * :silent! keepjump call TrimWhiteSpace()
+  autocmd FilterWritePre     * :silent! keepjump call TrimWhiteSpace()
+  autocmd BufWritePre        * :silent! keepjump call TrimWhiteSpace()
+  let term=$TERM
+  if term == 'screen-256color'
+    autocmd VimEnter * :silent !echo -ne "\033Ptmux;\033\033]1337;SetKeyLabel=F6=Format\a\033\\"
+    autocmd VimLeave * :silent !echo -ne "\033Ptmux;\033\033]1337;SetKeyLabel=F6=F6\a\033\\"
+  else
+    autocmd VimEnter * :silent !echo -ne "\033]1337;SetKeyLabel=F6=Format\a"
+    autocmd VimLeave * :silent !echo -ne "\033]1337;SetKeyLabel=F6=F6\a"
+  endif
+augroup END
 "autocmd CursorMoved silent *
 "" short circuit for non-netrw files
       "\ if &filetype == 'netrw' |
@@ -581,37 +689,111 @@ function! RenameFile()
   endif
 endfunction
 
-hi! link IndentGuidesEven ColorColumn
-hi ExtraWhitespace ctermbg=red guibg=red
-match ExtraWhitespace /\s\+$/
+syntax enable
+
+syntax keyword javascriptImport require
+
+function! SetTransp()
+  hi normal ctermbg=none
+  hi Terminal ctermbg=none
+  set t_vb=
+endfunction
 
 function! LightBackground()
-  syntax enable
+  set notermguicolors
   set t_Co=256
   set term=xterm-256color
   "let g:solarized_visibility = "high"
   "let g:solarized_contrast = "high"
   "let g:solarized_termtrans = 0
 
-  set background=light        " for the light version
   let g:one_allow_italics = 1 " I love italic for comments
   set t_8b=^[[48;2;%lu;%lu;%lum
   set t_8f=^[[38;2;%lu;%lu;%lum
+  "hi clear
+  "syntax reset
   colorscheme one
-  "hi jsStorageClass ctermfg=170 guifg=#C678DD
+  set background=light
+  let g:lightline.colorscheme = 'Greg'
   hi Comment cterm=italic
+  hi! link javascriptOperator Identifier
+  hi Terminal ctermfg=23 ctermbg=255
+  hi! link IndentGuidesEven CursorLine
+  hi! link IndentGuidesOdd noise
+  let g:indent_guides_guide_size=2
+  "hi jsStorageClass ctermfg=170 guifg=#C678DD
 endfunction
 
 function! DarkBackground()
-  syntax enable
+  set notermguicolors
   set t_Co=256
   set term=xterm-256color
   "let g:solarized_visibility = "high"
   "let g:solarized_contrast = "high"
   "let g:solarized_termtrans = 0
   let g:onedark_termcolors=256
+  set background=dark
+  "colorscheme onedark
+  colorscheme gruvbox
   hi Comment cterm=italic
+  let g:indent_guides_guide_size=2
+  "https://github.com/pangloss/vim-javascript/blob/master/syntax/javascript.vim
+  hi! link IndentGuidesEven CursorLine
+  hi! link IndentGuidesOdd noise
+
+  hi Terminal ctermfg=145 ctermbg=235
+
+  let g:lightline.colorscheme = 'Greg'
+endfunction
+
+function! TransparentBackground()
+  set notermguicolors
+  set t_Co=256
+  set term=xterm-256color
+  "let g:solarized_visibility = "high"
+  "let g:solarized_contrast = "high"
+  "let g:solarized_termtrans = 0
+  let g:onedark_termcolors=256
+  "hi clear
+  "syntax reset
+  set background=dark
   colorscheme onedark
+  hi Comment cterm=italic
+  hi! link javascriptAsyncFuncKeyword Keyword
+  hi! link javascriptNodeGlobal Structure
+  hi! link javascriptGlobal Structure
+  hi! link javascriptOperator Identifier
+  "colorscheme gruvbox
+  let g:indent_guides_guide_size=2
+  "https://github.com/pangloss/vim-javascript/blob/master/syntax/javascript.vim
+  "hi! link jsGlobalNodeObjects GruvboxAqua
+  "hi! link jsStorageClass Gruvboxyellow
+  "hi! link jsOperator Gruvboxyellow
+  "hi! link jsFuncCall Gruvboxorange
+  "hi! link jsGlobalObjects Gruvboxyellow
+  hi! link IndentGuidesEven CursorLine
+  hi! link IndentGuidesOdd noise
+
+  hi Terminal ctermfg=145 ctermbg=235
+
+  let g:lightline.colorscheme = 'Greg'
+  call SetTransp()
+endfunction
+
+function! SetTheme()
+  " Color scheme based on time
+  if strftime("%H") < 8
+    call TransparentBackground()
+  elseif strftime("%H") < 18
+    call LightBackground()
+  else
+    call TransparentBackground()
+  endif
+  hi! link javascriptOperator Identifier
+  "match ExtraWhitespace /\s\+$/
+  "hi ExtraWhitespace ctermbg=red guibg=red
+  set visualbell                 " don't beep
+  set t_vb=     "disable visual belt
 endfunction
 
 "" Zoom / Restore window.
@@ -635,241 +817,213 @@ hi link EasyMotionShade  Comment
 command! GdiffInTab tabedit %|vsplit|Gdiff
 
 cabbrev grep Ggrep
+abbrev requrie require
 cabbrev git Git
 
 " File type setup
 
 filetype plugin indent on         " Turn on file type detection.
 
-"set autowriteall "save file when buffer switched
-au! BufRead,BufNewFile     *.haml   set filetype=haml
-au! BufRead,BufNewFile     *.slim   set filetype=slim
-au! BufNewFile,BufReadPost *.styl   set filetype=stylus
-au! BufNewFile,BufReadPost *.stylus set filetype=stylus
-au! BufNewFile,BufReadPost *.builder set filetype=ruby
-au! BufNewFile,BufReadPost *.voxml set filetype=ruby
-au! BufNewFile,BufReadPost *.ex,*.exs set filetype=elixir
-autocmd BufNewFile,BufRead *.less set filetype=less
-au! BufRead,BufNewFile * set updatetime=2000 " set file diff checkevery 2 sec
+"augroup AuNERDTreeCmd
+  "autocmd!
+  "autocmd AuNERDTreeCmd VimEnter    * call s:CdIfDirectory(expand("<amatch>"))
+  "autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
+"augroup END
 
-autocmd BufReadPost fugitive://* set bufhidden=delete
-autocmd User fugitive
-      \ if get(b:, 'fugitive_type', '') =~# '^\%(tree\|blob\)$' |
-      \   nnoremap <buffer> .. :edit %:h<CR> |
-      \ endif
+let b:autopairs_enabled=0
+autocmd FileType html,javascript,css,less let b:autopairs_enabled=1
+"autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <left> <ESC>:call search('["\[''({]','bW')<CR>a
+"autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <right> <ESC>:call search('["\]'')}]','W')<CR>a
+let g:prettier#autoformat = 1
+let g:prettier#config#trailing_comma = 'none'
+let g:prettier#config#bracket_spacing = 'true'
+let g:prettier#config#print_width = 100
+"autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+"autocmd FileWritePre,BufWrite *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
 
-augroup AuNERDTreeCmd
-  autocmd AuNERDTreeCmd VimEnter    * call s:CdIfDirectory(expand("<amatch>"))
-  autocmd AuNERDTreeCmd FocusGained * call s:UpdateNERDTree()
-  augroup AuNERDTreeCmd
-    autocmd!
-  augroup end
-  autocmd FileType ruby,eruby let g:rubycomplete_buffer_loading = 1
-  autocmd FileType ruby,eruby let g:rubycomplete_classes_in_global = 1
-  autocmd FileType ruby,eruby let g:rubycomplete_rails = 1
-  autocmd FileType ruby setlocal tabstop=2
-  autocmd FileType ruby setlocal shiftwidth=2
-  autocmd FileType ruby setlocal softtabstop=2
-  autocmd FileType ruby setlocal commentstring=#\ %s
-  autocmd FileType ruby noremap view :Eview<CR>
-  autocmd FileType ruby noremap cont :Econtroller<CR>
-  autocmd FileType ruby noremap test :A<CR>
-  autocmd FileType slim set formatoptions-=t
-  autocmd FileType slim set nolist
+"autocmd BufLeave,FocusLost * :silent! wall
+"autocmd BufEnter * :call EasyMotion#S(2,1,0)<CR>
 
-  autocmd FileType html,xml,json set colorcolumn=0
-  autocmd FileType json syntax match Comment +\/\/.\+$+
+" NOTE: more events here: http://vimdoc.sourceforge.net/htmldoc/autocmd.html
+"autocmd VimEnter * :silent! term ++curwin
+command! -nargs=0 Prettier :CocCommand prettier.formatFile
+noremap <silent><special> <F6> :Prettier<CR>
 
-  autocmd FileType html,javascript set shiftwidth=2 tabstop=2 showtabline=2
-  autocmd FileType html,javascript set nowrap nolist
-  autocmd FileType html,javascript let g:indent_guides_start_level=1
-  autocmd FileType html,javascript let g:indent_guides_guide_size=1
+" Abbreviations/aliases
+"
+"abbrev bp binding.pry
 
-  autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
-  autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
-  autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
-  autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
-  autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
-  autocmd FileType less set omnifunc=csscomplete#CompleteCSS
+" Mappings
 
-  let b:autopairs_enabled=0
-  autocmd FileType html,javascript,css,less let b:autopairs_enabled=1
-  "autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <left> <ESC>:call search('["\[''({]','bW')<CR>a
-  "autocmd FileType html,javascript,css,less inoremap <buffer> <silent> <right> <ESC>:call search('["\]'')}]','W')<CR>a
-  let g:prettier#autoformat = 1
-  let g:prettier#config#trailing_comma = 'none'
-  let g:prettier#config#bracket_spacing = 'true'
-  let g:prettier#config#print_width = 100
-  "autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
-  "autocmd FileWritePre,BufWrite *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+"nnoremap Q <Nop>
+nnoremap <silent><C-o> :call ZoomToggle()<CR>
+tnoremap <silent><C-o> <c-w>: call ZoomToggle()<CR>
+nnoremap <leader>d :GdiffInTab<cr>
+nnoremap <leader>D :tabclose<cr>
+nmap <nowait> gb :Gblame<CR>
+nmap <nowait> gs :Gstatus<CR>
+nmap <nowait> gd :Gdiff<CR>
+nmap <nowait> gl :Glog -15 --<CR>
+nmap <nowait> gr :Git reset HEAD %<CR>
+nmap <nowait> gck :Git checkout --  %<CR>
+nmap <nowait> gc :Gcommit<CR>
+nmap <nowait> gp :Git push -f<CR>
+nmap <nowait> rm :Git rm %<CR>
+nnoremap a hea
 
-  autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
+" Disabling temporarily to see if used
+map <nowait> <Leader>m :NERDTreeToggle<CR>
+map <nowait> <Leader>n :NERDTreeFind<CR>
 
-  autocmd FileWritePre       * :silent! keepjumps call TrimWhiteSpace()
-  autocmd FileAppendPre      * :silent! keepjump call TrimWhiteSpace()
-  autocmd FilterWritePre     * :silent! keepjump call TrimWhiteSpace()
-  autocmd BufWritePre        * :silent! keepjump call TrimWhiteSpace()
-  "autocmd BufLeave,FocusLost * :silent! wall
-  "autocmd BufEnter * :call EasyMotion#S(2,1,0)<CR>
+" easy align
+augroup VCenterCursor
+  au!
+  au BufEnter,WinEnter,WinNew,VimResized *,*.*
+        \ let &scrolloff=winheight(win_getid())/2
+augroup END
+""vmap <Enter> <Plug>(EasyAlign) VCenterCursor
+vmap <Enter> <Plug>(EasyAlign)
 
-  " NOTE: more events here: http://vimdoc.sourceforge.net/htmldoc/autocmd.html
-  "autocmd VimEnter * :silent! term ++curwin
-  let term=$TERM
-  if term == 'screen-256color'
-    autocmd VimEnter * silent !echo -ne "\033Ptmux;\033\033]1337;SetKeyLabel=F6=Format\a\033\\"
-    autocmd VimLeave * silent !echo -ne "\033Ptmux;\033\033]1337;SetKeyLabel=F6=F6\a\033\\"
-  else
-    autocmd VimEnter * silent !echo -ne "\033]1337;SetKeyLabel=F6=Format\a"
-    autocmd VimLeave * silent !echo -ne "\033]1337;SetKeyLabel=F6=F6\a"
+" choose win
+"
+"nnoremap <silent> <space> :ChooseWinSwapStay<CR>
+"nnoremap <silent> <C-r> :ChooseWinSwap<CR>
+"nnoremap ? :<C-u>call EasyMotion#OverwinF(2)<cr>
+nnoremap s :<C-u>call EasyMotion#OverwinF(2)<cr>
+
+" clipboard unamed will yank vim to clipboard
+"set clipboard=unnamed
+"
+" :r read the content of the command into the buffer
+map <silent> <leader>p <c-w>: r! pbpaste<CR>
+"tnoremap <silent> <leader>p <c-w>: r! pbpaste<CR>
+tnoremap <silent> <leader>p <c-w>: set paste<CR>"*p<cr><c-w>: set nopaste<CR>a
+
+"inoremap <silent> <leader>p :r! pbpaste<CR>
+"nmap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>a
+"imap <silent> <leader>p <ESC>"*pa
+"imap <leader>p <ESC>:set paste<CR>"*]p:set nopaste<CR>i
+"
+"imap <leader>p <ESC>:set paste<CR>i<esc>"*]p:set nopaste<cr>"
+"nmap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>a
+"imap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>a
+
+"
+"
+" This allow to past directly from alfred
+"
+function! WrapForTmux(s)
+  if !exists('$TMUX')
+    return a:s
   endif
-  command! -nargs=0 Prettier :CocCommand prettier.formatFile
-  noremap <silent><special> <F6> :Prettier<CR>
 
-  " Abbreviations/aliases
-  "
-  "abbrev bp binding.pry
+  let tmux_start = "\<Esc>Ptmux;"
+  let tmux_end = "\<Esc>\\"
 
-  " Mappings
+  return tmux_start . substitute(a:s, "\<Esc>", "\<Esc>\<Esc>", 'g') . tmux_end
+endfunction
 
-  "nnoremap Q <Nop>
-  nnoremap <silent><C-o> :call ZoomToggle()<CR>
-  tnoremap <silent><C-o> <c-w>: call ZoomToggle()<CR>
-  nnoremap <leader>d :GdiffInTab<cr>
-  nnoremap <leader>D :tabclose<cr>
-  nmap <nowait> gb :Gblame<CR>
-  nmap <nowait> gs :Gstatus<CR>
-  nmap <nowait> gd :Gdiff<CR>
-  nmap <nowait> gl :Glog -15 --<CR>
-  nmap <nowait> gr :Git reset HEAD %<CR>
-  nmap <nowait> gck :Git checkout --  %<CR>
-  nmap <nowait> gc :Gcommit<CR>
-  nmap <nowait> gp :Git push -f<CR>
-  nmap <nowait> rm :Git rm %<CR>
-  nnoremap a hea
+"let &t_SI .= WrapForTmux("\<Esc>[?2004h")
+"let &t_EI .= WrapForTmux("\<Esc>[?2004l")
 
-  " Disabling temporarily to see if used
-  map <nowait> <Leader>m :NERDTreeToggle<CR>
-  map <nowait> <Leader>n :NERDTreeFind<CR>
+function! XTermPasteBegin()
+  set pastetoggle=<Esc>[201~
+  set paste
+  return ""
+endfunction
 
-  " easy align
-  augroup VCenterCursor
-    au!
-    au BufEnter,WinEnter,WinNew,VimResized *,*.*
-          \ let &scrolloff=winheight(win_getid())/2
-  augroup END
-  "vmap <Enter> <Plug>(EasyAlign) VCenterCursor
-  vmap <Enter> <Plug>(EasyAlign)
+"tnoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
 
-  " choose win
-  "
-  "nnoremap <silent> <space> :ChooseWinSwapStay<CR>
-  "nnoremap <silent> <C-r> :ChooseWinSwap<CR>
-  "nnoremap ? :<C-u>call EasyMotion#OverwinF(2)<cr>
-  nnoremap s :<C-u>call EasyMotion#OverwinF(2)<cr>
+"nnoremap j gj
+"nnoremap k gk
+nnoremap S :set hlsearch!<cr>
 
-  " clipboard unamed will yank vim to clipboard
-  "set clipboard=unnamed
-  "nmap <silent> <leader>p :r !pbpaste<CR>
-  nmap <silent> <leader>p :set paste<CR>"*p:set nopaste<CR>a
-  imap <silent> <leader>p <ESC>"*pa
-  "imap <leader>p <ESC>:set paste<CR>"*]p:set nopaste<CR>i
-  "map <leader>p :set paste<CR>i<esc>"*]p:set nopaste<cr>"
-  "imap <leader>p <ESC>:set paste<CR>i<esc>"*]p:set nopaste<cr>"
+"ropen the previous file
+nmap -  :e#<CR>
 
-  "nnoremap j gj
-  "nnoremap k gk
-  nnoremap S :set hlsearch!<cr>
+"nmap <space> <Plug>(easymotion-overwin-line)
 
-  "ropen the previous file
-  nmap -  :e#<CR>
+" easy motion
+"map / <Plug>(easymotion-sn)
+"omap / <Plug>(easymotion-tn)
+map <Leader>l <Plug>(easymotion-lineforward)
+map <Leader>j <Plug>(easymotion-j)
+map <Leader>k <Plug>(easymotion-k)
+map <Leader>h <Plug>(easymotion-linebackward)
+map <F10> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'. synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
+"map  <Leader>f <Plug>(easymotion-bd-w)
+"nmap <Leader>f <Plug>(easymotion-overwin-w)
 
-  "nmap <space> <Plug>(easymotion-overwin-line)
+function! s:incsearch_config(...) abort
+  " Add   \     incsearch#config#fuzzyspell#converter() for spell converter
+  return incsearch#util#deepextend(deepcopy({
+        \   'modules': [incsearch#config#easymotion#module()],
+        \   'keymap': {
+        \     "\<CR>": '<Over>(easymotion)'
+        \   },
+        \   'is_expr': 0
+        \ }), get(a:, 1, {}))
+endfunction
+noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
+noremap <silent><expr> g/ incsearch#go(<SID>incsearch_config({'is_stay': 1}))
+noremap <silent><expr> / incsearch#go(<SID>incsearch_config({'is_stay': 0}))
+noremap <silent><expr> f incsearch#go(<SID>incsearch_config({'converters': [incsearch#config#fuzzy#converter()]}))
 
-  " easy motion
-  "map / <Plug>(easymotion-sn)
-  "omap / <Plug>(easymotion-tn)
-  map <Leader>l <Plug>(easymotion-lineforward)
-  map <Leader>j <Plug>(easymotion-j)
-  map <Leader>k <Plug>(easymotion-k)
-  map <Leader>h <Plug>(easymotion-linebackward)
-  "map  <Leader>f <Plug>(easymotion-bd-w)
-  "nmap <Leader>f <Plug>(easymotion-overwin-w)
+augroup incsearch-keymap
+  autocmd!
+  autocmd VimEnter * call s:incsearch_keymap()
+augroup END
+function! s:incsearch_keymap()
+  IncSearchNoreMap <Right> <Over>(incsearch-next)
+  IncSearchNoreMap <Left>  <Over>(incsearch-prev)
+  IncSearchNoreMap <Tab>  <Over>(incsearch-scroll-f)
+  IncSearchNoreMap <S-Tab>    <Over>(incsearch-scroll-b)
+endfunction
 
-  function! s:incsearch_config(...) abort
-    " Add   \     incsearch#config#fuzzyspell#converter() for spell converter
-    return incsearch#util#deepextend(deepcopy({
-          \   'modules': [incsearch#config#easymotion#module({'overwin': 1})],
-          \   'keymap': {
-          \     "\<CR>": '<Over>(easymotion)'
-          \   },
-          \   'is_expr': 0
-          \ }), get(a:, 1, {}))
-  endfunction
-  noremap <silent><expr> /  incsearch#go(<SID>incsearch_config())
-  noremap <silent><expr> ?  incsearch#go(<SID>incsearch_config({'command': '?'}))
-  noremap <silent><expr> g/ incsearch#go(<SID>incsearch_config({'is_stay': 1}))
-  "noremap <silent><expr> f incsearch#go(<SID>incsearch_config({'converters': [incsearch#config#fuzzy#converter()]}))
+let g:asterisk#keeppos = 1
+let g:incsearch#auto_nohlsearch = 1
+map n  <Plug>(incsearch-nohl-n)
+map N  <Plug>(incsearch-nohl-N)
+map *  <Plug>(incsearch-nohl-*)
+map #  <Plug>(incsearch-nohl-#)
+map g* <Plug>(incsearch-nohl-g*)
+map g# <Plug>(incsearch-nohl-g#)
+nnoremap i :noh<cr>i
+"turn off hl search when insert
 
-  augroup incsearch-keymap
-    autocmd!
-    autocmd VimEnter * call s:incsearch_keymap()
-  augroup END
-  function! s:incsearch_keymap()
-    IncSearchNoreMap <Right> <Over>(incsearch-next)
-    IncSearchNoreMap <Left>  <Over>(incsearch-prev)
-    IncSearchNoreMap <Tab>  <Over>(incsearch-scroll-f)
-    IncSearchNoreMap <S-Tab>    <Over>(incsearch-scroll-b)
-  endfunction
+nnoremap <backspace> mzJ`z
 
-  let g:asterisk#keeppos = 1
-  let g:incsearch#auto_nohlsearch = 1
-  map n  <Plug>(incsearch-nohl-n)
-  map N  <Plug>(incsearch-nohl-N)
-  map *  <Plug>(incsearch-nohl-*)
-  map #  <Plug>(incsearch-nohl-#)
-  map g* <Plug>(incsearch-nohl-g*)
-  map g# <Plug>(incsearch-nohl-g#)
-  nnoremap <backspace> mzJ`z
+" signify
+nmap gj <plug>(signify-next-hunk)
+nmap gk <plug>(signify-prev-hunk)
 
-  " signify
-  nmap gj <plug>(signify-next-hunk)
-  nmap gk <plug>(signify-prev-hunk)
+" Invert background
+noremap <F1> :call DarkBackground()<CR>
+noremap <F2> :call LightBackground()<CR>
+noremap <F3> :call TransparentBackground()<CR>
 
-  " Invert background
-  noremap <F2> :call LightBackground()<CR>
-  noremap <F1> :call DarkBackground()<CR>
+" Toggle the undo tree
+nnoremap <C-u> :UndotreeToggle<cr>
+nnoremap U <C-r>
 
-  " Toggle the undo tree
-  nnoremap <C-u> :UndotreeToggle<cr>
-  nnoremap U <C-r>
+" ma to mark position to a, mma to recover
+"nmap ` gg
+"nmap m `
+"nnoremap M m
 
-  " ma to mark position to a, mma to recover
-  "nmap ` gg
-  "nmap m `
-  "nnoremap M m
+nnoremap cd :call SelectaCommand("find * -type d" .g:excludes, "", "lcd")<cr>
+nnoremap gs :GFiles?<cr>
+nnoremap ? :BLines<cr>
 
-  nnoremap cd :call SelectaCommand("find * -type d" .g:excludes, "", "lcd")<cr>
-  nnoremap gs :GFiles?<cr>
-  nnoremap ? :BLines<cr>
-
-  " Command for git grep
-  " - fzf#vim#grep(command, with_column, [options], [fullscreen])
-  "command! -bang -nargs=* GGrep
-        "\ call fzf#vim#grep(
-        "\   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape(<q-args>), 1,
-        "\   <bang>0 ? fzf#vim#with_preview('up:60%')
-        "\           : fzf#vim#with_preview('right:50%:hidden', '?'),
-        "\   <bang>0)
-
-  """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-  " NOTE: Remap :CtrlSpace a to this function
-  function! PrintFooBar(k)
-    ":Windows
-    echo "Foo Bar!"
-    "call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":e")
-  endfunction
-  let g:CtrlSpaceKeys = { "Buffer": { "b": "PrintFooBar" } }
-  """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" NOTE: Remap :CtrlSpace a to this function
+function! PrintFooBar(k)
+  ":Windows
+  echo "Foo Bar!"
+  "call SelectaCommand("git ls-files -cmo --exclude-standard" .g:excludes ."\|sort\| uniq", "", ":e")
+endfunction
+let g:CtrlSpaceKeys = { "Buffer": { "b": "PrintFooBar" } }
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Use <C-l> for trigger snippet expand.
 imap <C-l> <Plug>(coc-snippets-expand)
@@ -887,6 +1041,10 @@ imap <C-j> <Plug>(coc-snippets-expand-jump)
 " Use tab for trigger completion with characters ahead and navigate.
 " Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
 
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? coc#_select_confirm() :
       "\ pumvisible() ? "\<C-n>" :
@@ -895,17 +1053,13 @@ inoremap <silent><expr> <TAB>
       \ coc#refresh()
 inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
 " Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
 " Coc only does snippet and additional edit on confirm.
-inoremap <silent><expr><cr> pumvisible() ? "\<C-y>" : "\<CR>"
+"inoremap <silent><expr><cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
-let g:coc_snippet_next = '<tab>'
-let g:coc_node_path='/usr/local/bin/node'
+"let g:coc_snippet_next = '<tab>'
+"let g:coc_node_path='/usr/local/bin/node'
+let g:coc_node_path='/Users/greg/.nvm/versions/node/v10.17.0/bin/node'
 " Use `:Format` to format current buffer
 command! -nargs=0 Format :call CocAction('format')
 
@@ -928,28 +1082,67 @@ augroup mygroup
   autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
 augroup end
 
-  "if executable("ag")
-  "let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
-  "endif
-  "inoremap <expr> <c-g> fzf#vim#complete(fzf#wrap({
-        "\ 'prefix': '^.*$',
-        "\ 'source': 'rg -n ^ --color always',
-        "\ 'options': '--ansi --delimiter : --nth 3..',
-        "\ 'reducer': { lines -> join(split(lines[0], ':\zs')[2:], '') }}))
-  command! -bang -nargs=* GGrep
-        \ call fzf#vim#grep(
-        \   'git grep --line-number '.shellescape(<q-args>), 0,
-        \   { 'options':'--exact', 'dir': systemlist('git rev-parse --show-toplevel')[0] }, <bang>0)
+"if executable("ag")
+"let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
+"endif
+"inoremap <expr> <c-g> fzf#vim#complete(fzf#wrap({
+      "\ 'prefix': '^.*$',
+      "\ 'source': 'rg -n ^ --color always',
+      "\ 'options': '--ansi --delimiter : --nth 3..',
+      "\ 'reducer': { lines -> join(split(lines[0], ':\zs')[2:], '') }}))
 
-  nnoremap mru :call fzf#run({
-        \  'source':  v:oldfiles,
-        \  'sink':    'e',
-        \  'options': '-m -x +s --exact',
-        \  'down':    '20%'})<cr>
+nnoremap mru :call fzf#run({
+      \  'source':  v:oldfiles,
+      \  'sink':    'e',
+      \  'options': '-m -x +s --exact',
+      \  'down':    '20%'})<cr>
+"command! -bang -nargs=* GGrep
+      "\ call fzf#vim#grep(
+      "\   'git grep --line-number '.shellescape(<q-args>), 1,
+      "\ fzf#vim#with_preview(),
+      "\ <bang>0)
 
-  nnoremap ge :GFiles<cr>
-  nnoremap <c-g> :GGrep<cr>
-  nmap mv :call RenameFile()<cr>
+command! -bang -nargs=* GGrep
+      \ call fzf#vim#grep('rg --column --no-heading --ignore -S --follow -C3 --line-number --color=always '.shellescape(<q-args>),1,
+      \ fzf#vim#with_preview(),
+      \ <bang>0)
+
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep('rg --column --no-heading --ignore -S --follow -C3 --line-number --color=always '.shellescape(<q-args>),
+  \ 1,
+      \     fzf#vim#with_preview({ 'dir':system('git rev-parse --show-toplevel 2> /dev/null')[:-2] }, 'right:50%:hidden', 'f3'),
+  \ <bang>0)
+command! -bang -nargs=* GrepLocal
+  \ call fzf#vim#grep('rg --column --no-heading --ignore -S --follow -C3 --line-number --color=always '.shellescape(<q-args>),
+  \ 1,
+      \     fzf#vim#with_preview('right:50%:hidden', 'f3'),
+  \ <bang>0)
+command! -bang -nargs=* MarksWithPreview
+  \ call fzf#vim#marks( fzf#vim#with_preview({ 'dir':system('git rev-parse --show-toplevel 2> /dev/null')[:-2] }, 'right:50%:hidden', 'f3'),
+  \ <bang>0)
+"command! -bang -nargs=* Rg
+  "\ call fzf#vim#grep('rg --column --no-heading --ignore -S --follow --line-number --color=always '.shellescape(<q-args>),
+  "\ 1,
+      "\   <bang>0 ? fzf#vim#with_preview('up:60%')
+      "\           : fzf#vim#with_preview('right:50%:hidden', 'f3'),
+  "\ <bang>0)
+
+command! -bang -nargs=? -complete=dir Files
+  \ call fzf#vim#files(<q-args>,
+  \     fzf#vim#with_preview({ 'dir':system('git rev-parse --show-toplevel 2> /dev/null')[:-2] }, 'right:50%:hidden', 'f3'),
+  \ <bang>0)
+
+"" Command for git grep
+"" - fzf#vim#grep(command, with_column, [options], [fullscreen])
+"command! -bang -nargs=* GGrep
+      "\ call fzf#vim#grep(
+      "\   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape(<q-args>), 1,
+      "\   <bang>0 ? fzf#vim#with_preview('up:60%')
+      "\           : fzf#vim#with_preview('right:50%:hidden', '?'),
+      "\   <bang>0)
+
+nnoremap <c-g> :Rg<cr>
+nmap mv :call RenameFile()<cr>
 imap <c-x><c-j> <plug>(fzf-complete-file-ag)
 imap <c-x><c-l> <plug>(fzf-complete-line)
 imap <c-x><c-k> <plug>(fzf-complete-word)
@@ -957,104 +1150,98 @@ imap <c-x><c-f> <plug>(fzf-complete-path)
 nmap <leader><tab> <plug>(fzf-maps-n)
 xmap <leader><tab> <plug>(fzf-maps-x)
 omap <leader><tab> <plug>(fzf-maps-o)
-  "nnoremap cd :cd %:p:h<CR>:pwd<CR>
+"nnoremap cd :cd %:p:h<CR>:pwd<CR>
 
-  " quick edit/reload vim file
-  nmap <silent> <leader>ev :e $MYVIMRC<CR>
+" quick edit/reload vim file
+nmap <silent> <leader>ev :e $MYVIMRC<CR>
 
-  " Use fd to save
-  inoremap fd <ESC>:update<CR>
-  nnoremap <silent> fd <ESC>:w<CR>
-  vnoremap <silent> fd <ESC>:w<CR>gv
-  "cnoremap <silent> w<CR> <ESC>:w<CR>:redraw!<CR>
+" Use fd to save
+inoremap fd <ESC>:update<CR>
+nnoremap <silent> fd <ESC>:w<CR>
+vnoremap <silent> fd <ESC>:w<CR>gv
+"cnoremap <silent> w<CR> <ESC>:w<CR>:redraw!<CR>
 
-  "ino " ""<left>
-  "ino ' ''<left>
-  "ino ( ()<left>
-  "ino [ []<left>
-  "ino { {}<left>
-  "ino {<CR> {<CR>}<ESC>O
-  "ino {;<CR> {<CR>};<ESC>O
+"ino " ""<left>
+"ino ' ''<left>
+"ino ( ()<left>
+"ino [ []<left>
+"ino { {}<left>
+"ino {<CR> {<CR>}<ESC>O
+"ino {;<CR> {<CR>};<ESC>O
 
-  nnoremap <silent> <c-f>v :vert term ++close ++kill="kill"<cr>
-  nnoremap <silent> <c-f>s :term ++close ++kill="kill"<cr>
-  nnoremap <silent> <c-f>t :term ++close ++kill="kill" ++rows=25<cr>
-  nnoremap <silent> <c-f>= :term ++close ++kill="kill" ++rows=25<cr>
-  nnoremap <silent> <c-k> :wincmd k<cr>
-  nnoremap <silent> <c-h> :wincmd h<cr>
-  nnoremap <silent> <c-l> :wincmd l<cr>
-  nnoremap <silent> <c-j> :wincmd j<cr>
-  nnoremap <silent> <s-up> :resize +5<cr>
-  nnoremap <silent> <s-down> :resize -5<cr>
-  nnoremap <silent> <s-left> :vertical resize +5<cr>
-  nnoremap <silent> <s-right> :vertical resize -5<cr>
+nnoremap <silent> <c-f>v :vert term ++close ++kill="kill"<cr>
+nnoremap <silent> <c-f>s :term ++close ++kill="kill"<cr>
+nnoremap <silent> <c-f>t :term ++close ++kill="kill" ++rows=25<cr>
+nnoremap <silent> <c-f>= :term ++close ++kill="kill" ++rows=25<cr>
+nnoremap <silent> <c-k> :wincmd k<cr>
+nnoremap <silent> <c-h> :wincmd h<cr>
+nnoremap <silent> <c-l> :wincmd l<cr>
+nnoremap <silent> <c-j> :wincmd j<cr>
+nnoremap <silent> <s-up> :resize +5<cr>
+nnoremap <silent> <s-down> :resize -5<cr>
+nnoremap <silent> <s-left> :vertical resize -5<cr>
+nnoremap <silent> <s-right> :vertical resize +5<cr>
 
-  if has("terminal")
-    tnoremap <Leader>f <c-w>: set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
-    tnoremap <nowait> <c-f>: <c-w>:
-    tnoremap <nowait> fd <c-w>N
-    tnoremap <nowait> :q <c-w>: q!
-    tnoremap <silent> <c-k> <c-w>: wincmd k<cr>
-    tnoremap <silent> <c-h> <c-w>: wincmd h<cr>
-    tnoremap <silent> <c-l> <c-w>: wincmd l<cr>
-    tnoremap <silent> <c-j> <c-w>: wincmd j<cr>
-    tnoremap <silent> <s-up>    <c-w>: resize +5<cr>
-    tnoremap <silent> <s-down>  <c-w>: resize -5<cr>
-    tnoremap <silent> <s-left>  <c-w>: vertical resize +5<cr>
-    tnoremap <silent> <s-right> <c-w>: vertical resize -5<cr>
-    "tnoremap <silent> : <c-w>:
-    tnoremap <silent> <leader>p <c-w>: set paste<CR>"*p:set nopaste<CR>a
-    tmap <leader>S <c-w>: aboveleft split <CR>
-    tmap <leader>V <c-w>: aboveleft vsplit <CR>
-    tmap <leader>s <c-w>: split <CR>
-    tmap <leader>v <c-w>: vsplit <CR>
+if has("terminal")
+  tnoremap <Leader>f <c-w>: set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
+  tnoremap <nowait> <c-f>: <c-w>:
+  tnoremap <nowait> fd <c-w>N
+  tnoremap <nowait> gt <c-w>: tabnext<cr>
+  tnoremap <nowait> :q <c-w>: q!
+  tnoremap <silent> <c-k> <c-w>: wincmd k<cr>
+  tnoremap <silent> <c-h> <c-w>: wincmd h<cr>
+  tnoremap <silent> <c-l> <c-w>: wincmd l<cr>
+  tnoremap <silent> <c-j> <c-w>: wincmd j<cr>
+  tnoremap <silent> <s-up>    <c-w>: resize +5<cr>
+  tnoremap <silent> <s-down>  <c-w>: resize -5<cr>
+  tnoremap <silent> <s-left>  <c-w>: vertical resize +5<cr>
+  tnoremap <silent> <s-right> <c-w>: vertical resize -5<cr>
+  "tnoremap <silent> : <c-w>:
+  tmap <leader>S <c-w>: aboveleft new<CR>
+  tmap <leader>V <c-w>: aboveleft vert new<CR>
+  tmap <leader>s <c-w>: new<CR>
+  tmap <leader>v <c-w>: vert new<CR>
 
-    "tnoremap <silent> <F2> <c-w>: call LightBackground()<CR>
-    "tnoremap <silent> <F1> <c-w>: call DarkBackground()<CR>
-    tnoremap <silent> <c-f>v <c-w>: vert term ++close ++kill="int"<cr>
-    tnoremap <silent> <c-f>s <c-w>: term ++close ++kill="int"<cr>
-    tnoremap <silent> <c-f>t <c-w>: term ++close ++kill="int" ++rows=25<cr>
-    tnoremap <silent> <c-f>= <c-w>=
-  endif
+  "tnoremap <silent> <F2> <c-w>: call LightBackground()<CR>
+  "tnoremap <silent> <F1> <c-w>: call DarkBackground()<CR>
+  tnoremap <silent> <c-f>v <c-w>: vert term ++close ++kill="int"<cr>
+  tnoremap <silent> <c-f>s <c-w>: term ++close ++kill="int"<cr>
+  tnoremap <silent> <c-f>t <c-w>: term ++close ++kill="int" ++rows=25<cr>
+  tnoremap <silent> <c-f>= <c-w>=
+endif
 
-  "Move to marks
-  "nnoremap <c-j> ]`
-  "nnoremap <c-k> [`
-  "
-  "nmap mm m,
-  nnoremap <silent> M :Marks<cr>
-  nnoremap j jzz
-  nnoremap k kzz
-  nnoremap l e
-  nnoremap h b
-  "nnoremap J <c-w>j
-  "nnoremap K <c-w>k
-  "nnoremap H <c-w>h
-  "nnoremap L <c-w>l
-  nnoremap J 10jzz
-  nnoremap K 10kzz
-  nnoremap H 5b
-  nnoremap L 5e
+"Move to marks
+"nnoremap <c-j> ]`
+"nnoremap <c-k> [`
+"
+"nmap mm m,
+nnoremap <silent> M :MarksWithPreview<cr>
+nnoremap j jzz
+nnoremap k kzz
+nnoremap l e
+nnoremap h b
+"nnoremap J <c-w>j
+"nnoremap K <c-w>k
+"nnoremap H <c-w>h
+"nnoremap L <c-w>l
+nnoremap J 10jzz
+nnoremap K 10kzz
+nnoremap H 5b
+nnoremap L 5e
 
-  nnoremap <down> :cn<CR>
-  nnoremap <up> :cp<CR>
-  nnoremap <right> :copen<CR>
-  nnoremap <left> :cclose<CR>
-  nnoremap <c-down> :lne<CR>
-  nnoremap <c-up> :lpr<CR>
-  nnoremap <c-right> :lop<CR>
-  nnoremap <c-left> :lcl<CR>
+nnoremap <down> :cn<CR>
+nnoremap <up> :cp<CR>
+nnoremap <right> :copen<CR>
+nnoremap <left> :cclose<CR>
+nnoremap <c-down> :lne<CR>
+nnoremap <c-up> :lpr<CR>
+nnoremap <c-right> :lop<CR>
+nnoremap <c-left> :lcl<CR>
 
-  map <leader>S :aboveleft split <CR>
-  map <leader>V :aboveleft vsplit <CR>
-  map <leader>s :split <CR>
-  map <leader>v :vsplit <CR>
+map <leader>S :aboveleft split <CR>
+map <leader>V :aboveleft vsplit <CR>
+map <leader>s :split <CR>
+map <leader>v :vsplit <CR>
 
-  " Color scheme based on time
-  if strftime("%H") < 8
-    call DarkBackground()
-  elseif strftime("%H") < 20
-    call LightBackground()
-  else
-    call DarkBackground()
-  endif
+call SetTheme()
+call SetTransp()

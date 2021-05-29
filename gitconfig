@@ -24,8 +24,12 @@
   diff = auto
   status = auto
   branch = auto
+[color "grep"]
+  linenumber = yellow bold
+  match = red
+  filename = magenta
 [core]
-	excludesfile = /Users/metakungfu/.gitignore
+	excludesfile = /Users/greg/.gitignore
   editor = vim
   autocrlf = input
   pager = less -MN
@@ -57,3 +61,5 @@
 
 [diff]
 	wsErrorHighlight = all
+[credential]
+	helper = osxkeychain

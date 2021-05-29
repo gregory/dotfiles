@@ -122,9 +122,9 @@ function commit {
 }
 
 # find a commit and show the diff
-function log {
-  git log --pretty=oneline $* | selecta | cut -d' ' -f1 | xargs git show
-}
+#function log {
+  #git log --pretty=oneline $* | selecta | cut -d' ' -f1 | xargs git show
+#}
 
 # find a file, then a version, then show the file at that moment
 function show {
@@ -140,3 +140,6 @@ function cdpc {
   eval "$(docker-machine env $1)"
 }
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
