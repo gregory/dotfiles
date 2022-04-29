@@ -52,7 +52,7 @@ let s:coc_extensions = [
       \   'coc-html',
       \   'coc-json',
       \   'coc-yaml',
-      "\   'coc-eslint',
+      \   'coc-eslint',
       "\   'coc-tslint',
       "\   'coc-tslint-plugin',
       \   'coc-prettier',
@@ -327,7 +327,7 @@ nnoremap <expr><silent><space> v:count ? ":\<c-u> ". v:count ." wincmd w\<cr>" :
 nmap <silent><nowait> T :CtrlSpace l<CR>
 nmap <silent><nowait> W :CtrlSpace w<CR>
 nmap <nowait> <enter> :GFiles -cmo --exclude-standard<cr>
-nmap <nowait> ge :GGrep<cr>
+nmap <nowait> ge :Ggrep<cr>
 "nnoremap <silent><enter> :CtrlSpace h<CR>
 "nnoremap <silent><enter> :CtrlSpace O<CR>
 "nnoremap <silent><tab> :bnext<CR>
@@ -860,13 +860,13 @@ nnoremap <silent><C-o> :call ZoomToggle()<CR>
 tnoremap <silent><C-o> <c-w>: call ZoomToggle()<CR>
 nnoremap <leader>d :GdiffInTab<cr>
 nnoremap <leader>D :tabclose<cr>
-nmap <nowait> gb :Gblame<CR>
-nmap <nowait> gs :Gstatus<CR>
-nmap <nowait> gd :Gdiff<CR>
-nmap <nowait> gl :Glog -15 --<CR>
+nmap <nowait> gb :Git blame<CR>
+nmap <nowait> gs :Git status<CR>
+nmap <nowait> gd :Git diff<CR>
+nmap <nowait> gl :Git log -15 --<CR>
 nmap <nowait> gr :Git reset HEAD %<CR>
 nmap <nowait> gck :Git checkout --  %<CR>
-nmap <nowait> gc :Gcommit<CR>
+nmap <nowait> gc :Git commit<CR>
 nmap <nowait> gp :Git push -f<CR>
 nmap <nowait> rm :Git rm %<CR>
 nnoremap a hea
@@ -1059,7 +1059,7 @@ inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
 "let g:coc_snippet_next = '<tab>'
 "let g:coc_node_path='/usr/local/bin/node'
-let g:coc_node_path='/Users/greg/.nvm/versions/node/v10.17.0/bin/node'
+let g:coc_node_path='/Users/greg/.nvm/versions/node/v16.12.0/bin/node'
 " Use `:Format` to format current buffer
 command! -nargs=0 Format :call CocAction('format')
 
@@ -1102,7 +1102,7 @@ nnoremap mru :call fzf#run({
       "\ fzf#vim#with_preview(),
       "\ <bang>0)
 
-command! -bang -nargs=* GGrep
+command! -bang -nargs=* Ggrep
       \ call fzf#vim#grep('rg --column --no-heading --ignore -S --follow -C3 --line-number --color=always '.shellescape(<q-args>),1,
       \ fzf#vim#with_preview(),
       \ <bang>0)
@@ -1157,8 +1157,8 @@ nmap <silent> <leader>ev :e $MYVIMRC<CR>
 
 " Use fd to save
 inoremap fd <ESC>:update<CR>
-nnoremap <silent> fd <ESC>:w<CR>
-vnoremap <silent> fd <ESC>:w<CR>gv
+nnoremap <silent> fd :w<CR>
+vnoremap <silent> fd :w<CR>gv
 "cnoremap <silent> w<CR> <ESC>:w<CR>:redraw!<CR>
 
 "ino " ""<left>

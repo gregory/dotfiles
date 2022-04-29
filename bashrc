@@ -24,7 +24,7 @@ alias tmux="TERM=screen-256color-bce $HOME/dotfiles/bin/tmux"
 
 # find a file and less it
 function lgrep {
-   rg --files-with-matches --no-messages $1 | fzf --preview "bat --style=numbers --color=always {} 2> /dev/null | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 $1 || rg --ignore-case --pretty --context 10 $1 {}"
+   /usr/local/bin/rg --files-with-matches --no-messages $1 | fzf --preview "bat --style=numbers --color=always {} 2> /dev/null | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 $1 || rg --ignore-case --pretty --context 10 $1 {}"
   #less $(egrep -r -e $1 $2 | selecta | cut -d: -f1)
 }
 
@@ -143,3 +143,5 @@ function cdpc {
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+[ -z "$ZSH_NAME" ] && [ -f ~/.fzf.bash ] && source ~/.fzf.bash
