@@ -703,9 +703,9 @@ function! LightBackground()
   set notermguicolors
   set t_Co=256
   set term=xterm-256color
-  "let g:solarized_visibility = "high"
-  "let g:solarized_contrast = "high"
-  "let g:solarized_termtrans = 0
+  let g:solarized_visibility = "high"
+  let g:solarized_contrast = "high"
+  let g:solarized_termtrans = 0
 
   let g:one_allow_italics = 1 " I love italic for comments
   set t_8b=^[[48;2;%lu;%lu;%lum
@@ -722,6 +722,7 @@ function! LightBackground()
   hi! link IndentGuidesOdd noise
   let g:indent_guides_guide_size=2
   "hi jsStorageClass ctermfg=170 guifg=#C678DD
+  "call SetTransp()
 endfunction
 
 function! DarkBackground()
@@ -744,15 +745,16 @@ function! DarkBackground()
   hi Terminal ctermfg=145 ctermbg=235
 
   let g:lightline.colorscheme = 'Greg'
+  call SetTransp()
 endfunction
 
 function! TransparentBackground()
   set notermguicolors
   set t_Co=256
   set term=xterm-256color
-  "let g:solarized_visibility = "high"
-  "let g:solarized_contrast = "high"
-  "let g:solarized_termtrans = 0
+  let g:solarized_visibility = "high"
+  let g:solarized_contrast = "high"
+  let g:solarized_termtrans = 0
   let g:onedark_termcolors=256
   "hi clear
   "syntax reset
@@ -781,13 +783,12 @@ function! TransparentBackground()
 endfunction
 
 function! SetTheme()
+  let iterm_profile = $ITERM_PROFILE
   " Color scheme based on time
-  if strftime("%H") < 8
-    call TransparentBackground()
-  elseif strftime("%H") < 18
-    call LightBackground()
+  if iterm_profile == "Dark"
+    call DarkBackground()
   else
-    call TransparentBackground()
+    call LightBackground()
   endif
   hi! link javascriptOperator Identifier
   "match ExtraWhitespace /\s\+$/
@@ -1244,4 +1245,3 @@ map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
 
 call SetTheme()
-call SetTransp()
