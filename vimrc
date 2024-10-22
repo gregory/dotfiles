@@ -2,6 +2,7 @@
 " Vim cheatsheet => https://devhints.io/vimscript
 "
 set nocompatible                  "We run vim not VI
+let g:polyglot_disabled = ['javascript']
 if has('nvim')
   let s:remote_plugins_updated = 0
   function! PlugRemotePlugins(info) abort
@@ -102,7 +103,7 @@ Plug 'tomtom/tlib_vim'
 " Syntax
 Plug 'sheerun/vim-polyglot'
 Plug 'othree/yajs.vim'
-Plug 'jparise/vim-graphql', {'for': 'graphql'}
+"Plug 'jparise/vim-graphql', {'for': 'graphql'}
 "Plug 'nathanaelkane/vim-indent-guides' "display indent guide
 Plug 'marcweber/vim-addon-mw-utils'
 "Plug 'Slava/vim-spacebars', {'for': 'html'}
@@ -122,7 +123,6 @@ Plug 'joshdick/onedark.vim'
 Plug 'itchyny/lightline.vim'
 call plug#end()
 
-let g:polyglot_disabled = ['javascript']
 let g:AutoPairsFlyMode = 1
 let g:AutoPairsMapCR=0
 let g:AutoPairsShortcutBackInsert = '<c-b>'
@@ -193,7 +193,7 @@ set nobackup
 set noerrorbells               " don't beep
 "set noea                       "Dont resize buffers when other closes
 set ead=ver                    " Only auto resize vertical buffers
-"set nolist                     " list disables linebreak
+set nolist                     " list disables linebreak
 set nonumber                   " hide line numbers
 ":set number relativenumber
 ":set nonumber norelativenumber  " turn hybrid line numbers off
@@ -220,7 +220,7 @@ set softtabstop=2
 set splitbelow                 "split below the buffer
 set splitright                 "split on the right of the buffer
 set tabstop=2                  " a tab is 2 spaces
-set textwidth=80
+set textwidth=100
 set title                      " change the erminal's title
 set ts=2 sw=2 et
 set ttyfast                    " fast scrolling
@@ -522,7 +522,7 @@ augroup custom_augroup
   autocmd FileType json syntax match Comment +\/\/.\+$+
 
   autocmd FileType html,javascript set shiftwidth=2 tabstop=2 showtabline=2
-  autocmd FileType html,javascript set nowrap nolist
+  autocmd FileType html,javascript set nowrap list
   autocmd FileType html,javascript let g:indent_guides_start_level=2
   autocmd FileType html,javascript let g:indent_guides_guide_size=2
 
@@ -840,14 +840,14 @@ let g:prettier#config#trailing_comma = 'none'
 let g:prettier#config#bracket_spacing = 'true'
 let g:prettier#config#print_width = 100
 "autocmd FileWritePre,BufWrite *.json,*.css,*.scss,*.less,*.graphql PrettierAsync
-"autocmd FileWritePre,BufWrite *.js,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
+"autocmd FileWritePre,BufWrite *.js,*.jsx,*.json,*.css,*.scss,*.less,*.graphql PrettierAsync
 
 "autocmd BufLeave,FocusLost * :silent! wall
 "autocmd BufEnter * :call EasyMotion#S(2,1,0)<CR>
 
 " NOTE: more events here: http://vimdoc.sourceforge.net/htmldoc/autocmd.html
 "autocmd VimEnter * :silent! term ++curwin
-command! -nargs=0 Prettier :CocCommand prettier.formatFile
+command! -nargs=0 Prettier :CocCommand prettier.forceFormatDocument
 noremap <silent><special> <F6> :Prettier<CR>
 
 " Abbreviations/aliases
@@ -1245,3 +1245,4 @@ map <leader>s :split <CR>
 map <leader>v :vsplit <CR>
 
 call SetTheme()
+
