@@ -3,6 +3,15 @@
 "
 set nocompatible                  "We run vim not VI
 let g:polyglot_disabled = ['javascript']
+" Ensure vim-plug is available even without network access
+let s:dotfiles_dir = fnamemodify(expand('<sfile>'), ':p:h')
+let s:plug_vim = stdpath('data') . '/site/autoload/plug.vim'
+if !filereadable(s:plug_vim)
+  let s:plug_vim = s:dotfiles_dir . '/vim/autoload/plug.vim'
+endif
+if filereadable(s:plug_vim)
+  execute 'source ' . fnameescape(s:plug_vim)
+endif
 if has('nvim')
   let s:remote_plugins_updated = 0
   function! PlugRemotePlugins(info) abort
@@ -29,7 +38,8 @@ function! PlugCoc(info) abort
   call PlugRemotePlugins(a:info)
 endfunction
 
-call plug#begin('~/.vim/plugged')
+" Use Neovim's standard data directory for plugins
+call plug#begin(stdpath('data') . '/plugged')
 
 " Plugins
 "-------------------------------------------
@@ -225,7 +235,9 @@ set textwidth=100
 set title                      " change the erminal's title
 set ts=2 sw=2 et
 set ttyfast                    " fast scrolling
-set ttymouse=xterm2
+if exists('&ttymouse')
+  set ttymouse=xterm2
+endif
 set undolevels=1000            " use many muchos levels of undo
 set visualbell                 " don't beep
 set t_vb=     "disable visual belt
@@ -447,11 +459,13 @@ let g:lightline.tab = {
       \ 'active': [ 'tabnum', 'filename', 'modified' ],
       \ 'inactive': [ 'tabnum', 'filename', 'modified' ] }
 
-let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#one#palette)
-"let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#onedark#palette)
-let g:lightline#colorscheme#Greg#palette.inactive.right[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
-"let g:lightline#colorscheme#Greg#palette.inactive.left[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
-let g:lightline#colorscheme#Greg#palette.inactive.left[0] = g:lightline#colorscheme#Greg#palette.normal.left[1]
+if exists('*lightline#colorscheme#fill')
+  let g:lightline#colorscheme#Greg#palette = lightline#colorscheme#fill(g:lightline#colorscheme#one#palette)
+  "let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#onedark#palette)
+  let g:lightline#colorscheme#Greg#palette.inactive.right[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+  "let g:lightline#colorscheme#Greg#palette.inactive.left[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+  let g:lightline#colorscheme#Greg#palette.inactive.left[0] = g:lightline#colorscheme#Greg#palette.normal.left[1]
+endif
 
 "vim-javascript
 let javascript_enable_domhtmlcss=1
@@ -703,7 +717,7 @@ endfunction
 function! LightBackground()
   set notermguicolors
   set t_Co=256
-  set term=xterm-256color
+  " 'term' option is read-only in Neovim
   let g:solarized_visibility = "high"
   let g:solarized_contrast = "high"
   let g:solarized_termtrans = 0
@@ -713,7 +727,7 @@ function! LightBackground()
   set t_8f=^[[38;2;%lu;%lu;%lum
   "hi clear
   "syntax reset
-  colorscheme one
+  silent! colorscheme one
   set background=light
   let g:lightline.colorscheme = 'Greg'
   hi Comment cterm=italic
@@ -729,14 +743,14 @@ endfunction
 function! DarkBackground()
   set notermguicolors
   set t_Co=256
-  set term=xterm-256color
+  " 'term' option is read-only in Neovim
   "let g:solarized_visibility = "high"
   "let g:solarized_contrast = "high"
   "let g:solarized_termtrans = 0
   let g:onedark_termcolors=256
   set background=dark
   "colorscheme onedark
-  colorscheme gruvbox
+  silent! colorscheme gruvbox
   hi Comment cterm=italic
   let g:indent_guides_guide_size=2
   "https://github.com/pangloss/vim-javascript/blob/master/syntax/javascript.vim
@@ -752,7 +766,7 @@ endfunction
 function! TransparentBackground()
   set notermguicolors
   set t_Co=256
-  set term=xterm-256color
+  " 'term' option is read-only in Neovim
   let g:solarized_visibility = "high"
   let g:solarized_contrast = "high"
   let g:solarized_termtrans = 0
@@ -760,7 +774,7 @@ function! TransparentBackground()
   "hi clear
   "syntax reset
   set background=dark
-  colorscheme onedark
+  silent! colorscheme onedark
   hi Comment cterm=italic
   hi! link javascriptAsyncFuncKeyword Keyword
   hi! link javascriptNodeGlobal Structure
@@ -976,10 +990,12 @@ augroup incsearch-keymap
   autocmd VimEnter * call s:incsearch_keymap()
 augroup END
 function! s:incsearch_keymap()
-  IncSearchNoreMap <Right> <Over>(incsearch-next)
-  IncSearchNoreMap <Left>  <Over>(incsearch-prev)
-  IncSearchNoreMap <Tab>  <Over>(incsearch-scroll-f)
-  IncSearchNoreMap <S-Tab>    <Over>(incsearch-scroll-b)
+  if exists(':IncSearchNoreMap')
+    IncSearchNoreMap <Right> <Over>(incsearch-next)
+    IncSearchNoreMap <Left>  <Over>(incsearch-prev)
+    IncSearchNoreMap <Tab>  <Over>(incsearch-scroll-f)
+    IncSearchNoreMap <S-Tab>    <Over>(incsearch-scroll-b)
+  endif
 endfunction
 
 let g:asterisk#keeppos = 1
