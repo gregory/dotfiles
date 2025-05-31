@@ -188,7 +188,8 @@ set laststatus=2               " Show the status line all the time
 set lazyredraw                 " tells Vim not to bother redrawing during these scenarios, leading to faster macros
 set linebreak                  " tells Vim to only wrap at a character in the breakat option
 set listchars=tab:>.,trail:.,extends:#,nbsp:.
-set mouse=nv
+"set mouse=nv nvica => normal visual insert commmandLine All
+set mouse=                     " disabled
 set nobackup
 set noerrorbells               " don't beep
 "set noea                       "Dont resize buffers when other closes
@@ -292,8 +293,8 @@ map yib yiB
 
 "cmap w!! w !sudo tee % >/dev/null
 
-map <silent><F3> <ESC>:exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
-tmap <silent><F3> <c-w>: exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
+"map <silent><F3> <ESC>:exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
+"tmap <silent><F3> <c-w>: exec &mouse!=""? "set mouse=" : "set mouse=nv"<CR>
 tmap <silent><F9> <c-w>: tabnext<cr>
 tmap <silent><F7> <c-w>: tabprevious<cr>
 tmap <silent><F8> <c-w>: tabnew<cr>
