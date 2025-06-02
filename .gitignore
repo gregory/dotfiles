@@ -4,3 +4,7 @@ vim/*
 .vim/tmp/
 .vim/tags
 ctags*
+
+nvim-linux-x86_64
+
+nvim-linux-x86_64.tar.gz
