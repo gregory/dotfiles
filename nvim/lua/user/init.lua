@@ -213,6 +213,19 @@ function M.zoom_toggle()
   vim.t.zoomed = true
 end
 
+local function ensure_incsearch_core()
+  if fn.exists "*incsearch#util#deepextend" == 1 then
+    return true
+  end
+
+  local ok, lazy = pcall(require, "lazy")
+  if ok then
+    lazy.load { plugins = { "incsearch.vim" } }
+  end
+
+  return fn.exists "*incsearch#util#deepextend" == 1
+end
+
 local function ensure_incsearch_easymotion()
   if fn.exists "*incsearch#config#easymotion#module" == 1 then
     return true
@@ -226,6 +239,12 @@ local function ensure_incsearch_easymotion()
   return fn.exists "*incsearch#config#easymotion#module" == 1
 end
 
+local function warn_once(msg)
+  vim.schedule(function()
+    vim.notify(msg, vim.log.levels.WARN, { title = "incsearch" })
+  end)
+end
+
 function M.incsearch_config(opts)
   opts = opts or {}
 
@@ -233,21 +252,26 @@ function M.incsearch_config(opts)
   if ensure_incsearch_easymotion() then
     table.insert(modules, fn["incsearch#config#easymotion#module"]())
   else
-    vim.schedule(function()
-      vim.notify(
-        "incsearch-easymotion.vim is not available; incremental search will fall back to the default behaviour",
-        vim.log.levels.WARN,
-        { title = "incsearch" }
-      )
-    end)
+    warn_once "incsearch-easymotion.vim is not available; incremental search will fall back to the default behaviour"
   end
 
-  local base = fn.deepcopy({
+  local base = {
     modules = modules,
     keymap = modules[1] and { ["<CR>"] = "<Over>(easymotion)" } or {},
     is_expr = 0,
-  })
-  return fn["incsearch#util#deepextend"](base, opts)
+  }
+
+  if ensure_incsearch_core() then
+    local ok, extended = pcall(fn["incsearch#util#deepextend"], vim.deepcopy(base), opts)
+    if ok then
+      return extended
+    end
+    warn_once(string.format("incsearch#util#deepextend failed: %s; falling back to Lua deep extend", extended))
+  else
+    warn_once "incsearch.vim is not available; incremental search will fall back to Lua deep extend"
+  end
+
+  return vim.tbl_deep_extend("force", vim.deepcopy(base), opts)
 end
 
 function M.legacy_incsearch_config(opts)
