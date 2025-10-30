@@ -256,10 +256,15 @@ function M.incsearch_config(opts)
   end
 
   local base = {
-    modules = modules,
-    keymap = modules[1] and { ["<CR>"] = "<Over>(easymotion)" } or {},
     is_expr = 0,
   }
+
+  if #modules > 0 then
+    base.modules = modules
+    base.keymap = { ["<CR>"] = "<Over>(easymotion)" }
+  else
+    base.keymap = vim.empty_dict()
+  end
 
   if ensure_incsearch_core() then
     local ok, extended = pcall(fn["incsearch#util#deepextend"], vim.deepcopy(base), opts)
