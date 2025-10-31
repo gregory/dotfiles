@@ -9,7 +9,10 @@ return {
       require "configs.lspconfig"
     end,
   },
-  { "mbbill/undotree" },
+  {
+    "mbbill/undotree",
+    lazy = false,
+  },
   { "tpope/vim-fugitive" },
   { "scrooloose/nerdcommenter" },
   { "stefandtw/quickfix-reflector.vim" },
