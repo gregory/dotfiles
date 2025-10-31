@@ -4,17 +4,25 @@ local api = vim.api
 local fn = vim.fn
 local cmd = vim.cmd
 local uv = vim.uv or vim.loop
-local lazy_ok, lazy = pcall(require, "lazy")
+local loader_ok, loader = pcall(require, "lazy.core.loader")
+local config = loader_ok and require "lazy.core.config" or nil
 
 local function ensure_plugin(name)
-  if not lazy_ok then
+  if not loader_ok or not config then
     return false
   end
-  if lazy.is_loaded(name) then
+
+  local plugin = config.plugins[name]
+  if not plugin then
+    return false
+  end
+
+  if plugin._.loaded then
     return true
   end
-  lazy.load { plugins = { name } }
-  return lazy.is_loaded(name)
+
+  loader.load(plugin, { source = "user.ensure_plugin" })
+  return plugin._.loaded
 end
 
 function M.ensure_plugin(name)
