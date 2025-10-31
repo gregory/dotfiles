@@ -3,7 +3,12 @@ require "nvchad.mappings"
 local map = vim.keymap.set
 local user = require "user"
 local fn = vim.fn
-local echo = vim.api.nvim_echo
+local api = vim.api
+local echo = api.nvim_echo
+
+local function feedkeys(keys)
+  api.nvim_feedkeys(api.nvim_replace_termcodes(keys, true, false, true), "n", true)
+end
 
 map("n", "zo", "zO", { remap = true })
 map("n", "bm", "<Plug>BookmarkToggle")
@@ -95,20 +100,20 @@ map("n", "<F10>", function()
   vim.cmd([[echo "hi<" . synIDattr(synID(line('.'),col('.'),1),'name') . "> trans<" . synIDattr(synID(line('.'),col('.'),0),'name') . "> lo<" . synIDattr(synIDtrans(synID(line('.'),col('.'),1)),'name') . ">"]])
 end, { silent = true })
 map("n", "g/", function()
-  return fn["incsearch#go"](user.legacy_incsearch_config { is_stay = 1 })
-end, { expr = true, silent = true, noremap = true })
+  if not user.hop_patterns { current_line_only = true } then
+    feedkeys "g/"
+  end
+end, { silent = true, noremap = true })
 map("n", "/", function()
-  return fn["incsearch#go"](user.legacy_incsearch_config { is_stay = 0 })
-end, { expr = true, silent = true, noremap = true })
+  if not user.hop_patterns() then
+    feedkeys "/"
+  end
+end, { silent = true, noremap = true })
 map("n", "f", function()
-  return fn["incsearch#go"](user.legacy_incsearch_config { converters = { fn["incsearch#config#fuzzy#converter"]() } })
-end, { expr = true, silent = true, noremap = true })
-map("n", "n", "<Plug>(incsearch-nohl-n)")
-map("n", "N", "<Plug>(incsearch-nohl-N)")
-map("n", "*", "<Plug>(incsearch-nohl-*)")
-map("n", "#", "<Plug>(incsearch-nohl-#)")
-map("n", "g*", "<Plug>(incsearch-nohl-g*)")
-map("n", "g#", "<Plug>(incsearch-nohl-g#)")
+  if not user.hop_char1 { current_line_only = true } then
+    feedkeys "f"
+  end
+end, { silent = true, noremap = true })
 map("n", "i", ":noh<CR>i", { noremap = true, silent = true })
 map("n", "<BS>", "mzJ`z", { noremap = true })
 map("n", "gj", "<Plug>(signify-next-hunk)")

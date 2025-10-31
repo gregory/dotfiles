@@ -302,9 +302,3 @@ api.nvim_create_autocmd("FileType", {
   end,
 })
 
-api.nvim_create_autocmd("VimEnter", {
-  group = api.nvim_create_augroup("incsearch-keymap", { clear = true }),
-  callback = function()
-    user.incsearch_keymap()
-  end,
-})

@@ -40,18 +40,11 @@ return {
   },
   { "kana/vim-submode" },
   {
-    "haya14busa/incsearch.vim",
-    lazy = false,
-  },
-  {
-    "haya14busa/incsearch-fuzzy.vim",
-    lazy = false,
-    dependencies = { "haya14busa/incsearch.vim" },
-  },
-  {
-    "haya14busa/incsearch-easymotion.vim",
-    lazy = false,
-    dependencies = { "haya14busa/incsearch.vim", "easymotion/vim-easymotion" },
+    "phaazon/hop.nvim",
+    branch = "v2",
+    config = function()
+      require("hop").setup {}
+    end,
   },
   { "jiangmiao/auto-pairs" },
   { "szw/vim-ctrlspace" },

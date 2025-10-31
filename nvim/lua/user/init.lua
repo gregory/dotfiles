@@ -213,90 +213,44 @@ function M.zoom_toggle()
   vim.t.zoomed = true
 end
 
-local function ensure_incsearch_core()
-  if fn.exists "*incsearch#util#deepextend" == 1 then
+local hop_warning_shown = false
+
+local function load_hop()
+  local ok, hop = pcall(require, "hop")
+  if ok then
+    return hop
+  end
+
+  if not hop_warning_shown then
+    hop_warning_shown = true
+    vim.schedule(function()
+      vim.notify("hop.nvim is not available; search mappings will fall back to their defaults", vim.log.levels.WARN, {
+        title = "hop",
+      })
+    end)
+  end
+
+  return nil
+end
+
+function M.hop_patterns(opts)
+  local hop = load_hop()
+  if hop then
+    hop.hint_patterns(opts or {})
     return true
   end
-
-  local ok, lazy = pcall(require, "lazy")
-  if ok then
-    lazy.load { plugins = { "incsearch.vim" } }
-  end
-
-  return fn.exists "*incsearch#util#deepextend" == 1
+  return false
 end
 
-local function ensure_incsearch_easymotion()
-  if fn.exists "*incsearch#config#easymotion#module" == 1 then
+function M.hop_char1(opts)
+  local hop = load_hop()
+  if hop then
+    hop.hint_char1(opts or {})
     return true
   end
-
-  local ok, lazy = pcall(require, "lazy")
-  if ok then
-    lazy.load { plugins = { "incsearch-easymotion.vim" } }
-  end
-
-  return fn.exists "*incsearch#config#easymotion#module" == 1
+  return false
 end
 
-local function warn_once(msg)
-  vim.schedule(function()
-    vim.notify(msg, vim.log.levels.WARN, { title = "incsearch" })
-  end)
-end
-
-function M.incsearch_config(opts)
-  opts = opts or {}
-
-  local modules = {}
-  if ensure_incsearch_easymotion() then
-    table.insert(modules, fn["incsearch#config#easymotion#module"]())
-  else
-    warn_once "incsearch-easymotion.vim is not available; incremental search will fall back to the default behaviour"
-  end
-
-  local base = {
-    is_expr = 0,
-  }
-
-  if #modules > 0 then
-    base.modules = modules
-    base.keymap = { ["<CR>"] = "<Over>(easymotion)" }
-  else
-    base.keymap = vim.empty_dict()
-  end
-
-  if ensure_incsearch_core() then
-    local ok, extended = pcall(fn["incsearch#util#deepextend"], vim.deepcopy(base), opts)
-    if ok then
-      return extended
-    end
-    warn_once(string.format("incsearch#util#deepextend failed: %s; falling back to Lua deep extend", extended))
-  else
-    warn_once "incsearch.vim is not available; incremental search will fall back to Lua deep extend"
-  end
-
-  return vim.tbl_deep_extend("force", vim.deepcopy(base), opts)
-end
-
-function M.legacy_incsearch_config(opts)
-  return M.incsearch_config(opts or {})
-end
-
-function M.incsearch_keymap()
-  if fn.exists ":IncSearchNoreMap" == 0 then
-    return
-  end
-
-  local function map(lhs, rhs)
-    vim.cmd(string.format([[IncSearchNoreMap %s %s]], lhs, rhs))
-  end
-
-  map("<Right>", "<Over>(incsearch-next)")
-  map("<Left>", "<Over>(incsearch-prev)")
-  map("<Tab>", "<Over>(incsearch-scroll-f)")
-  map("<S-Tab>", "<Over>(incsearch-scroll-b)")
-end
 
 function M.print_foobar()
   vim.notify("Foo Bar!", vim.log.levels.INFO, { title = "CtrlSpace" })

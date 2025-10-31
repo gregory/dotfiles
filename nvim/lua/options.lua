@@ -115,8 +115,6 @@ g["prettier#config#bracket_spacing"] = "true"
 g["prettier#config#print_width"] = 100
 
 g["asterisk#keeppos"] = 1
-g["incsearch#auto_nohlsearch"] = 1
-
 g.coc_snippet_next = "<c-j>"
 g.coc_snippet_prev = "<c-k>"
 g.coc_node_path = fn.expand "~/.nvm/versions/node/v16.12.0/bin/node"
