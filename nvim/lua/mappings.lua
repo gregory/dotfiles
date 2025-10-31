@@ -127,7 +127,11 @@ end, { silent = true })
 map({ "n", "v", "o" }, "<F3>", function()
   user.transparent_background()
 end, { silent = true })
-map("n", "<C-u>", "<cmd>UndotreeToggle<CR>", { silent = true, noremap = true })
+map("n", "<C-u>", function()
+  if user.ensure_plugin "undotree" then
+    vim.cmd.UndotreeToggle()
+  end
+end, { silent = true, noremap = true })
 map("n", "U", "<C-r>", { noremap = true })
 map("n", "cd", function()
   user.selecta_command("find * -type d" .. (vim.g.excludes or ""), "", "lcd")

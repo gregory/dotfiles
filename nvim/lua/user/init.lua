@@ -4,6 +4,26 @@ local api = vim.api
 local fn = vim.fn
 local cmd = vim.cmd
 local uv = vim.uv or vim.loop
+local lazy_ok, lazy = pcall(require, "lazy")
+
+local function ensure_plugin(name)
+  if not lazy_ok then
+    return false
+  end
+  if lazy.is_loaded(name) then
+    return true
+  end
+  lazy.load { plugins = { name } }
+  return lazy.is_loaded(name)
+end
+
+function M.ensure_plugin(name)
+  if ensure_plugin(name) then
+    return true
+  end
+  vim.notify(string.format("%s is not available", name), vim.log.levels.WARN, { title = "plugins" })
+  return false
+end
 
 local function trim(str)
   return (str or ""):gsub("%s+$", "")
@@ -128,7 +148,9 @@ function M.rename_file()
   local new_name = fn.input("New file name: ", old_name)
   cmd "redraw"
   if new_name ~= "" and new_name ~= old_name then
-    cmd("Gmove " .. fn.fnameescape(new_name))
+    if M.ensure_plugin "vim-fugitive" then
+      cmd("Gmove " .. fn.fnameescape(new_name))
+    end
   end
 end
 
