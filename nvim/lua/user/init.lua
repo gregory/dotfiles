@@ -287,10 +287,15 @@ function M.incsearch_keymap()
   if fn.exists ":IncSearchNoreMap" == 0 then
     return
   end
-  fn["IncSearchNoreMap"]("<Right>", "<Over>(incsearch-next)")
-  fn["IncSearchNoreMap"]("<Left>", "<Over>(incsearch-prev)")
-  fn["IncSearchNoreMap"]("<Tab>", "<Over>(incsearch-scroll-f)")
-  fn["IncSearchNoreMap"]("<S-Tab>", "<Over>(incsearch-scroll-b)")
+
+  local function map(lhs, rhs)
+    vim.cmd(string.format([[IncSearchNoreMap %s %s]], lhs, rhs))
+  end
+
+  map("<Right>", "<Over>(incsearch-next)")
+  map("<Left>", "<Over>(incsearch-prev)")
+  map("<Tab>", "<Over>(incsearch-scroll-f)")
+  map("<S-Tab>", "<Over>(incsearch-scroll-b)")
 end
 
 function M.print_foobar()
