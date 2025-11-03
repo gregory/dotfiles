@@ -67,7 +67,10 @@ return {
     end,
   },
   { "jiangmiao/auto-pairs" },
-  { "szw/vim-ctrlspace" },
+  {
+    "szw/vim-ctrlspace",
+    lazy = false,
+  },
   { "MattesGroeger/vim-bookmarks" },
   { "kshenoy/vim-signature" },
   { "haya14busa/vim-asterisk" },

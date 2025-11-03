@@ -25,6 +25,34 @@ local function ensure_plugin(name)
   return plugin._.loaded
 end
 
+local function build_terminal_command(opts)
+  opts = opts or {}
+
+  local args = { "terminal" }
+
+  if opts.close ~= false then
+    table.insert(args, "++close")
+  end
+
+  if opts.kill then
+    table.insert(args, "++kill=" .. opts.kill)
+  end
+
+  if opts.curwin then
+    table.insert(args, "++curwin")
+  end
+
+  if opts.rows then
+    table.insert(args, "++rows=" .. opts.rows)
+  end
+
+  if opts.command then
+    table.insert(args, opts.command)
+  end
+
+  return table.concat(args, " ")
+end
+
 function M.ensure_plugin(name)
   if ensure_plugin(name) then
     return true
@@ -98,6 +126,20 @@ end
 function M.selecta_identifier()
   fn.setreg("z", fn.expand "<cword>")
   M.selecta_command("find * -type f", "-s " .. fn.getreg "z", ":e")
+end
+
+function M.open_terminal(opts)
+  opts = opts or {}
+
+  if opts.orientation == "vertical" then
+    cmd.vsplit()
+  elseif opts.orientation == "horizontal" then
+    cmd.split()
+  elseif opts.orientation == "tab" then
+    cmd.tabnew()
+  end
+
+  cmd(build_terminal_command(opts))
 end
 
 local function quickfix_filenames()

@@ -5,9 +5,20 @@ local user = require "user"
 local fn = vim.fn
 local api = vim.api
 local echo = api.nvim_echo
+local deepcopy = vim.deepcopy
 
 local function feedkeys(keys)
   api.nvim_feedkeys(api.nvim_replace_termcodes(keys, true, false, true), "n", true)
+end
+
+local function terminal_opener(opts)
+  return function()
+    feedkeys "<C-\\><C-n>"
+    local args = deepcopy(opts or {})
+    vim.schedule(function()
+      user.open_terminal(args)
+    end)
+  end
 end
 
 map("n", "zo", "zO", { remap = true })
@@ -184,11 +195,21 @@ map("n", "<leader>ev", "<cmd>edit $MYVIMRC<CR>", { silent = true })
 map("i", "fd", "<ESC>:update<CR>", { silent = true, noremap = true })
 map("n", "fd", "<cmd>w<CR>", { silent = true, noremap = true })
 map("v", "fd", "<cmd>w<CR>gv", { silent = true, noremap = true })
-map("n", "<C-f>v", [[<cmd>vert term ++close ++kill="kill"<CR>]], { silent = true })
-map("n", "<C-g>v", [[<cmd>vert term ++close ++kill="kill"<CR>]], { silent = true })
-map("n", "<C-f>s", [[<cmd>term ++close ++kill="kill"<CR>]], { silent = true })
-map("n", "<C-f>t", [[<cmd>term ++close ++kill="kill" ++rows=25<CR>]], { silent = true })
-map("n", "<C-f>=", [[<cmd>term ++close ++kill="kill" ++rows=25<CR>]], { silent = true })
+map("n", "<C-f>v", function()
+  user.open_terminal { orientation = "vertical", kill = "kill" }
+end, { silent = true })
+map("n", "<C-g>v", function()
+  user.open_terminal { orientation = "vertical", kill = "kill" }
+end, { silent = true })
+map("n", "<C-f>s", function()
+  user.open_terminal { kill = "kill" }
+end, { silent = true })
+map("n", "<C-f>t", function()
+  user.open_terminal { kill = "kill", rows = 25 }
+end, { silent = true })
+map("n", "<C-f>=", function()
+  user.open_terminal { kill = "kill", rows = 25 }
+end, { silent = true })
 map("n", "<C-k>", "<cmd>wincmd k<CR>", { silent = true })
 map("n", "<C-h>", "<cmd>wincmd h<CR>", { silent = true })
 map("n", "<C-l>", "<cmd>wincmd l<CR>", { silent = true })
@@ -199,7 +220,7 @@ map("n", "<S-Left>", "<cmd>vertical resize -5<CR>", { silent = true })
 map("n", "<S-Right>", "<cmd>vertical resize +5<CR>", { silent = true })
 map("t", "<leader>f", [[<C-\><C-n>:set nomore<CR>:ls<CR>:set more<CR>:b ]], { silent = true })
 map("t", "<C-f>:", [[<C-\><C-n>:]], { nowait = true })
-map("t", "<C-g>v", [[<C-\><C-n><cmd>vert term ++close ++kill="int"<CR>]], { silent = true })
+map("t", "<C-g>v", terminal_opener { orientation = "vertical", kill = "int" }, { silent = true })
 map("t", "fd", [[<C-\><C-n>]], { nowait = true })
 map("t", "gt", [[<C-\><C-n><cmd>tabnext<CR>]], { nowait = true })
 map("t", ":q", [[<C-\><C-n><cmd>q!<CR>]], { nowait = true })
@@ -215,9 +236,9 @@ map("t", "<leader>S", [[<C-\><C-n><cmd>aboveleft new<CR>]], { silent = true })
 map("t", "<leader>V", [[<C-\><C-n><cmd>aboveleft vert new<CR>]], { silent = true })
 map("t", "<leader>s", [[<C-\><C-n><cmd>new<CR>]], { silent = true })
 map("t", "<leader>v", [[<C-\><C-n><cmd>vert new<CR>]], { silent = true })
-map("t", "<C-f>v", [[<C-\><C-n><cmd>vert term ++close ++kill="int"<CR>]], { silent = true })
-map("t", "<C-f>s", [[<C-\><C-n><cmd>term ++close ++kill="int"<CR>]], { silent = true })
-map("t", "<C-f>t", [[<C-\><C-n><cmd>term ++close ++kill="int" ++rows=25<CR>]], { silent = true })
+map("t", "<C-f>v", terminal_opener { orientation = "vertical", kill = "int" }, { silent = true })
+map("t", "<C-f>s", terminal_opener { kill = "int" }, { silent = true })
+map("t", "<C-f>t", terminal_opener { kill = "int", rows = 25 }, { silent = true })
 map("t", "<C-f>=", [[<C-\><C-n><C-w>=]])
 map("n", "M", "<cmd>MarksWithPreview<CR>", { silent = true, noremap = true })
 map("n", "j", "jzz", { noremap = true })
