@@ -55,13 +55,29 @@ function M.follow_symlink()
 end
 
 function M.set_project_root()
-  local buf_dir = fn.expand "%:p:h"
-  if buf_dir ~= "" then
-    cmd("lcd " .. fn.fnameescape(buf_dir))
+  local buf = api.nvim_get_current_buf()
+  local buftype = vim.bo[buf].buftype
+  if buftype ~= "" then
+    return
   end
+
+  local name = api.nvim_buf_get_name(buf)
+  if name == "" or name:match "^%a+://" then
+    return
+  end
+
+  local buf_dir = fn.fnamemodify(name, ":p:h")
+  if buf_dir ~= "" then
+    pcall(cmd, "silent! lcd " .. fn.fnameescape(buf_dir))
+  end
+
   local git_dir = trim(fn.system "git rev-parse --show-toplevel")
+  if fn.shell_error() ~= 0 then
+    return
+  end
+
   if git_dir ~= "" and not git_dir:match "^fatal:" then
-    cmd("lcd " .. fn.fnameescape(git_dir))
+    pcall(cmd, "silent! lcd " .. fn.fnameescape(git_dir))
   end
 end
 
