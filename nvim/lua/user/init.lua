@@ -100,6 +100,8 @@ function M.selecta_identifier()
   M.selecta_command("find * -type f", "-s " .. fn.getreg "z", ":e")
 end
 
+local terminal_close_group = api.nvim_create_augroup("user_terminal_close", { clear = false })
+
 function M.open_terminal(opts)
   opts = opts or {}
 
@@ -111,35 +113,41 @@ function M.open_terminal(opts)
     cmd "tabnew"
   end
 
-  local modifiers = {}
+  local win = api.nvim_get_current_win()
 
-  if opts.close ~= false then
-    table.insert(modifiers, "++close")
-  end
+  local command = opts.command and (" " .. opts.command) or ""
+  cmd("terminal" .. command)
+
+  local buf = api.nvim_get_current_buf()
 
   if opts.kill then
-    table.insert(modifiers, string.format("++kill=%s", opts.kill))
+    vim.bo[buf].term_kill = opts.kill
   end
 
-  if opts.curwin then
-    table.insert(modifiers, "++curwin")
+  if opts.close ~= false then
+    api.nvim_create_autocmd("TermClose", {
+      group = terminal_close_group,
+      buffer = buf,
+      once = true,
+      callback = function()
+        local target_win = win
+        vim.schedule(function()
+          if api.nvim_win_is_valid(target_win) then
+            local ok, is_terminal = pcall(function()
+              return vim.bo[api.nvim_win_get_buf(target_win)].buftype == "terminal"
+            end)
+            if ok and is_terminal then
+              pcall(api.nvim_win_close, target_win, true)
+            end
+          end
+        end)
+      end,
+    })
   end
 
   if opts.rows then
-    table.insert(modifiers, "++rows=" .. opts.rows)
+    api.nvim_win_set_height(win, opts.rows)
   end
-
-  local command = "terminal"
-
-  if #modifiers > 0 then
-    command = command .. " " .. table.concat(modifiers, " ")
-  end
-
-  if opts.command then
-    command = command .. " " .. opts.command
-  end
-
-  cmd(command)
 end
 
 local function quickfix_filenames()
