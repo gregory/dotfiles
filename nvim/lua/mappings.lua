@@ -15,6 +15,9 @@ local function terminal_opener(opts)
   return function()
     feedkeys "<C-\\><C-n>"
     local args = deepcopy(opts or {})
+    if args.orientation == nil then
+      args.orientation = "horizontal"
+    end
     vim.schedule(function()
       user.open_terminal(args)
     end)
@@ -201,14 +204,17 @@ end, { silent = true })
 map("n", "<C-g>v", function()
   user.open_terminal { orientation = "vertical", kill = "kill" }
 end, { silent = true })
+map("n", "<C-g>s", function()
+  user.open_terminal { orientation = "horizontal", kill = "kill" }
+end, { silent = true })
 map("n", "<C-f>s", function()
-  user.open_terminal { kill = "kill" }
+  user.open_terminal { orientation = "horizontal", kill = "kill" }
 end, { silent = true })
 map("n", "<C-f>t", function()
-  user.open_terminal { kill = "kill", rows = 25 }
+  user.open_terminal { orientation = "horizontal", kill = "kill", rows = 25 }
 end, { silent = true })
 map("n", "<C-f>=", function()
-  user.open_terminal { kill = "kill", rows = 25 }
+  user.open_terminal { orientation = "horizontal", kill = "kill", rows = 25 }
 end, { silent = true })
 map("n", "<C-k>", "<cmd>wincmd k<CR>", { silent = true })
 map("n", "<C-h>", "<cmd>wincmd h<CR>", { silent = true })
@@ -221,6 +227,7 @@ map("n", "<S-Right>", "<cmd>vertical resize +5<CR>", { silent = true })
 map("t", "<leader>f", [[<C-\><C-n>:set nomore<CR>:ls<CR>:set more<CR>:b ]], { silent = true })
 map("t", "<C-f>:", [[<C-\><C-n>:]], { nowait = true })
 map("t", "<C-g>v", terminal_opener { orientation = "vertical", kill = "int" }, { silent = true })
+map("t", "<C-g>s", terminal_opener { kill = "int" }, { silent = true })
 map("t", "fd", [[<C-\><C-n>]], { nowait = true })
 map("t", "gt", [[<C-\><C-n><cmd>tabnext<CR>]], { nowait = true })
 map("t", ":q", [[<C-\><C-n><cmd>q!<CR>]], { nowait = true })

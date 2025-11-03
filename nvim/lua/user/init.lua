@@ -105,18 +105,32 @@ local terminal_close_group = api.nvim_create_augroup("user_terminal_close", { cl
 function M.open_terminal(opts)
   opts = opts or {}
 
-  if opts.orientation == "vertical" then
+  local orientation = opts.orientation or "horizontal"
+
+  if orientation == "vertical" then
     cmd "vsplit"
-  elseif opts.orientation == "horizontal" then
+  elseif orientation == "horizontal" then
     cmd "split"
-  elseif opts.orientation == "tab" then
+  elseif orientation == "tab" then
     cmd "tabnew"
   end
 
   local win = api.nvim_get_current_win()
 
-  local command = opts.command and (" " .. opts.command) or ""
-  cmd("terminal" .. command)
+  local command
+  if type(opts.command) == "table" then
+    if #opts.command > 0 then
+      command = table.concat(opts.command, " ")
+    end
+  elseif type(opts.command) == "string" and opts.command ~= "" then
+    command = opts.command
+  end
+
+  if command then
+    cmd("terminal " .. command)
+  else
+    cmd "terminal"
+  end
 
   local buf = api.nvim_get_current_buf()
 
