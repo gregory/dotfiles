@@ -121,7 +121,10 @@ function M.open_terminal(opts)
   local buf = api.nvim_get_current_buf()
 
   if opts.kill then
-    vim.bo[buf].term_kill = opts.kill
+    local ok = pcall(api.nvim_buf_set_option, buf, "term_kill", opts.kill)
+    if not ok then
+      vim.b[buf].term_kill = opts.kill
+    end
   end
 
   if opts.close ~= false then
