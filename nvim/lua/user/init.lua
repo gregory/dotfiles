@@ -25,50 +25,6 @@ local function ensure_plugin(name)
   return plugin._.loaded
 end
 
-local function build_terminal_command(opts)
-  opts = opts or {}
-
-  local pieces = {}
-
-  if opts.orientation == "vertical" then
-    table.insert(pieces, "vert")
-  elseif opts.orientation == "horizontal" then
-    table.insert(pieces, "belowright")
-  elseif opts.orientation == "tab" then
-    table.insert(pieces, "tab")
-  end
-
-  table.insert(pieces, "term")
-
-  local modifiers = {}
-
-  if opts.close ~= false then
-    table.insert(modifiers, "++close")
-  end
-
-  if opts.kill then
-    table.insert(modifiers, string.format([[++kill="%s"]], opts.kill))
-  end
-
-  if opts.curwin then
-    table.insert(modifiers, "++curwin")
-  end
-
-  if opts.rows then
-    table.insert(modifiers, "++rows=" .. opts.rows)
-  end
-
-  if opts.command then
-    table.insert(modifiers, opts.command)
-  end
-
-  if #modifiers > 0 then
-    table.insert(pieces, table.concat(modifiers, " "))
-  end
-
-  return table.concat(pieces, " ")
-end
-
 function M.ensure_plugin(name)
   if ensure_plugin(name) then
     return true
@@ -145,7 +101,45 @@ function M.selecta_identifier()
 end
 
 function M.open_terminal(opts)
-  cmd(build_terminal_command(opts or {}))
+  opts = opts or {}
+
+  if opts.orientation == "vertical" then
+    cmd "vsplit"
+  elseif opts.orientation == "horizontal" then
+    cmd "split"
+  elseif opts.orientation == "tab" then
+    cmd "tabnew"
+  end
+
+  local modifiers = {}
+
+  if opts.close ~= false then
+    table.insert(modifiers, "++close")
+  end
+
+  if opts.kill then
+    table.insert(modifiers, string.format("++kill=%s", opts.kill))
+  end
+
+  if opts.curwin then
+    table.insert(modifiers, "++curwin")
+  end
+
+  if opts.rows then
+    table.insert(modifiers, "++rows=" .. opts.rows)
+  end
+
+  local command = "terminal"
+
+  if #modifiers > 0 then
+    command = command .. " " .. table.concat(modifiers, " ")
+  end
+
+  if opts.command then
+    command = command .. " " .. opts.command
+  end
+
+  cmd(command)
 end
 
 local function quickfix_filenames()
