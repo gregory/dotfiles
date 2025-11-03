@@ -67,7 +67,7 @@ function M.set_project_root()
   end
 
   local buf_dir = fn.fnamemodify(name, ":p:h")
-  if buf_dir ~= "" then
+  if buf_dir ~= "" and fn.isdirectory(buf_dir) == 1 then
     pcall(cmd, "silent! lcd " .. fn.fnameescape(buf_dir))
   end
 
@@ -76,7 +76,7 @@ function M.set_project_root()
     return
   end
 
-  if git_dir ~= "" and not git_dir:match "^fatal:" then
+  if git_dir ~= "" and not git_dir:match "^fatal:" and fn.isdirectory(git_dir) == 1 then
     pcall(cmd, "silent! lcd " .. fn.fnameescape(git_dir))
   end
 end
