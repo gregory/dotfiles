@@ -28,29 +28,45 @@ end
 local function build_terminal_command(opts)
   opts = opts or {}
 
-  local args = { "terminal" }
+  local pieces = {}
+
+  if opts.orientation == "vertical" then
+    table.insert(pieces, "vert")
+  elseif opts.orientation == "horizontal" then
+    table.insert(pieces, "belowright")
+  elseif opts.orientation == "tab" then
+    table.insert(pieces, "tab")
+  end
+
+  table.insert(pieces, "term")
+
+  local modifiers = {}
 
   if opts.close ~= false then
-    table.insert(args, "++close")
+    table.insert(modifiers, "++close")
   end
 
   if opts.kill then
-    table.insert(args, "++kill=" .. opts.kill)
+    table.insert(modifiers, string.format([[++kill="%s"]], opts.kill))
   end
 
   if opts.curwin then
-    table.insert(args, "++curwin")
+    table.insert(modifiers, "++curwin")
   end
 
   if opts.rows then
-    table.insert(args, "++rows=" .. opts.rows)
+    table.insert(modifiers, "++rows=" .. opts.rows)
   end
 
   if opts.command then
-    table.insert(args, opts.command)
+    table.insert(modifiers, opts.command)
   end
 
-  return table.concat(args, " ")
+  if #modifiers > 0 then
+    table.insert(pieces, table.concat(modifiers, " "))
+  end
+
+  return table.concat(pieces, " ")
 end
 
 function M.ensure_plugin(name)
@@ -129,17 +145,7 @@ function M.selecta_identifier()
 end
 
 function M.open_terminal(opts)
-  opts = opts or {}
-
-  if opts.orientation == "vertical" then
-    cmd.vsplit()
-  elseif opts.orientation == "horizontal" then
-    cmd.split()
-  elseif opts.orientation == "tab" then
-    cmd.tabnew()
-  end
-
-  cmd(build_terminal_command(opts))
+  cmd(build_terminal_command(opts or {}))
 end
 
 local function quickfix_filenames()
