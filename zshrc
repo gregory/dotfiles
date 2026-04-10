@@ -2,86 +2,62 @@
 export ZSH=$HOME/.oh-my-zsh
 
 # Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
 ZSH_THEME="robbyrussell"
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
-
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-# Uncomment the following line to disable auto-setting terminal title.
-
- DISABLE_AUTO_TITLE="true"
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-# Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories # much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-
-# automatically enter directories without cd
-#setopt auto_cd
+DISABLE_AUTO_TITLE="true"
 
 # Allow [ or ] whereever you want
 unsetopt nomatch
 
-# automatically pushd
-#setopt auto_pushd
 export dirstacksize=5
 
-plugins=(git bundler brew gem heroku rails)
+plugins=(git brew)
 
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-# export MANPATH="/usr/local/man:$MANPATH"
+eval "$(/opt/homebrew/bin/direnv hook zsh)"
 
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+# --- Lazy-load nvm (saves ~1.5s on shell startup) ---
+# nvm.sh itself is slow to source, and oh-my-zsh's load-nvmrc runs it eagerly.
+# Instead we register shim functions that source nvm on first use.
+export NVM_DIR="$HOME/.nvm"
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  _nvm_load() {
+    unset -f nvm node npm npx yarn pnpm 2>/dev/null
+    \. "$NVM_DIR/nvm.sh"
+    [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"
+  }
+  nvm()   { _nvm_load; nvm   "$@"; }
+  node()  { _nvm_load; node  "$@"; }
+  npm()   { _nvm_load; npm   "$@"; }
+  npx()   { _nvm_load; npx   "$@"; }
+  yarn()  { _nvm_load; yarn  "$@"; }
+  pnpm()  { _nvm_load; pnpm  "$@"; }
+  # Add default node bin to PATH so `which node` works without triggering load
+  if [[ -f "$NVM_DIR/alias/default" ]]; then
+    _nvm_default_ver="$(<"$NVM_DIR/alias/default")"
+    [[ -d "$NVM_DIR/versions/node/$_nvm_default_ver/bin" ]] && \
+      export PATH="$NVM_DIR/versions/node/$_nvm_default_ver/bin:$PATH"
+    unset _nvm_default_ver
+  fi
+fi
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/dsa_id"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+[[ -s ~/.bashrc ]] && source ~/.bashrc
 [[ -s ~/.zsh.local ]] && source ~/.zsh.local
+
+### Added by the Heroku Toolbelt
+export PATH="/usr/local/heroku/bin:$PATH"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+export PATH="/opt/homebrew/opt/mongodb-community@4.2/bin:$PATH"
+export PATH="/opt/homebrew/opt/curl/bin:$PATH"
+
+# Added by Antigravity
+export PATH="/Users/greg/.antigravity/antigravity/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+# Docker CLI completions (compinit is already run by oh-my-zsh)
+fpath=(/Users/greg/.docker/completions $fpath)
