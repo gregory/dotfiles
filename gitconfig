@@ -1,8 +1,7 @@
+[include]
+	path = ~/.gitconfig.local
 [github]
   user = gregory
-[user]
-	name = gregory
-	email = greg2502@gmail.com
 [alias]
   lg = log -g --format=raw --date=relative
   l  = log --format=raw --name-status --abbrev-commit --date=local
@@ -47,12 +46,6 @@
   default = simple
 [pull]
   rebase = true
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
 [url "https://"]
 	insteadOf = git://
 [filter "media"]
