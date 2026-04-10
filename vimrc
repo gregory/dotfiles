@@ -29,99 +29,101 @@ function! PlugCoc(info) abort
   call PlugRemotePlugins(a:info)
 endfunction
 
-call plug#begin('~/.vim/plugged')
+if !exists('g:lazy_port_skip_plug')
+  call plug#begin('~/.vim/plugged')
 
-" Plugins
-"-------------------------------------------
+  " Plugins
+  "-------------------------------------------
 
-" Coding Tools
-Plug 'mbbill/undotree' " Display your undo history in a graph
-Plug 'tpope/vim-fugitive' " Git tools "Plug 'jgdavey/tslime.vim'
-"Plug 'mhinz/vim-signify' " show modified lines in gutter
-Plug 'scrooloose/nerdcommenter'
-Plug 'stefandtw/quickfix-reflector.vim' "Replace text from the copen pane
-Plug 'editorconfig/editorconfig-vim'
-Plug 'moll/vim-node'
-Plug 'tpope/vim-rhubarb'
-Plug 'terryma/vim-multiple-cursors'
+  " Coding Tools
+  Plug 'mbbill/undotree' " Display your undo history in a graph
+  Plug 'tpope/vim-fugitive' " Git tools "Plug 'jgdavey/tslime.vim'
+  "Plug 'mhinz/vim-signify' " show modified lines in gutter
+  Plug 'scrooloose/nerdcommenter'
+  Plug 'stefandtw/quickfix-reflector.vim' "Replace text from the copen pane
+  Plug 'editorconfig/editorconfig-vim'
+  Plug 'moll/vim-node'
+  Plug 'tpope/vim-rhubarb'
+  Plug 'terryma/vim-multiple-cursors'
 
-"Code Completion
-"Plug 'ervandew/supertab'
+  "Code Completion
+  "Plug 'ervandew/supertab'
 
-let s:coc_extensions = [
-      \   'coc-css',
-      \   'coc-html',
-      \   'coc-json',
-      \   'coc-yaml',
-      \   'coc-eslint',
-      "\   'coc-tslint',
-      "\   'coc-tslint-plugin',
-      \   'coc-prettier',
-      "\   'coc-tsserver',
-      "\   'coc-ultisnips'
-      "\   'coc-neosnippet'
-      \ ]
-Plug 'neoclide/coc.nvim', {'branch':'release', 'do': function('PlugCoc')}
-"Plug 'SirVer/ultisnips', {'do': function('PlugRemotePlugins')}
-Plug 'honza/vim-snippets'
-Plug 'hashivim/vim-terraform'
-Plug 'vim-syntastic/syntastic'
-Plug 'juliosueiras/vim-terraform-completion'
-Plug 'cmather/vim-meteor-snippets'
+  let s:coc_extensions = [
+        \   'coc-css',
+        \   'coc-html',
+        \   'coc-json',
+        \   'coc-yaml',
+        \   'coc-eslint',
+        "\   'coc-tslint',
+        "\   'coc-tslint-plugin',
+        \   'coc-prettier',
+        "\   'coc-tsserver',
+        "\   'coc-ultisnips'
+        "\   'coc-neosnippet'
+        \ ]
+  Plug 'neoclide/coc.nvim', {'branch':'release', 'do': function('PlugCoc')}
+  "Plug 'SirVer/ultisnips', {'do': function('PlugRemotePlugins')}
+  Plug 'honza/vim-snippets'
+  Plug 'hashivim/vim-terraform'
+  Plug 'vim-syntastic/syntastic'
+  Plug 'juliosueiras/vim-terraform-completion'
+  Plug 'cmather/vim-meteor-snippets'
 
-Plug 'tpope/vim-endwise' "Add closing arg (end etc)
-Plug 'Chiel92/vim-autoformat' "  code formatting
-Plug 'tpope/vim-repeat'
-" Memo:
-" S( will surround with (  ) the visual block
-" ys+motion +( will surround motion with (
-" cs([ will change surround ( by [
-" ds( will remove surround (
-" dst will remove tags around the current position
-" yss{ will wrap sentence in {
-Plug 'tpope/vim-surround'
+  Plug 'tpope/vim-endwise' "Add closing arg (end etc)
+  Plug 'Chiel92/vim-autoformat' "  code formatting
+  Plug 'tpope/vim-repeat'
+  " Memo:
+  " S( will surround with (  ) the visual block
+  " ys+motion +( will surround motion with (
+  " cs([ will change surround ( by [
+  " ds( will remove surround (
+  " dst will remove tags around the current position
+  " yss{ will wrap sentence in {
+  Plug 'tpope/vim-surround'
 
-" Navigation
-Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTreeFind']}
-Plug 'easymotion/vim-easymotion'
-Plug 'kana/vim-submode'
-Plug 'haya14busa/incsearch.vim'
-Plug 'haya14busa/incsearch-fuzzy.vim'
-Plug 'haya14busa/incsearch-easymotion.vim'
-"Plug 'gorkunov/smartpairs.vim'
-Plug 'jiangmiao/auto-pairs'
-Plug 'szw/vim-ctrlspace'
-Plug 'MattesGroeger/vim-bookmarks'
-Plug 'kshenoy/vim-signature' "add and navigate to marks
-"Plug 't9md/vim-choosewin'  " NOTE: disavling this to force me to use easymotion
-Plug 'haya14busa/vim-asterisk'
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
+  " Navigation
+  Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTreeFind']}
+  Plug 'easymotion/vim-easymotion'
+  Plug 'kana/vim-submode'
+  Plug 'haya14busa/incsearch.vim'
+  Plug 'haya14busa/incsearch-fuzzy.vim'
+  Plug 'haya14busa/incsearch-easymotion.vim'
+  "Plug 'gorkunov/smartpairs.vim'
+  Plug 'jiangmiao/auto-pairs'
+  Plug 'szw/vim-ctrlspace'
+  Plug 'MattesGroeger/vim-bookmarks'
+  Plug 'kshenoy/vim-signature' "add and navigate to marks
+  "Plug 't9md/vim-choosewin'  " NOTE: disavling this to force me to use easymotion
+  Plug 'haya14busa/vim-asterisk'
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+  Plug 'junegunn/fzf.vim'
 
-Plug 'tomtom/tlib_vim'
+  Plug 'tomtom/tlib_vim'
 
-" Syntax
-Plug 'sheerun/vim-polyglot'
-Plug 'othree/yajs.vim'
-"Plug 'jparise/vim-graphql', {'for': 'graphql'}
-"Plug 'nathanaelkane/vim-indent-guides' "display indent guide
-Plug 'marcweber/vim-addon-mw-utils'
-"Plug 'Slava/vim-spacebars', {'for': 'html'}
+  " Syntax
+  Plug 'sheerun/vim-polyglot'
+  Plug 'othree/yajs.vim'
+  "Plug 'jparise/vim-graphql', {'for': 'graphql'}
+  "Plug 'nathanaelkane/vim-indent-guides' "display indent guide
+  Plug 'marcweber/vim-addon-mw-utils'
+  "Plug 'Slava/vim-spacebars', {'for': 'html'}
 
-"Formaters & linters
-"Plug 'w0rp/ale', {
-      "\ 'for': ['javascript', 'css', 'json','graphql'],  'do': 'npm install -g eslint' }
-Plug 'junegunn/vim-easy-align' " easy align things
+  "Formaters & linters
+  "Plug 'w0rp/ale', {
+        "\ 'for': ['javascript', 'css', 'json','graphql'],  'do': 'npm install -g eslint' }
+  Plug 'junegunn/vim-easy-align' " easy align things
 
-"The Theme
-Plug 'morhetz/gruvbox'
-Plug 'rakr/vim-one'
-Plug 'joshdick/onedark.vim'
-"Plug 'altercation/vim-colors-solarized'
-"Plug 'vim-airline/vim-airline' "Bottom bar info
-"Plug 'vim-airline/vim-airline-themes'
-Plug 'itchyny/lightline.vim'
-call plug#end()
+  "The Theme
+  Plug 'morhetz/gruvbox'
+  Plug 'rakr/vim-one'
+  Plug 'joshdick/onedark.vim'
+  "Plug 'altercation/vim-colors-solarized'
+  "Plug 'vim-airline/vim-airline' "Bottom bar info
+  "Plug 'vim-airline/vim-airline-themes'
+  Plug 'itchyny/lightline.vim'
+  call plug#end()
+endif
 
 let g:AutoPairsFlyMode = 1
 let g:AutoPairsMapCR=0
@@ -225,7 +227,9 @@ set textwidth=100
 set title                      " change the erminal's title
 set ts=2 sw=2 et
 set ttyfast                    " fast scrolling
-set ttymouse=xterm2
+if exists('+ttymouse')
+  set ttymouse=xterm2
+endif
 set undolevels=1000            " use many muchos levels of undo
 set visualbell                 " don't beep
 set t_vb=     "disable visual belt
@@ -447,11 +451,31 @@ let g:lightline.tab = {
       \ 'active': [ 'tabnum', 'filename', 'modified' ],
       \ 'inactive': [ 'tabnum', 'filename', 'modified' ] }
 
-let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#one#palette)
-"let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#onedark#palette)
-let g:lightline#colorscheme#Greg#palette.inactive.right[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
-"let g:lightline#colorscheme#Greg#palette.inactive.left[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
-let g:lightline#colorscheme#Greg#palette.inactive.left[0] = g:lightline#colorscheme#Greg#palette.normal.left[1]
+function! s:setup_lightline_palette() abort
+  if !exists('g:lightline#colorscheme#one#palette')
+    silent! runtime autoload/lightline/colorscheme/one.vim
+  endif
+  let l:base_palette = get(g:, 'lightline#colorscheme#one#palette', {})
+  if !empty(l:base_palette)
+    let g:lightline#colorscheme#Greg#palette = lightline#colorscheme#fill(l:base_palette)
+    "let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#onedark#palette)
+    let g:lightline#colorscheme#Greg#palette.inactive.right[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+    "let g:lightline#colorscheme#Greg#palette.inactive.left[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+    let g:lightline#colorscheme#Greg#palette.inactive.left[0] = g:lightline#colorscheme#Greg#palette.normal.left[1]
+  endif
+endfunction
+
+call s:setup_lightline_palette()
+
+augroup legacy_lightline_palette
+  autocmd!
+  autocmd User LightlineInit call s:setup_lightline_palette()
+augroup END
+"let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#Greg#palette)
+""let g:lightline#colorscheme#Greg#palette= lightline#colorscheme#fill(g:lightline#colorscheme#onedark#palette)
+"let g:lightline#colorscheme#Greg#palette.inactive.right[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+""let g:lightline#colorscheme#Greg#palette.inactive.left[0] = ['#fafafa', '#98c379', 255, 35, 'bold']
+"let g:lightline#colorscheme#Greg#palette.inactive.left[0] = g:lightline#colorscheme#Greg#palette.normal.left[1]
 
 "vim-javascript
 let javascript_enable_domhtmlcss=1

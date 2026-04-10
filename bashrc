@@ -15,12 +15,10 @@ if [ -f ~/.git-prompt.sh ]; then
   export PS1='\h \w$(__git_ps1 "(%s)") \$ '
 fi
 
-# Fix tmux vim color
 export LESS='-NR'
 alias more='less'
 
 alias bower='noglob bower'
-alias tmux="TERM=screen-256color-bce $HOME/dotfiles/bin/tmux"
 
 # find a file and less it
 function lgrep {
@@ -42,7 +40,7 @@ fbr() {
   local branches branch
   branches=$(git for-each-ref --count=30 --sort=-committerdate refs/heads/ --format="%(refname:short)") &&
   branch=$(echo "$branches" |
-           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+           fzf -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
   git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
 }
 fshow() {
@@ -140,8 +138,12 @@ function cdpc {
   eval "$(docker-machine env $1)"
 }
 
+# nvm: if running under zsh, ~/.zshrc has already set up a lazy loader.
+# Only source nvm eagerly for real bash sessions.
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+if [ -z "$ZSH_NAME" ]; then
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+fi
 
 [ -z "$ZSH_NAME" ] && [ -f ~/.fzf.bash ] && source ~/.fzf.bash
