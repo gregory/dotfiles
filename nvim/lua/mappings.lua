@@ -182,9 +182,11 @@ map("n", "mv", function() user.rename_file() end, { noremap = true })
 
 -- quick edit/save
 map("n", "<leader>ev", "<cmd>edit $MYVIMRC<CR>", { silent = true })
+-- `fd` save shortcut is kept in insert mode only.
+-- In normal/visual mode it collides with the `f` motion (find char), so
+-- typing `fd` to jump to the next `d` (e.g. when yanking) would save the
+-- file instead.
 map("i", "fd", "<ESC>:update<CR>", { silent = true, noremap = true })
-map("n", "fd", "<cmd>w<CR>", { silent = true, noremap = true })
-map("v", "fd", "<cmd>w<CR>gv", { silent = true, noremap = true })
 
 -- terminal splits (opened via user helper)
 map("n", "<C-f>v", function() user.open_terminal { orientation = "vertical", kill = "kill" } end, { silent = true })
