@@ -1,4 +1,7 @@
 return {
+  -- ============================================================
+  -- Core
+  -- ============================================================
   {
     "stevearc/conform.nvim",
     opts = require "configs.conform",
@@ -9,6 +12,122 @@ return {
       require "configs.lspconfig"
     end,
   },
+
+  -- ============================================================
+  -- Navigation / search — modernized
+  -- ============================================================
+
+  -- Fuzzy finder (replaces fzf.vim)
+  {
+    "ibhagwan/fzf-lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    cmd = "FzfLua",
+    keys = {
+      { "<CR>", "<cmd>FzfLua git_files<CR>", desc = "FZF git files" },
+      { "<C-g>", "<cmd>FzfLua live_grep<CR>", desc = "FZF live grep" },
+      { "?", "<cmd>FzfLua lgrep_curbuf<CR>", desc = "FZF buffer lines" },
+      { "mru", "<cmd>FzfLua oldfiles<CR>", desc = "FZF MRU" },
+      { "ge", "<cmd>FzfLua grep_project<CR>", desc = "FZF grep project" },
+      { "gs", "<cmd>FzfLua git_status<CR>", desc = "FZF git status" },
+      { "M", "<cmd>FzfLua marks<CR>", desc = "FZF marks" },
+    },
+    opts = {
+      winopts = { preview = { default = "bat" } },
+      keymap = {
+        fzf = {
+          ["ctrl-d"] = "half-page-down",
+          ["ctrl-u"] = "half-page-up",
+          ["ctrl-a"] = "select-all+accept",
+        },
+      },
+    },
+  },
+
+  -- Visual jumping (replaces vim-easymotion + hop.nvim)
+  {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    opts = {
+      modes = {
+        search = { enabled = false }, -- don't hijack / and ?
+        char = { enabled = false }, -- don't hijack f/F/t/T
+      },
+    },
+    keys = {
+      { "s", function() require("flash").jump() end, mode = { "n", "x", "o" }, desc = "Flash jump" },
+      { "S", function() require("flash").treesitter() end, mode = { "n", "x", "o" }, desc = "Flash treesitter" },
+      { "r", function() require("flash").remote() end, mode = "o", desc = "Remote flash" },
+    },
+  },
+
+  -- Pinned buffers (replaces vim-ctrlspace workspaces)
+  {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    keys = {
+      { "<Tab>", function() require("harpoon"):list():add() end, desc = "Harpoon add" },
+      { "<S-Tab>", function() local h = require("harpoon"); h.ui:toggle_quick_menu(h:list()) end, desc = "Harpoon menu" },
+      { "<leader>1", function() require("harpoon"):list():select(1) end, desc = "Harpoon 1" },
+      { "<leader>2", function() require("harpoon"):list():select(2) end, desc = "Harpoon 2" },
+      { "<leader>3", function() require("harpoon"):list():select(3) end, desc = "Harpoon 3" },
+      { "<leader>4", function() require("harpoon"):list():select(4) end, desc = "Harpoon 4" },
+    },
+    config = function()
+      require("harpoon"):setup()
+    end,
+  },
+
+  -- File explorer (replaces nerdtree)
+  {
+    "stevearc/oil.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    lazy = false,
+    keys = {
+      { "<leader>m", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
+      { "<leader>n", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
+      { "-", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
+    },
+    opts = {
+      default_file_explorer = true,
+      view_options = { show_hidden = true },
+    },
+  },
+
+  -- Session restore per project
+  {
+    "folke/persistence.nvim",
+    event = "BufReadPre",
+    opts = { dir = vim.fn.stdpath("state") .. "/sessions/" },
+  },
+
+  -- Git hunks (replaces vim-signify)
+  {
+    "lewis6991/gitsigns.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {
+      signs = {
+        add          = { text = "+" },
+        change       = { text = "~" },
+        delete       = { text = "_" },
+        topdelete    = { text = "‾" },
+        changedelete = { text = "~" },
+      },
+      on_attach = function(bufnr)
+        local gs = require("gitsigns")
+        local opts = { buffer = bufnr, silent = true }
+        vim.keymap.set("n", "gj", function() gs.nav_hunk("next") end, opts)
+        vim.keymap.set("n", "gk", function() gs.nav_hunk("prev") end, opts)
+        vim.keymap.set("n", "<leader>hp", gs.preview_hunk, opts)
+        vim.keymap.set("n", "<leader>hs", gs.stage_hunk, opts)
+        vim.keymap.set("n", "<leader>hb", function() gs.blame_line({ full = true }) end, opts)
+      end,
+    },
+  },
+
+  -- ============================================================
+  -- Utilities kept
+  -- ============================================================
   {
     "mbbill/undotree",
     name = "undotree",
@@ -18,17 +137,8 @@ return {
     "tpope/vim-fugitive",
     name = "vim-fugitive",
     cmd = {
-      "G",
-      "Git",
-      "Gread",
-      "Gwrite",
-      "Ggrep",
-      "Gdiffsplit",
-      "Gvdiffsplit",
-      "GMove",
-      "GDelete",
-      "GRemove",
-      "GdiffInTab",
+      "G", "Git", "Gread", "Gwrite", "Ggrep",
+      "Gdiffsplit", "Gvdiffsplit", "GMove", "GDelete", "GRemove", "GdiffInTab",
     },
   },
   { "scrooloose/nerdcommenter" },
@@ -37,64 +147,48 @@ return {
   { "moll/vim-node" },
   { "tpope/vim-rhubarb" },
   { "terryma/vim-multiple-cursors" },
-  {
-    "neoclide/coc.nvim",
-    branch = "release",
-  },
+
+  -- coc.nvim kept for now — migration to native LSP deferred
+  { "neoclide/coc.nvim", branch = "release" },
   { "honza/vim-snippets" },
+
   { "hashivim/vim-terraform" },
-  { "vim-syntastic/syntastic" },
-  { "juliosueiras/vim-terraform-completion" },
-  { "cmather/vim-meteor-snippets" },
   { "tpope/vim-endwise" },
   { "Chiel92/vim-autoformat" },
   { "tpope/vim-repeat" },
   { "tpope/vim-surround" },
-  {
-    "scrooloose/nerdtree",
-    cmd = { "NERDTreeToggle", "NERDTreeFind" },
-  },
-  {
-    "easymotion/vim-easymotion",
-    lazy = false,
-  },
   { "kana/vim-submode" },
-  {
-    "phaazon/hop.nvim",
-    branch = "v2",
-    config = function()
-      require("hop").setup {}
-    end,
-  },
   { "jiangmiao/auto-pairs" },
-  {
-    "szw/vim-ctrlspace",
-    lazy = false,
-  },
-  { "MattesGroeger/vim-bookmarks" },
+  { "MattesGroeger/vim-bookmarks", lazy = false },
   { "kshenoy/vim-signature" },
-  { "haya14busa/vim-asterisk" },
-  {
-    "junegunn/fzf",
-    build = "./install --all",
-  },
-  {
-    "junegunn/fzf.vim",
-    dependencies = { "junegunn/fzf" },
-    lazy = false,
-  },
   { "tomtom/tlib_vim" },
   { "sheerun/vim-polyglot" },
-  { "othree/yajs.vim" },
   { "marcweber/vim-addon-mw-utils" },
-  { "junegunn/vim-easy-align" },
+  { "junegunn/vim-easy-align", lazy = false },
+
+  -- Colorscheme
   { "morhetz/gruvbox" },
-  { "rakr/vim-one" },
-  { "joshdick/onedark.vim" },
+
+  -- Statusline
   {
     "itchyny/lightline.vim",
     config = function()
       require("user.lightline").setup()
     end,
   },
+
+  -- ============================================================
+  -- REMOVED (see commit message for rationale):
+  --   easymotion/vim-easymotion              -> flash.nvim
+  --   phaazon/hop.nvim                       -> flash.nvim
+  --   haya14busa/vim-asterisk                -> nvim native (mapped below)
+  --   scrooloose/nerdtree                    -> oil.nvim
+  --   szw/vim-ctrlspace                      -> harpoon2 + fzf-lua buffers
+  --   junegunn/fzf, junegunn/fzf.vim         -> fzf-lua
+  --   othree/yajs.vim                        -> polyglot handles JS
+  --   vim-syntastic/syntastic                -> coc does linting
+  --   juliosueiras/vim-terraform-completion  -> per plan decision
+  --   cmather/vim-meteor-snippets            -> no Meteor
+  --   rakr/vim-one, joshdick/onedark.vim     -> only gruvbox used
+  -- ============================================================
 }
