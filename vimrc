@@ -178,7 +178,6 @@ set autowrite
 set backspace=indent,eol,start " allow backspacing over everything in insert mode
 set colorcolumn=100
 set copyindent                 " copy the previous indentation on autoindenting
-set cursorline
 set nocursorline "disable this for the moment: https://superuser.com/a/625994
 set encoding=utf-8
 set expandtab
@@ -211,7 +210,6 @@ set scrolloff=3
 set shell=/bin/zsh
 set shiftround                 " use multiple of shiftwidth when indenting with '<' and '>'
 set shiftwidth=2               " number of spaces to use for autoindenting
-set showmatch                  " (set show matching parenthesis)
 set noshowmatch "disable this for the moment: https://superuser.com/a/625994
 set noshowmode                   " Dont Display the mode nymore since powerline
 set showtabline=2              " Show tabs bar
@@ -1084,8 +1082,8 @@ inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 "inoremap <silent><expr><cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
 "let g:coc_snippet_next = '<tab>'
-"let g:coc_node_path='/usr/local/bin/node'
-let g:coc_node_path='/Users/greg/.nvm/versions/node/v16.12.0/bin/node'
+" Resolve node from PATH so coc keeps working across nvm upgrades
+let g:coc_node_path = trim(system('command -v node'))
 " Use `:Format` to format current buffer
 command! -nargs=0 Format :call CocAction('format')
 
