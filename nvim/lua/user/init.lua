@@ -271,6 +271,12 @@ local function tweak_common()
   cmd "hi! link javascriptOperator Identifier"
   cmd "hi! link IndentGuidesEven CursorLine"
   cmd "hi! link IndentGuidesOdd Noise"
+  -- flash.nvim labels: gruvbox doesn't define these loudly enough, so we
+  -- paint the jump labels in a high-contrast magenta/yellow combo.
+  api.nvim_set_hl(0, "FlashLabel",    { fg = "#1d2021", bg = "#fb4934", bold = true })
+  api.nvim_set_hl(0, "FlashMatch",    { fg = "#1d2021", bg = "#fabd2f", bold = true })
+  api.nvim_set_hl(0, "FlashCurrent",  { fg = "#1d2021", bg = "#fe8019", bold = true })
+  api.nvim_set_hl(0, "FlashBackdrop", { fg = "#665c54" })
   if type(vim.g.lightline) == "table" then
     vim.g.lightline = vim.tbl_extend("force", vim.g.lightline, { colorscheme = "Greg" })
   end
