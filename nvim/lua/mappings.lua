@@ -1,5 +1,10 @@
 require "nvchad.mappings"
 
+-- Override NvChad's tabufline <Tab>/<S-Tab> with the buffer picker
+-- (this line must come *after* require "nvchad.mappings")
+vim.keymap.set("n", "<Tab>", "<cmd>FzfLua buffers<CR>", { desc = "FZF buffers" })
+vim.keymap.set("n", "<S-Tab>", "<cmd>FzfLua buffers<CR>", { desc = "FZF buffers" })
+
 local map = vim.keymap.set
 local user = require "user"
 local fn = vim.fn

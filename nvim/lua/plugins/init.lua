@@ -30,6 +30,9 @@ return {
       { "ge", "<cmd>FzfLua grep_project<CR>", desc = "FZF grep project" },
       { "gs", "<cmd>FzfLua git_status<CR>", desc = "FZF git status" },
       { "M", "<cmd>FzfLua marks<CR>", desc = "FZF marks" },
+      -- Buffer list (replaces CtrlSpace List)
+      { "<S-Tab>", "<cmd>FzfLua buffers<CR>", desc = "FZF buffers (all open)" },
+      { "<Tab>", "<cmd>FzfLua buffers<CR>", desc = "FZF buffers (all open)" },
     },
     opts = {
       winopts = { preview = { default = "bat" } },
@@ -61,13 +64,15 @@ return {
   },
 
   -- Pinned buffers (replaces vim-ctrlspace workspaces)
+  -- Harpoon = 4-5 fichiers que tu épingles et auxquels tu sautes vite.
+  -- Pour la liste *complète* des buffers ouverts, voir <S-Tab> -> FzfLua buffers ci-dessus.
   {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
     dependencies = { "nvim-lua/plenary.nvim" },
     keys = {
-      { "<Tab>", function() require("harpoon"):list():add() end, desc = "Harpoon add" },
-      { "<S-Tab>", function() local h = require("harpoon"); h.ui:toggle_quick_menu(h:list()) end, desc = "Harpoon menu" },
+      { "<leader>ha", function() require("harpoon"):list():add() end, desc = "Harpoon add" },
+      { "<leader>hh", function() local h = require("harpoon"); h.ui:toggle_quick_menu(h:list()) end, desc = "Harpoon menu" },
       { "<leader>1", function() require("harpoon"):list():select(1) end, desc = "Harpoon 1" },
       { "<leader>2", function() require("harpoon"):list():select(2) end, desc = "Harpoon 2" },
       { "<leader>3", function() require("harpoon"):list():select(3) end, desc = "Harpoon 3" },
@@ -78,18 +83,47 @@ return {
     end,
   },
 
-  -- File explorer (replaces nerdtree)
+  -- File explorer sidebar (replaces nerdtree). neo-tree = vraie sidebar persistante.
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v3.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "MunifTanjim/nui.nvim",
+    },
+    cmd = "Neotree",
+    keys = {
+      { "<leader>m", "<cmd>Neotree toggle left<CR>", desc = "Neo-tree toggle" },
+      { "<leader>n", "<cmd>Neotree reveal left<CR>", desc = "Neo-tree reveal current file" },
+    },
+    opts = {
+      close_if_last_window = true,
+      filesystem = {
+        follow_current_file = { enabled = true },
+        use_libuv_file_watcher = true,
+        filtered_items = {
+          visible = false,
+          hide_dotfiles = false,
+          hide_gitignored = true,
+          hide_by_name = { "node_modules", ".git" },
+        },
+      },
+      window = { width = 35 },
+    },
+  },
+
+  -- Quick "edit parent dir as a buffer" (kept alongside neo-tree).
+  -- Use `-` to bounce up directories like in netrw.
   {
     "stevearc/oil.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
-    lazy = false,
+    cmd = "Oil",
     keys = {
-      { "<leader>m", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
-      { "<leader>n", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
       { "-", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
     },
     opts = {
-      default_file_explorer = true,
+      default_file_explorer = false,
       view_options = { show_hidden = true },
     },
   },
