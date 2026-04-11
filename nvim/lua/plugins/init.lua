@@ -44,10 +44,8 @@ return {
         bat = {
           cmd = "bat",
           args = "--color=always --style=numbers,changes",
-          -- High-contrast theme so the preview is readable regardless of
-          -- nvim's light/dark background. gruvbox-dark has strong fg/bg
-          -- separation and matches the editor palette.
-          theme = "gruvbox-dark",
+          -- Theme is controlled dynamically via BAT_THEME env var, set in
+          -- user.tweak_common() so it tracks vim.o.background.
         },
       },
       keymap = {

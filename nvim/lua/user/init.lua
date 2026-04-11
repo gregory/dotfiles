@@ -298,6 +298,32 @@ local function tweak_common()
   api.nvim_set_hl(0, "FlashMatch",    { fg = "#1d2021", bg = "#fabd2f", bold = true })
   api.nvim_set_hl(0, "FlashCurrent",  { fg = "#1d2021", bg = "#fe8019", bold = true })
   api.nvim_set_hl(0, "FlashBackdrop", { fg = "#665c54" })
+  -- fzf-lua: react to vim.o.background so the picker + bat preview match
+  -- the active nvim theme.
+  local is_dark = vim.o.background == "dark"
+  local fzf_bg       = is_dark and "#1d2021" or "#f2e5bc"
+  local fzf_fg       = is_dark and "#ebdbb2" or "#3c3836"
+  local fzf_border   = is_dark and "#504945" or "#bdae93"
+  local fzf_cursor   = is_dark and "#3c3836" or "#ebdbb2"
+  local fzf_accent   = is_dark and "#fabd2f" or "#b57614"
+  local fzf_bind     = is_dark and "#83a598" or "#076678"
+  local fzf_text     = is_dark and "#fb4934" or "#9d0006"
+  api.nvim_set_hl(0, "FzfLuaNormal",        { bg = fzf_bg, fg = fzf_fg })
+  api.nvim_set_hl(0, "FzfLuaBorder",        { bg = fzf_bg, fg = fzf_border })
+  api.nvim_set_hl(0, "FzfLuaTitle",         { bg = fzf_bg, fg = fzf_accent, bold = true })
+  api.nvim_set_hl(0, "FzfLuaPreviewNormal", { bg = fzf_bg, fg = fzf_fg })
+  api.nvim_set_hl(0, "FzfLuaPreviewBorder", { bg = fzf_bg, fg = fzf_border })
+  api.nvim_set_hl(0, "FzfLuaPreviewTitle",  { bg = fzf_bg, fg = fzf_accent, bold = true })
+  api.nvim_set_hl(0, "FzfLuaCursor",        { bg = fzf_cursor, fg = fzf_fg })
+  api.nvim_set_hl(0, "FzfLuaCursorLine",    { bg = fzf_cursor })
+  api.nvim_set_hl(0, "FzfLuaCursorLineNr",  { bg = fzf_cursor, fg = fzf_accent })
+  api.nvim_set_hl(0, "FzfLuaSearch",        { bg = fzf_accent, fg = fzf_bg, bold = true })
+  api.nvim_set_hl(0, "FzfLuaHeaderBind",    { bg = fzf_bg, fg = fzf_bind })
+  api.nvim_set_hl(0, "FzfLuaHeaderText",    { bg = fzf_bg, fg = fzf_text })
+  -- Tell bat (spawned by fzf-lua for previews) which theme to use. fzf-lua
+  -- inherits env vars when it spawns the previewer, so updating BAT_THEME
+  -- here takes effect on the next picker invocation — no reload needed.
+  vim.env.BAT_THEME = is_dark and "gruvbox-dark" or "gruvbox-light"
   if type(vim.g.lightline) == "table" then
     vim.g.lightline = vim.tbl_extend("force", vim.g.lightline, { colorscheme = "Greg" })
   end
