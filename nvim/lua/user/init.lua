@@ -258,15 +258,30 @@ end
 local function load_gruvbox(bg)
   vim.opt.termguicolors = true
   vim.opt.background = bg
-  -- Crank contrast: "hard" gives the strongest fg/bg separation on both
-  -- light and dark variants of gruvbox.
-  vim.g.gruvbox_contrast_light = "hard"
+  -- Light: "soft" gives a darker cream background (#f2e5bc) which reads
+  -- much better than the washed-out "hard" variant (#f9f5d7).
+  -- Dark: "hard" gives the deepest background (#1d2021) for max contrast.
+  vim.g.gruvbox_contrast_light = "soft"
   vim.g.gruvbox_contrast_dark = "hard"
   vim.g.gruvbox_italic = 1
   vim.g.gruvbox_bold = 1
   local ok = pcall(cmd, "colorscheme gruvbox")
   if not ok then
     pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
+  end
+  -- On light, force the strongest foregrounds so text is black-ish instead
+  -- of gruvbox's default warm brown.
+  if bg == "light" then
+    cmd "hi Normal   guifg=#1d2021"
+    cmd "hi Comment  guifg=#7c6f64 gui=italic cterm=italic"
+    cmd "hi LineNr   guifg=#7c6f64"
+    cmd "hi Constant guifg=#8f3f71"
+    cmd "hi String   guifg=#79740e"
+    cmd "hi Function guifg=#b57614"
+    cmd "hi Keyword  guifg=#9d0006 gui=bold"
+    cmd "hi Statement guifg=#9d0006 gui=bold"
+    cmd "hi Type     guifg=#b57614"
+    cmd "hi Identifier guifg=#076678"
   end
 end
 
