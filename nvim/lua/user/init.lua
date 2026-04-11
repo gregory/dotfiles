@@ -258,6 +258,12 @@ end
 local function load_gruvbox(bg)
   vim.opt.termguicolors = true
   vim.opt.background = bg
+  -- Crank contrast: "hard" gives the strongest fg/bg separation on both
+  -- light and dark variants of gruvbox.
+  vim.g.gruvbox_contrast_light = "hard"
+  vim.g.gruvbox_contrast_dark = "hard"
+  vim.g.gruvbox_italic = 1
+  vim.g.gruvbox_bold = 1
   local ok = pcall(cmd, "colorscheme gruvbox")
   if not ok then
     pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
