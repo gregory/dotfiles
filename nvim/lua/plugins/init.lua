@@ -1,3 +1,55 @@
+-- Helper: take the list of items returned by a fzf-lua buf-scoped picker
+-- (lgrep_curbuf, blines, ...), extract their line numbers, and trigger
+-- flash.jump so each of those lines gets a label in the current buffer.
+local function flash_on_fzf_results(selected, _opts)
+  if not selected or #selected == 0 then return end
+  local lines = {}
+  local seen = {}
+  for _, item in ipairs(selected) do
+    -- strip ANSI colors and fzf-lua icons/prefixes
+    local clean = item:gsub("\27%[[%d;]*m", "")
+    -- lgrep_curbuf / blines format is "<lnum>:<col>:<text>" or
+    -- "<lnum><tab><text>", with optional icon prefix. Grab the first
+    -- standalone number as line number.
+    local lnum = clean:match("(%d+)%s*:%s*%d+") -- "lnum:col:..."
+               or clean:match("%f[%d](%d+)")    -- first integer
+    if lnum then
+      local n = tonumber(lnum)
+      if n and not seen[n] then
+        seen[n] = true
+        table.insert(lines, n)
+      end
+    end
+  end
+  if #lines == 0 then return end
+  -- Defer so fzf-lua is fully closed before flash grabs the window.
+  vim.schedule(function()
+    require("flash").jump({
+      search = { multi_window = false },
+      label = { after = { 0, 0 } },
+      matcher = function(win)
+        local buf = vim.api.nvim_win_get_buf(win)
+        local total = vim.api.nvim_buf_line_count(buf)
+        local matches = {}
+        for _, lnum in ipairs(lines) do
+          if lnum >= 1 and lnum <= total then
+            local text = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
+            local col = (text:find("%S") or 1) - 1
+            table.insert(matches, {
+              pos     = { lnum, col },
+              end_pos = { lnum, col },
+            })
+          end
+        end
+        return matches
+      end,
+      action = function(match)
+        vim.api.nvim_win_set_cursor(match.win, { match.pos[1], match.pos[2] })
+      end,
+    })
+  end)
+end
+
 return {
   -- Disable NvChad's bundled indent-blankline: it hooks ColorScheme and
   -- crashes on gruvbox (which doesn't define IblChar). We don't use it.
@@ -29,7 +81,25 @@ return {
     keys = {
       { "<CR>", "<cmd>FzfLua git_files<CR>", desc = "FZF git files" },
       { "<C-g>", "<cmd>FzfLua live_grep<CR>", desc = "FZF live grep" },
-      { "?", "<cmd>FzfLua lgrep_curbuf<CR>", desc = "FZF buffer lines" },
+      -- ? = search in current buffer. Press <c-l> after typing a query to
+      -- close fzf and flash-jump to any of the matches directly in the
+      -- buffer (each hit gets a big flash label).
+      {
+        "?",
+        function()
+          require("fzf-lua").lgrep_curbuf({
+            actions = {
+              ["ctrl-l"] = { fn = flash_on_fzf_results },
+            },
+            keymap = {
+              fzf = {
+                ["ctrl-l"] = "select-all+accept",
+              },
+            },
+          })
+        end,
+        desc = "FZF buffer lines (+ <c-l> to flash-jump)",
+      },
       { "mru", "<cmd>FzfLua oldfiles<CR>", desc = "FZF MRU" },
       { "ge", "<cmd>FzfLua grep_project<CR>", desc = "FZF grep project" },
       { "gs", "<cmd>FzfLua git_status<CR>", desc = "FZF git status" },
