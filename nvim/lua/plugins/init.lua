@@ -71,15 +71,42 @@ return {
     "folke/flash.nvim",
     event = "VeryLazy",
     opts = {
+      -- Big contrasted labels
+      label = {
+        uppercase = false,
+        rainbow = { enabled = false },
+      },
       modes = {
         search = { enabled = false }, -- don't hijack / and ?
-        char = { enabled = false }, -- don't hijack f/F/t/T
+        char = { enabled = false },   -- don't hijack f/F/t/T
       },
+      -- Jumping: show labels immediately, don't require 2 chars
+      jump = { autojump = false },
     },
     keys = {
-      { "s", function() require("flash").jump() end, mode = { "n", "x", "o" }, desc = "Flash jump" },
+      -- Quick single-key jumps (works in normal / visual / operator-pending)
+      { "s", function() require("flash").jump() end,       mode = { "n", "x", "o" }, desc = "Flash jump" },
       { "S", function() require("flash").treesitter() end, mode = { "n", "x", "o" }, desc = "Flash treesitter" },
-      { "r", function() require("flash").remote() end, mode = "o", desc = "Remote flash" },
+      { "r", function() require("flash").remote() end,     mode = "o",               desc = "Remote flash" },
+
+      -- Easymotion-style leader-leader bindings, mirroring the old vimrc:
+      --   ,,w  jump to any word start
+      --   ,,b  jump to any word start backwards
+      --   ,,e  jump to any word end
+      --   ,,j  jump to any line below
+      --   ,,k  jump to any line above
+      --   ,,s  jump to any match (2-char search)
+      --   ,,f  jump to any char forward
+      --   ,,F  jump to any char backward
+      --   ,,.  repeat last flash jump
+      { "<leader><leader>w", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = [[\<\w]], forward = true,  wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash word forward" },
+      { "<leader><leader>b", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = [[\<\w]], forward = false, wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash word backward" },
+      { "<leader><leader>e", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = [[\w\>]], forward = true,  wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash word end" },
+      { "<leader><leader>j", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = "^",       forward = true,  wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash line below" },
+      { "<leader><leader>k", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = "^",       forward = false, wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash line above" },
+      { "<leader><leader>s", function() require("flash").jump() end,                                                                                                 mode = { "n", "x", "o" }, desc = "Flash search" },
+      { "<leader><leader>f", function() require("flash").jump({ search = { mode = "char", max_length = 1 }, forward = true })  end,                                  mode = { "n", "x", "o" }, desc = "Flash char forward" },
+      { "<leader><leader>F", function() require("flash").jump({ search = { mode = "char", max_length = 1 }, forward = false }) end,                                  mode = { "n", "x", "o" }, desc = "Flash char backward" },
     },
   },
 

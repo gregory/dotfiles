@@ -17,7 +17,9 @@ opt.hidden = true
 opt.hlsearch = true
 opt.incsearch = true
 opt.laststatus = 2
-opt.lazyredraw = true
+-- lazyredraw breaks flash.nvim label rendering (labels flicker / don't
+-- appear). Disable it; modern nvim doesn't benefit from it much anyway.
+opt.lazyredraw = false
 opt.linebreak = true
 opt.list = false
 opt.listchars = { tab = ">.", trail = ".", extends = "#", nbsp = "." }
