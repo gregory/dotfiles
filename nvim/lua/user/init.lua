@@ -254,34 +254,27 @@ function M.set_transparency()
   cmd "hi Terminal   guibg=NONE ctermbg=NONE"
 end
 
--- Helper: load gruvbox with the requested background, fall back gracefully.
-local function load_gruvbox(bg)
+-- Helper: load a colorscheme appropriate for the requested background.
+--   dark        -> gruvbox hard
+--   light       -> real solarized light (maxmx03/solarized.nvim)
+--   transparent -> gruvbox hard + transparency
+local function load_theme(bg)
   vim.opt.termguicolors = true
   vim.opt.background = bg
-  -- Light: "soft" gives a darker cream background (#f2e5bc) which reads
-  -- much better than the washed-out "hard" variant (#f9f5d7).
-  -- Dark: "hard" gives the deepest background (#1d2021) for max contrast.
-  vim.g.gruvbox_contrast_light = "soft"
-  vim.g.gruvbox_contrast_dark = "hard"
-  vim.g.gruvbox_italic = 1
-  vim.g.gruvbox_bold = 1
-  local ok = pcall(cmd, "colorscheme gruvbox")
+
+  local scheme
+  if bg == "light" then
+    scheme = "solarized"
+  else
+    vim.g.gruvbox_contrast_dark = "hard"
+    vim.g.gruvbox_italic = 1
+    vim.g.gruvbox_bold = 1
+    scheme = "gruvbox"
+  end
+
+  local ok = pcall(cmd, "colorscheme " .. scheme)
   if not ok then
     pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
-  end
-  -- On light, force the strongest foregrounds so text is black-ish instead
-  -- of gruvbox's default warm brown.
-  if bg == "light" then
-    cmd "hi Normal   guifg=#1d2021"
-    cmd "hi Comment  guifg=#7c6f64 gui=italic cterm=italic"
-    cmd "hi LineNr   guifg=#7c6f64"
-    cmd "hi Constant guifg=#8f3f71"
-    cmd "hi String   guifg=#79740e"
-    cmd "hi Function guifg=#b57614"
-    cmd "hi Keyword  guifg=#9d0006 gui=bold"
-    cmd "hi Statement guifg=#9d0006 gui=bold"
-    cmd "hi Type     guifg=#b57614"
-    cmd "hi Identifier guifg=#076678"
   end
 end
 
@@ -299,15 +292,15 @@ local function tweak_common()
   api.nvim_set_hl(0, "FlashCurrent",  { fg = "#1d2021", bg = "#fe8019", bold = true })
   api.nvim_set_hl(0, "FlashBackdrop", { fg = "#665c54" })
   -- fzf-lua: react to vim.o.background so the picker + bat preview match
-  -- the active nvim theme.
+  -- the active nvim theme (gruvbox dark / solarized light).
   local is_dark = vim.o.background == "dark"
-  local fzf_bg       = is_dark and "#1d2021" or "#f2e5bc"
-  local fzf_fg       = is_dark and "#ebdbb2" or "#3c3836"
-  local fzf_border   = is_dark and "#504945" or "#bdae93"
-  local fzf_cursor   = is_dark and "#3c3836" or "#ebdbb2"
-  local fzf_accent   = is_dark and "#fabd2f" or "#b57614"
-  local fzf_bind     = is_dark and "#83a598" or "#076678"
-  local fzf_text     = is_dark and "#fb4934" or "#9d0006"
+  local fzf_bg       = is_dark and "#1d2021" or "#fdf6e3" -- solarized base3
+  local fzf_fg       = is_dark and "#ebdbb2" or "#586e75" -- solarized base01
+  local fzf_border   = is_dark and "#504945" or "#93a1a1" -- solarized base1
+  local fzf_cursor   = is_dark and "#3c3836" or "#eee8d5" -- solarized base2
+  local fzf_accent   = is_dark and "#fabd2f" or "#b58900" -- solarized yellow
+  local fzf_bind     = is_dark and "#83a598" or "#268bd2" -- solarized blue
+  local fzf_text     = is_dark and "#fb4934" or "#dc322f" -- solarized red
   api.nvim_set_hl(0, "FzfLuaNormal",        { bg = fzf_bg, fg = fzf_fg })
   api.nvim_set_hl(0, "FzfLuaBorder",        { bg = fzf_bg, fg = fzf_border })
   api.nvim_set_hl(0, "FzfLuaTitle",         { bg = fzf_bg, fg = fzf_accent, bold = true })
@@ -323,24 +316,24 @@ local function tweak_common()
   -- Tell bat (spawned by fzf-lua for previews) which theme to use. fzf-lua
   -- inherits env vars when it spawns the previewer, so updating BAT_THEME
   -- here takes effect on the next picker invocation — no reload needed.
-  vim.env.BAT_THEME = is_dark and "gruvbox-dark" or "gruvbox-light"
+  vim.env.BAT_THEME = is_dark and "gruvbox-dark" or "Solarized (light)"
   if type(vim.g.lightline) == "table" then
     vim.g.lightline = vim.tbl_extend("force", vim.g.lightline, { colorscheme = "Greg" })
   end
 end
 
 function M.light_background()
-  load_gruvbox "light"
+  load_theme "light"
   tweak_common()
 end
 
 function M.dark_background()
-  load_gruvbox "dark"
+  load_theme "dark"
   tweak_common()
 end
 
 function M.transparent_background()
-  load_gruvbox "dark"
+  load_theme "dark"
   tweak_common()
   M.set_transparency()
 end

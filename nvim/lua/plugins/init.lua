@@ -220,8 +220,17 @@ return {
   { "marcweber/vim-addon-mw-utils" },
   { "junegunn/vim-easy-align", lazy = false },
 
-  -- Colorscheme
+  -- Colorschemes: gruvbox for dark/transparent (F1/F3), solarized for light (F2)
   { "morhetz/gruvbox" },
+  {
+    "maxmx03/solarized.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {
+      variant = "spring", -- strong, readable light palette
+      transparent = { enabled = false },
+    },
+  },
 
   -- Statusline
   {
