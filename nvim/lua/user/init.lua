@@ -255,9 +255,9 @@ function M.set_transparency()
 end
 
 -- Helper: load gruvbox with the requested background, fall back gracefully.
--- F2 (light) intentionally uses the *vanilla* gruvbox-light palette — no
--- hand-tuned overrides — so it matches the bat `gruvbox-light` preview
--- shown by fzf-lua. F1 (dark) uses the hard contrast variant.
+-- F2 (light) uses vanilla gruvbox-light + a few targeted overrides so
+-- it matches what bat's `gruvbox-light` theme renders in the fzf-lua
+-- preview pane (notably: imports in green, not red).
 local function load_theme(bg)
   vim.opt.termguicolors = true
   vim.opt.background = bg
@@ -268,6 +268,27 @@ local function load_theme(bg)
   local ok = pcall(cmd, "colorscheme gruvbox")
   if not ok then
     pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
+  end
+  if bg == "light" then
+    -- Match bat's gruvbox-light: imports render in GruvboxGreen (#79740e),
+    -- keywords/const stay on GruvboxRed. Cover both classic Vim syntax
+    -- groups (polyglot, vim-javascript, vim-typescript) and treesitter
+    -- capture names so any engine picks it up.
+    local green = "#79740e"
+    cmd("hi Include            guifg=" .. green .. " gui=bold cterm=bold")
+    cmd("hi PreProc            guifg=" .. green .. " gui=bold cterm=bold")
+    cmd "hi! link jsImport          Include"
+    cmd "hi! link jsExport          Include"
+    cmd "hi! link jsFrom            Include"
+    cmd "hi! link jsAs              Include"
+    cmd "hi! link jsModuleKeyword   Include"
+    cmd "hi! link typescriptImport  Include"
+    cmd "hi! link typescriptExport  Include"
+    cmd "hi! link typescriptFrom    Include"
+    cmd "hi! link typescriptAs      Include"
+    cmd "hi! link @keyword.import   Include"
+    cmd "hi! link @keyword.export   Include"
+    cmd "hi! link @include          Include"
   end
 end
 
