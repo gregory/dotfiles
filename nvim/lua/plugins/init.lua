@@ -55,6 +55,21 @@ return {
   -- crashes on gruvbox (which doesn't define IblChar). We don't use it.
   { "lukas-reineke/indent-blankline.nvim", enabled = false },
 
+  -- nvim-treesitter: NvChad pins this but on nvim 0.12 an old checkout
+  -- crashes inside query_predicates.lua ("attempt to call method
+  -- 'range' (a nil value)") as soon as an injection is parsed —
+  -- anything with a markdown fenced code block, including CopilotChat
+  -- responses. Force lazy.nvim to follow master so :Lazy sync picks up
+  -- the upstream fix, and run :TSUpdate on build so parsers stay in
+  -- sync with the query schema.
+  {
+    "nvim-treesitter/nvim-treesitter",
+    branch = "master",
+    build = function()
+      require("nvim-treesitter.install").update({ with_sync = true })()
+    end,
+  },
+
   -- ============================================================
   -- Core
   -- ============================================================
@@ -509,7 +524,23 @@ return {
       },
       show_help = true,
       auto_insert_mode = true,
+      -- Treesitter markdown injections crash on nvim 0.12 with older
+      -- nvim-treesitter checkouts. Turn them off in the chat buffer so
+      -- CopilotChat works even if the parser update hasn't landed.
+      highlight_headers = false,
+      highlight_selection = false,
     },
+    config = function(_, opts)
+      require("CopilotChat").setup(opts)
+      -- Belt-and-braces: disable treesitter highlighter in copilot-chat
+      -- buffers to bypass any lingering query-predicate crash.
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "copilot-chat",
+        callback = function()
+          pcall(vim.treesitter.stop)
+        end,
+      })
+    end,
   },
   { "honza/vim-snippets" },
 
