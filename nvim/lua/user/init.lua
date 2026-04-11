@@ -246,57 +246,49 @@ function M.rename_file()
 end
 
 function M.set_transparency()
-  cmd "hi Normal ctermbg=none"
-  cmd "hi Terminal ctermbg=none"
+  cmd "hi Normal     guibg=NONE ctermbg=NONE"
+  cmd "hi NormalNC   guibg=NONE ctermbg=NONE"
+  cmd "hi SignColumn guibg=NONE ctermbg=NONE"
+  cmd "hi LineNr     guibg=NONE ctermbg=NONE"
+  cmd "hi EndOfBuffer guibg=NONE ctermbg=NONE"
+  cmd "hi Terminal   guibg=NONE ctermbg=NONE"
+end
+
+-- Helper: load gruvbox with the requested background, fall back gracefully.
+local function load_gruvbox(bg)
+  vim.opt.termguicolors = true
+  vim.opt.background = bg
+  local ok = pcall(cmd, "colorscheme gruvbox")
+  if not ok then
+    pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
+  end
+end
+
+local function tweak_common()
+  vim.g.one_allow_italics = 1
+  vim.g.indent_guides_guide_size = 2
+  cmd "hi Comment gui=italic cterm=italic"
+  cmd "hi! link javascriptOperator Identifier"
+  cmd "hi! link IndentGuidesEven CursorLine"
+  cmd "hi! link IndentGuidesOdd Noise"
+  if type(vim.g.lightline) == "table" then
+    vim.g.lightline = vim.tbl_extend("force", vim.g.lightline, { colorscheme = "Greg" })
+  end
 end
 
 function M.light_background()
-  cmd "set notermguicolors"
-  -- t_Co (vim 7/8 terminal-color option) is gone in nvim; 256 colors are auto.
-  cmd "set background=light"
-  vim.g.one_allow_italics = 1
-  cmd "hi Comment cterm=italic"
-  cmd "hi! link javascriptOperator Identifier"
-  cmd "hi Terminal ctermfg=23 ctermbg=255"
-  cmd "hi! link IndentGuidesEven CursorLine"
-  cmd "hi! link IndentGuidesOdd Noise"
-  vim.g.indent_guides_guide_size = 2
+  load_gruvbox "light"
+  tweak_common()
 end
 
 function M.dark_background()
-  cmd "set notermguicolors"
-  -- t_Co (vim 7/8 terminal-color option) is gone in nvim; 256 colors are auto.
-  cmd "set background=dark"
-  if fn.empty(fn.globpath(vim.o.runtimepath, "colors/gruvbox.vim")) == 0 then
-    cmd "colorscheme gruvbox"
-  end
-  cmd "hi Comment cterm=italic"
-  vim.g.indent_guides_guide_size = 2
-  cmd "hi! link IndentGuidesEven CursorLine"
-  cmd "hi! link IndentGuidesOdd Noise"
-  cmd "hi Terminal ctermfg=145 ctermbg=235"
-  if type(vim.g.lightline) == "table" then
-    vim.g.lightline = vim.tbl_extend("force", vim.g.lightline, { colorscheme = "Greg" })
-  end
-  M.set_transparency()
+  load_gruvbox "dark"
+  tweak_common()
 end
 
 function M.transparent_background()
-  cmd "set notermguicolors"
-  -- t_Co (vim 7/8 terminal-color option) is gone in nvim; 256 colors are auto.
-  cmd "set background=dark"
-  if fn.empty(fn.globpath(vim.o.runtimepath, "colors/onedark.vim")) == 0 then
-    cmd "colorscheme onedark"
-  end
-  cmd "hi Comment cterm=italic"
-  cmd "hi! link javascriptOperator Identifier"
-  vim.g.indent_guides_guide_size = 2
-  cmd "hi! link IndentGuidesEven CursorLine"
-  cmd "hi! link IndentGuidesOdd Noise"
-  cmd "hi Terminal ctermfg=145 ctermbg=235"
-  if type(vim.g.lightline) == "table" then
-    vim.g.lightline = vim.tbl_extend("force", vim.g.lightline, { colorscheme = "Greg" })
-  end
+  load_gruvbox "dark"
+  tweak_common()
   M.set_transparency()
 end
 
