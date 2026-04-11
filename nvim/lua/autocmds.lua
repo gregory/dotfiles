@@ -150,11 +150,13 @@ api.nvim_create_autocmd("BufEnter", {
   end,
 })
 
+-- Resolve symlinks so `%` is the real path. Directory tracking is handled
+-- by the BufEnter autocmd above, which lcds to the current file's folder
+-- (so `:e <Tab>` completes from the file's directory, not the git root).
 api.nvim_create_autocmd("BufRead", {
   group = custom_group,
   callback = function()
     user.follow_symlink()
-    user.set_project_root()
   end,
 })
 
