@@ -66,47 +66,107 @@ return {
     },
   },
 
-  -- Visual jumping (replaces vim-easymotion + hop.nvim)
+  -- Visual jumping (replaces vim-easymotion)
+  -- Mirrors the old vimrc bindings:
+  --   s   -> flash jump anywhere in the window (was EasyMotion#OverwinF(2))
+  --   ,l  -> jump forward  on the current line   (easymotion-lineforward)
+  --   ,h  -> jump backward on the current line   (easymotion-linebackward)
+  --   ,j  -> jump to any line below the cursor   (easymotion-j)
+  --   ,k  -> jump to any line above the cursor   (easymotion-k)
   {
     "folke/flash.nvim",
     event = "VeryLazy",
     opts = {
-      -- Big contrasted labels
-      label = {
-        uppercase = false,
-        rainbow = { enabled = false },
-      },
+      label = { uppercase = false, rainbow = { enabled = false } },
       modes = {
         search = { enabled = false }, -- don't hijack / and ?
         char = { enabled = false },   -- don't hijack f/F/t/T
       },
-      -- Jumping: show labels immediately, don't require 2 chars
-      jump = { autojump = false },
     },
     keys = {
-      -- Quick single-key jumps (works in normal / visual / operator-pending)
       { "s", function() require("flash").jump() end,       mode = { "n", "x", "o" }, desc = "Flash jump" },
       { "S", function() require("flash").treesitter() end, mode = { "n", "x", "o" }, desc = "Flash treesitter" },
       { "r", function() require("flash").remote() end,     mode = "o",               desc = "Remote flash" },
 
-      -- Easymotion-style leader-leader bindings, mirroring the old vimrc:
-      --   ,,w  jump to any word start
-      --   ,,b  jump to any word start backwards
-      --   ,,e  jump to any word end
-      --   ,,j  jump to any line below
-      --   ,,k  jump to any line above
-      --   ,,s  jump to any match (2-char search)
-      --   ,,f  jump to any char forward
-      --   ,,F  jump to any char backward
-      --   ,,.  repeat last flash jump
-      { "<leader><leader>w", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = [[\<\w]], forward = true,  wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash word forward" },
-      { "<leader><leader>b", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = [[\<\w]], forward = false, wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash word backward" },
-      { "<leader><leader>e", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = [[\w\>]], forward = true,  wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash word end" },
-      { "<leader><leader>j", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = "^",       forward = true,  wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash line below" },
-      { "<leader><leader>k", function() require("flash").jump({ search = { mode = "search", max_length = 0 }, pattern = "^",       forward = false, wrap = false }) end, mode = { "n", "x", "o" }, desc = "Flash line above" },
-      { "<leader><leader>s", function() require("flash").jump() end,                                                                                                 mode = { "n", "x", "o" }, desc = "Flash search" },
-      { "<leader><leader>f", function() require("flash").jump({ search = { mode = "char", max_length = 1 }, forward = true })  end,                                  mode = { "n", "x", "o" }, desc = "Flash char forward" },
-      { "<leader><leader>F", function() require("flash").jump({ search = { mode = "char", max_length = 1 }, forward = false }) end,                                  mode = { "n", "x", "o" }, desc = "Flash char backward" },
+      -- easymotion-lineforward / linebackward: restrict to current line
+      {
+        "<leader>l",
+        function()
+          local line = vim.api.nvim_win_get_cursor(0)[1]
+          require("flash").jump({
+            search = { forward = true, wrap = false, multi_window = false, max_length = 0 },
+            pattern = ".",
+            matcher = function(win)
+              local buf = vim.api.nvim_win_get_buf(win)
+              local text = vim.api.nvim_buf_get_lines(buf, line - 1, line, false)[1] or ""
+              local cur_col = vim.api.nvim_win_get_cursor(win)[2]
+              local matches = {}
+              for col = cur_col + 1, #text - 1 do
+                table.insert(matches, {
+                  pos = { line, col },
+                  end_pos = { line, col },
+                })
+              end
+              return matches
+            end,
+          })
+        end,
+        mode = { "n", "x", "o" },
+        desc = "Flash line forward",
+      },
+      {
+        "<leader>h",
+        function()
+          local line = vim.api.nvim_win_get_cursor(0)[1]
+          require("flash").jump({
+            search = { forward = false, wrap = false, multi_window = false, max_length = 0 },
+            pattern = ".",
+            matcher = function(win)
+              local buf = vim.api.nvim_win_get_buf(win)
+              local text = vim.api.nvim_buf_get_lines(buf, line - 1, line, false)[1] or ""
+              local cur_col = vim.api.nvim_win_get_cursor(win)[2]
+              local matches = {}
+              for col = 0, cur_col - 1 do
+                if col < #text then
+                  table.insert(matches, {
+                    pos = { line, col },
+                    end_pos = { line, col },
+                  })
+                end
+              end
+              return matches
+            end,
+          })
+        end,
+        mode = { "n", "x", "o" },
+        desc = "Flash line backward",
+      },
+
+      -- easymotion-j / k: jump to any line below / above
+      {
+        "<leader>j",
+        function()
+          require("flash").jump({
+            search = { mode = "search", max_length = 0, forward = true, wrap = false, multi_window = false },
+            pattern = "^",
+            label = { after = { 0, 0 } },
+          })
+        end,
+        mode = { "n", "x", "o" },
+        desc = "Flash line below",
+      },
+      {
+        "<leader>k",
+        function()
+          require("flash").jump({
+            search = { mode = "search", max_length = 0, forward = false, wrap = false, multi_window = false },
+            pattern = "^",
+            label = { after = { 0, 0 } },
+          })
+        end,
+        mode = { "n", "x", "o" },
+        desc = "Flash line above",
+      },
     },
   },
 
@@ -117,9 +177,11 @@ return {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
     dependencies = { "nvim-lua/plenary.nvim" },
+    -- Moved off <leader>h* to free that prefix for flash line motion.
+    -- New prefix: <leader>p (pin).
     keys = {
-      { "<leader>ha", function() require("harpoon"):list():add() end, desc = "Harpoon add" },
-      { "<leader>hh", function() local h = require("harpoon"); h.ui:toggle_quick_menu(h:list()) end, desc = "Harpoon menu" },
+      { "<leader>pa", function() require("harpoon"):list():add() end, desc = "Harpoon add" },
+      { "<leader>pp", function() local h = require("harpoon"); h.ui:toggle_quick_menu(h:list()) end, desc = "Harpoon menu" },
       { "<leader>1", function() require("harpoon"):list():select(1) end, desc = "Harpoon 1" },
       { "<leader>2", function() require("harpoon"):list():select(2) end, desc = "Harpoon 2" },
       { "<leader>3", function() require("harpoon"):list():select(3) end, desc = "Harpoon 3" },
@@ -199,9 +261,11 @@ return {
         local opts = { buffer = bufnr, silent = true }
         vim.keymap.set("n", "gj", function() gs.nav_hunk("next") end, opts)
         vim.keymap.set("n", "gk", function() gs.nav_hunk("prev") end, opts)
-        vim.keymap.set("n", "<leader>hp", gs.preview_hunk, opts)
-        vim.keymap.set("n", "<leader>hs", gs.stage_hunk, opts)
-        vim.keymap.set("n", "<leader>hb", function() gs.blame_line({ full = true }) end, opts)
+        -- Moved off <leader>h* to free that prefix for flash line motion.
+        -- New prefix: <leader>G (uppercase, since ,g* is fugitive/fzf-lua).
+        vim.keymap.set("n", "<leader>Gp", gs.preview_hunk, opts)
+        vim.keymap.set("n", "<leader>Gs", gs.stage_hunk, opts)
+        vim.keymap.set("n", "<leader>Gb", function() gs.blame_line({ full = true }) end, opts)
       end,
     },
   },
