@@ -37,4 +37,10 @@ require "autocmds"
 
 vim.schedule(function()
   require "mappings"
+  -- Pick dark/light based on $ITERM_PROFILE and load gruvbox + all the
+  -- custom highlight overrides (green imports, flash labels, fzf-lua
+  -- colors, ...) so the initial state matches what F1/F2/F3 produce.
+  pcall(function()
+    require("user").set_theme()
+  end)
 end)
