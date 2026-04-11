@@ -48,11 +48,19 @@ return {
           -- user.tweak_common() so it tracks vim.o.background.
         },
       },
+      -- fzf has a native "jump" mode (basically easymotion for the result
+      -- list). Once you have results, press <c-s> to label every visible
+      -- line with a letter, type the letter to select+accept instantly.
+      fzf_opts = {
+        ["--jump-labels"] = "asdfghjklqwertyuiopzxcvbnm",
+      },
       keymap = {
         fzf = {
           ["ctrl-d"] = "half-page-down",
           ["ctrl-u"] = "half-page-up",
           ["ctrl-a"] = "select-all+accept",
+          ["ctrl-s"] = "jump-accept", -- flash-style jump to any result
+          ["alt-s"]  = "jump",        -- jump without accepting (just move)
         },
       },
     },
