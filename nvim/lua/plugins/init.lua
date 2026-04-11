@@ -149,8 +149,16 @@ return {
     opts = {
       label = { uppercase = false, rainbow = { enabled = false } },
       modes = {
-        search = { enabled = false }, -- don't hijack / and ?
-        char = { enabled = false },   -- don't hijack f/F/t/T
+        -- Enable labels on / and ? results. As you type the search, every
+        -- visible match gets a letter — press the letter to jump straight
+        -- there (no more cycling with n/N). <CR> still accepts the first
+        -- match like normal search.
+        search = {
+          enabled = true,
+          highlight = { backdrop = false },
+          incremental = true,
+        },
+        char = { enabled = false }, -- don't hijack f/F/t/T
       },
     },
     keys = {
