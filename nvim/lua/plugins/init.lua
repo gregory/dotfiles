@@ -325,13 +325,42 @@ return {
     },
     cmd = "Neotree",
     keys = {
-      { "<leader>m", "<cmd>Neotree toggle left<CR>", desc = "Neo-tree toggle" },
-      { "<leader>n", "<cmd>Neotree toggle reveal left<CR>", desc = "Neo-tree toggle + reveal current file" },
+      -- ,m  -> open rooted at the current file's directory (neo-tree will
+      --        close if already open thanks to the toggle verb).
+      -- ,n  -> same, but also reveal/select the file inside the tree.
+      -- We build the dir= arg dynamically so switching buffers re-roots
+      -- the tree to wherever the active buffer lives.
+      {
+        "<leader>m",
+        function()
+          local file = vim.api.nvim_buf_get_name(0)
+          local dir = (file ~= "" and vim.fn.isdirectory(file) == 0)
+            and vim.fn.fnamemodify(file, ":p:h")
+            or vim.fn.getcwd()
+          vim.cmd("Neotree toggle left dir=" .. vim.fn.fnameescape(dir))
+        end,
+        desc = "Neo-tree toggle (rooted at current file dir)",
+      },
+      {
+        "<leader>n",
+        function()
+          local file = vim.api.nvim_buf_get_name(0)
+          local dir = (file ~= "" and vim.fn.isdirectory(file) == 0)
+            and vim.fn.fnamemodify(file, ":p:h")
+            or vim.fn.getcwd()
+          vim.cmd("Neotree toggle reveal left dir=" .. vim.fn.fnameescape(dir))
+        end,
+        desc = "Neo-tree toggle + reveal (rooted at current file dir)",
+      },
     },
     opts = {
       close_if_last_window = true,
       filesystem = {
-        follow_current_file = { enabled = true },
+        follow_current_file = { enabled = true, leave_dirs_open = false },
+        -- Don't let neo-tree lock its root to the nvim cwd — we pass
+        -- dir= explicitly from the keymaps, and we want that to win.
+        bind_to_cwd = false,
+        cwd_target = { sidebar = "window", current = "window" },
         use_libuv_file_watcher = true,
         filtered_items = {
           visible = false,
