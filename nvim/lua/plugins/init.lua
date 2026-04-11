@@ -240,6 +240,45 @@ return {
     },
   },
 
+  -- ============================================================
+  -- GitHub Copilot (inline AI suggestions)
+  -- ============================================================
+  -- Shows grey ghost-text as you type. Does NOT collide with coc.nvim
+  -- because coc uses a popup menu and copilot uses virtual text.
+  --
+  -- First-time setup (after :Lazy sync):
+  --   :Copilot setup   -> opens a browser to authenticate your GitHub
+  --                       account. Follow the device-code flow.
+  --   :Copilot status  -> verify it says "Enabled"
+  --   :Copilot disable / :Copilot enable  -> per-session toggle
+  {
+    "github/copilot.vim",
+    event = "InsertEnter",
+    config = function()
+      -- Disable the default <Tab> mapping so it doesn't fight coc.
+      vim.g.copilot_no_tab_map = true
+      vim.g.copilot_assume_mapped = true
+      -- File-type allowlist: enable everywhere by default.
+      vim.g.copilot_filetypes = {
+        ["*"] = true,
+        gitcommit = true,
+        markdown = true,
+        yaml = true,
+      }
+      -- Accept suggestion with <C-l>. <C-j>/<C-k> for next/prev variant,
+      -- <C-h> to accept only the next word. Insert-mode bindings — they
+      -- only fire when copilot has a suggestion visible, so they don't
+      -- steal keys the rest of the time.
+      vim.keymap.set("i", "<C-l>", 'copilot#Accept("\\<CR>")', {
+        expr = true, replace_keycodes = false, silent = true, desc = "Copilot accept",
+      })
+      vim.keymap.set("i", "<C-h>", "<Plug>(copilot-accept-word)", { silent = true, desc = "Copilot accept word" })
+      vim.keymap.set("i", "<C-j>", "<Plug>(copilot-next)",        { silent = true, desc = "Copilot next suggestion" })
+      vim.keymap.set("i", "<C-k>", "<Plug>(copilot-previous)",    { silent = true, desc = "Copilot previous suggestion" })
+      vim.keymap.set("i", "<C-\\>", "<Plug>(copilot-dismiss)",    { silent = true, desc = "Copilot dismiss" })
+    end,
+  },
+
   -- Pinned buffers (replaces vim-ctrlspace workspaces)
   -- Harpoon = 4-5 fichiers que tu épingles et auxquels tu sautes vite.
   -- Pour la liste *complète* des buffers ouverts, voir <S-Tab> -> FzfLua buffers ci-dessus.
