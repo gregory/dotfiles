@@ -270,27 +270,61 @@ local function load_theme(bg)
     pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
   end
   if bg == "light" then
-    -- Match bat's gruvbox-light: imports render in GruvboxGreen (#79740e),
-    -- keywords/const stay on GruvboxRed. Cover both classic Vim syntax
-    -- groups (polyglot, vim-javascript, vim-typescript) and treesitter
-    -- capture names so any engine picks it up.
-    local green = "#79740e"
-    cmd("hi Include            guifg=" .. green .. " gui=bold cterm=bold")
-    cmd("hi PreProc            guifg=" .. green .. " gui=bold cterm=bold")
-    cmd "hi! link jsImport          Include"
-    cmd "hi! link jsExport          Include"
-    cmd "hi! link jsFrom            Include"
-    cmd "hi! link jsAs              Include"
-    cmd "hi! link jsModuleKeyword   Include"
-    cmd "hi! link typescriptImport  Include"
-    cmd "hi! link typescriptExport  Include"
-    cmd "hi! link typescriptFrom    Include"
-    cmd "hi! link typescriptAs      Include"
-    cmd "hi! link @keyword.import   Include"
-    cmd "hi! link @keyword.export   Include"
-    cmd "hi! link @include          Include"
+    M.paint_imports_green()
   end
 end
+
+-- Force import / export / from groups to GruvboxGreen, matching bat's
+-- gruvbox-light preview. Called from load_theme and from an autocmd on
+-- FileType / Syntax so it catches whatever concrete group vim/polyglot/
+-- treesitter ends up using for the current buffer.
+local IMPORT_GREEN = "#79740e"
+
+function M.paint_imports_green()
+  if vim.o.background ~= "light" then
+    return
+  end
+  local hl = { fg = IMPORT_GREEN, bold = true }
+  -- Known groups from every syntax engine we might hit.
+  local targets = {
+    "Include", "PreProc",
+    "jsImport", "jsExport", "jsFrom", "jsAs", "jsModuleKeyword",
+    "jsStorageClass",
+    "javaScriptImport", "javaScriptReserved", "javaScriptStatement",
+    "javaScriptModule", "javaScriptIdentifier",
+    "typescriptImport", "typescriptExport", "typescriptFrom", "typescriptAs",
+    "typescriptModule",
+    "@keyword.import", "@keyword.export", "@include",
+    "@keyword.import.javascript", "@keyword.export.javascript",
+    "@keyword.import.typescript", "@keyword.export.typescript",
+    "@keyword.import.tsx", "@keyword.import.jsx",
+  }
+  -- Auto-discover: any existing hl group whose name mentions import/from/
+  -- export/include gets the same treatment.
+  for _, name in ipairs(fn.getcompletion("", "highlight")) do
+    local l = name:lower()
+    if l:find("import", 1, true)
+       or l:find("export", 1, true)
+       or l:find("from", 1, true)
+       or l:find("include", 1, true) then
+      table.insert(targets, name)
+    end
+  end
+  for _, g in ipairs(targets) do
+    pcall(api.nvim_set_hl, 0, g, hl)
+  end
+end
+
+-- Reapply the green import override every time a colorscheme loads or a
+-- JS/TS buffer enters, so the concrete syntax groups that only exist once
+-- the filetype is attached also get patched.
+local import_group = api.nvim_create_augroup("user_import_colors", { clear = true })
+api.nvim_create_autocmd({ "ColorScheme", "FileType", "Syntax" }, {
+  group = import_group,
+  callback = function()
+    M.paint_imports_green()
+  end,
+})
 
 local function tweak_common()
   vim.g.one_allow_italics = 1
