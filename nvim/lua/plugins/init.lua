@@ -254,6 +254,7 @@ return {
   {
     "github/copilot.vim",
     event = "InsertEnter",
+    cmd = "Copilot", -- also load when :Copilot is called (needed for setup)
     config = function()
       -- Disable the default <Tab> mapping so it doesn't fight coc.
       vim.g.copilot_no_tab_map = true
