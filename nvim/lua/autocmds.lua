@@ -140,13 +140,38 @@ api.nvim_create_autocmd({ "CursorHold", "FocusLost" }, {
   command = "checktime",
 })
 
+-- Always lcd to the directory of the current file so `:e <Tab>` completes
+-- from the file's folder. We deliberately ignore vim.g.ignore here because
+-- those patterns (e.g. `\/\.`) were designed for grep/fzf exclusion and
+-- wrongly block any path under a dot-directory like ~/.config/....
 api.nvim_create_autocmd("BufEnter", {
   group = custom_group,
   callback = function()
-    local dir = fn.expand "%:p:h"
-    if should_change_directory(dir) then
+    -- Skip special buffers (terminals, help, quickfix, neo-tree, fzf, ...).
+    if vim.bo.buftype ~= "" then
+      return
+    end
+    local name = api.nvim_buf_get_name(0)
+    if name == "" or name:match "^%a+://" then
+      return
+    end
+    local dir = fn.fnamemodify(name, ":p:h")
+    if dir ~= "" and fn.isdirectory(dir) == 1 then
       pcall(cmd, "silent! lcd " .. fn.fnameescape(dir))
     end
+  end,
+})
+
+-- Hide line numbers + signcolumn in the neo-tree sidebar. NvChad's defaults
+-- turn them on globally, which makes the tree noisy.
+api.nvim_create_autocmd("FileType", {
+  group = custom_group,
+  pattern = "neo-tree",
+  callback = function()
+    vim.wo.number = false
+    vim.wo.relativenumber = false
+    vim.wo.signcolumn = "no"
+    vim.wo.cursorline = true
   end,
 })
 
