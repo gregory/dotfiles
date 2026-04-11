@@ -115,7 +115,7 @@ return {
     cmd = "Neotree",
     keys = {
       { "<leader>m", "<cmd>Neotree toggle left<CR>", desc = "Neo-tree toggle" },
-      { "<leader>n", "<cmd>Neotree reveal left<CR>", desc = "Neo-tree reveal current file" },
+      { "<leader>n", "<cmd>Neotree toggle reveal left<CR>", desc = "Neo-tree toggle + reveal current file" },
     },
     opts = {
       close_if_last_window = true,
