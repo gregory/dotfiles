@@ -1,4 +1,8 @@
 return {
+  -- Disable NvChad's bundled indent-blankline: it hooks ColorScheme and
+  -- crashes on gruvbox (which doesn't define IblChar). We don't use it.
+  { "lukas-reineke/indent-blankline.nvim", enabled = false },
+
   -- ============================================================
   -- Core
   -- ============================================================
