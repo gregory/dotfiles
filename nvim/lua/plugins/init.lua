@@ -274,17 +274,21 @@ return {
         markdown = true,
         yaml = true,
       }
-      -- Accept suggestion with <C-l>. <C-j>/<C-k> for next/prev variant,
-      -- <C-h> to accept only the next word. Insert-mode bindings — they
-      -- only fire when copilot has a suggestion visible, so they don't
-      -- steal keys the rest of the time.
-      vim.keymap.set("i", "<C-l>", 'copilot#Accept("\\<CR>")', {
+      -- IMPORTANT: <C-l>/<C-j> are already bound to coc-snippets
+      -- (expand / expand-jump). Copilot uses a DIFFERENT set so the two
+      -- systems coexist:
+      --   <C-y>   accept full suggestion (mnemonic: "yes")
+      --   <M-l>   accept the next word only
+      --   <M-]>   next suggestion variant
+      --   <M-[>   previous variant
+      --   <C-]>   dismiss the current ghost text
+      vim.keymap.set("i", "<C-y>", 'copilot#Accept("\\<CR>")', {
         expr = true, replace_keycodes = false, silent = true, desc = "Copilot accept",
       })
-      vim.keymap.set("i", "<C-h>", "<Plug>(copilot-accept-word)", { silent = true, desc = "Copilot accept word" })
-      vim.keymap.set("i", "<C-j>", "<Plug>(copilot-next)",        { silent = true, desc = "Copilot next suggestion" })
-      vim.keymap.set("i", "<C-k>", "<Plug>(copilot-previous)",    { silent = true, desc = "Copilot previous suggestion" })
-      vim.keymap.set("i", "<C-\\>", "<Plug>(copilot-dismiss)",    { silent = true, desc = "Copilot dismiss" })
+      vim.keymap.set("i", "<M-l>", "<Plug>(copilot-accept-word)", { silent = true, desc = "Copilot accept word" })
+      vim.keymap.set("i", "<M-]>", "<Plug>(copilot-next)",        { silent = true, desc = "Copilot next suggestion" })
+      vim.keymap.set("i", "<M-[>", "<Plug>(copilot-previous)",    { silent = true, desc = "Copilot previous suggestion" })
+      vim.keymap.set("i", "<C-]>", "<Plug>(copilot-dismiss)",     { silent = true, desc = "Copilot dismiss" })
     end,
   },
 
@@ -411,8 +415,73 @@ return {
   { "tpope/vim-rhubarb" },
   { "terryma/vim-multiple-cursors" },
 
-  -- coc.nvim kept for now — migration to native LSP deferred
-  { "neoclide/coc.nvim", branch = "release" },
+  -- coc.nvim kept for now — migration to native LSP deferred.
+  -- coc_global_extensions auto-installs the listed CoC extensions on
+  -- first launch so `:CocInstall` is not required. coc-snippets gives
+  -- us tabstop-aware expansion; honza/vim-snippets is the actual
+  -- snippet corpus (thousands of JS/TS/React/Ruby/Python/… templates).
+  {
+    "neoclide/coc.nvim",
+    branch = "release",
+    init = function()
+      vim.g.coc_global_extensions = {
+        "coc-snippets",
+        "coc-json",
+        "coc-tsserver",
+        "coc-eslint",
+        "coc-prettier",
+        "coc-css",
+        "coc-html",
+        "coc-yaml",
+      }
+    end,
+  },
+  { "honza/vim-snippets" },
+
+  -- ============================================================
+  -- Copilot Chat: sidebar conversation powered by your Copilot sub
+  -- ============================================================
+  -- Prereq: :Copilot setup (already configured above).
+  --
+  -- Usage:
+  --   ,cc  -> open chat sidebar (ask anything about current buffer)
+  --   ,ce  -> explain selection (visual mode) or current function
+  --   ,cf  -> fix diagnostic on current line
+  --   ,ct  -> generate tests for selection/function
+  --   ,cr  -> review code for issues
+  --   ,cp  -> prompt palette (browse pre-built prompts)
+  {
+    "CopilotC-Nvim/CopilotChat.nvim",
+    dependencies = {
+      "github/copilot.vim",
+      "nvim-lua/plenary.nvim",
+    },
+    cmd = {
+      "CopilotChat", "CopilotChatOpen", "CopilotChatToggle",
+      "CopilotChatExplain", "CopilotChatReview", "CopilotChatFix",
+      "CopilotChatOptimize", "CopilotChatDocs", "CopilotChatTests",
+      "CopilotChatCommit", "CopilotChatPrompts",
+    },
+    keys = {
+      { "<leader>cc", "<cmd>CopilotChatToggle<CR>",  mode = { "n", "x" }, desc = "Copilot chat toggle" },
+      { "<leader>ce", "<cmd>CopilotChatExplain<CR>", mode = { "n", "x" }, desc = "Copilot explain" },
+      { "<leader>cf", "<cmd>CopilotChatFix<CR>",     mode = { "n", "x" }, desc = "Copilot fix" },
+      { "<leader>ct", "<cmd>CopilotChatTests<CR>",   mode = { "n", "x" }, desc = "Copilot tests" },
+      { "<leader>cr", "<cmd>CopilotChatReview<CR>",  mode = { "n", "x" }, desc = "Copilot review" },
+      { "<leader>co", "<cmd>CopilotChatOptimize<CR>", mode = { "n", "x" }, desc = "Copilot optimize" },
+      { "<leader>cd", "<cmd>CopilotChatDocs<CR>",    mode = { "n", "x" }, desc = "Copilot docs" },
+      { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
+    },
+    opts = {
+      model = "gpt-4o",
+      window = {
+        layout = "vertical",
+        width = 0.4,
+      },
+      show_help = true,
+      auto_insert_mode = true,
+    },
+  },
   { "honza/vim-snippets" },
 
   { "hashivim/vim-terraform" },
