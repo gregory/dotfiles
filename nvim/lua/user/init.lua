@@ -255,12 +255,12 @@ function M.set_transparency()
 end
 
 -- Helper: load gruvbox with the requested background, fall back gracefully.
+-- F2 (light) intentionally uses the *vanilla* gruvbox-light palette — no
+-- hand-tuned overrides — so it matches the bat `gruvbox-light` preview
+-- shown by fzf-lua. F1 (dark) uses the hard contrast variant.
 local function load_theme(bg)
   vim.opt.termguicolors = true
   vim.opt.background = bg
-  -- Light: "soft" gives a darker cream background (#f2e5bc) which reads
-  -- better than the washed-out "hard" variant (#f9f5d7).
-  -- Dark: "hard" gives the deepest background (#1d2021) for max contrast.
   vim.g.gruvbox_contrast_light = "soft"
   vim.g.gruvbox_contrast_dark = "hard"
   vim.g.gruvbox_italic = 1
@@ -268,31 +268,6 @@ local function load_theme(bg)
   local ok = pcall(cmd, "colorscheme gruvbox")
   if not ok then
     pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
-  end
-  -- On light, force the strongest foregrounds so text is black-ish instead
-  -- of gruvbox's default warm brown. Purple/olive are swapped for darker
-  -- reds + a dark forest green to keep contrast high against cream bg.
-  if bg == "light" then
-    cmd "hi Normal       guifg=#1d2021"
-    cmd "hi Comment      guifg=#665c54 gui=italic cterm=italic"
-    cmd "hi LineNr       guifg=#665c54"
-    cmd "hi Constant     guifg=#79070a gui=bold"     -- was purple -> dark red
-    cmd "hi Number       guifg=#79070a gui=bold"
-    cmd "hi Boolean      guifg=#79070a gui=bold"
-    cmd "hi String       guifg=#3f4d0a"              -- was olive -> dark forest
-    cmd "hi Character    guifg=#3f4d0a"
-    cmd "hi Function     guifg=#7a3503"              -- was light orange -> dark
-    cmd "hi Keyword      guifg=#9d0006 gui=bold"
-    cmd "hi Statement    guifg=#9d0006 gui=bold"
-    cmd "hi Conditional  guifg=#9d0006 gui=bold"
-    cmd "hi Repeat       guifg=#9d0006 gui=bold"
-    cmd "hi Type         guifg=#7a3503 gui=bold"     -- darker than b57614
-    cmd "hi StorageClass guifg=#7a3503 gui=bold"
-    cmd "hi Structure    guifg=#7a3503 gui=bold"
-    cmd "hi Identifier   guifg=#05505c"              -- darker than 076678
-    cmd "hi Special      guifg=#9d0006"
-    cmd "hi PreProc      guifg=#7a3503"
-    cmd "hi Operator     guifg=#1d2021"
   end
 end
 
