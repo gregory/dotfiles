@@ -270,6 +270,33 @@ local function load_theme(bg)
     pcall(cmd, "colorscheme habamax") -- builtin nvim fallback
   end
   if bg == "light" then
+    -- Hard, synchronous override right after colorscheme loads.
+    -- `hi!` forces the definition even if the group already exists as a
+    -- link. We repeat for every concrete group we know about; whichever
+    -- is actually in use will take the color.
+    local green_cmd = "guifg=#79740e gui=bold cterm=bold ctermfg=100"
+    local groups = {
+      "javaScriptReserved", "javaScriptImport", "javaScriptStatement",
+      "javaScriptModule", "javaScriptMessage",
+      "jsImport", "jsExport", "jsFrom", "jsAs", "jsModuleKeyword",
+      "jsStorageClass",
+      "typescriptImport", "typescriptExport", "typescriptFrom",
+      "typescriptAs", "typescriptModule",
+      "Include", "PreProc",
+    }
+    for _, g in ipairs(groups) do
+      pcall(cmd, "hi! " .. g .. " " .. green_cmd)
+    end
+    -- Treesitter captures need nvim_set_hl with namespace 0.
+    for _, g in ipairs({
+      "@keyword.import", "@keyword.export", "@include",
+      "@keyword.import.javascript", "@keyword.export.javascript",
+      "@keyword.import.typescript", "@keyword.export.typescript",
+      "@keyword.import.tsx", "@keyword.export.tsx",
+      "@keyword.import.jsx", "@keyword.export.jsx",
+    }) do
+      pcall(api.nvim_set_hl, 0, g, { fg = "#79740e", bold = true })
+    end
     M.paint_imports_green()
   end
 end
