@@ -72,7 +72,7 @@ function M.set_project_root()
   end
 
   local git_dir = trim(fn.system "git rev-parse --show-toplevel")
-  if fn.shell_error() ~= 0 then
+  if vim.v.shell_error ~= 0 then
     return
   end
 
