@@ -10,8 +10,8 @@ opt.backspace = { "indent", "eol", "start" }
 opt.colorcolumn = "100"
 opt.copyindent = true
 opt.cursorline = false
-opt.encoding = "utf-8"
-opt.fileencoding = "utf-8"
+-- encoding and fileencoding removed: nvim is always utf-8 and setting
+-- fileencoding on a non-modifiable buffer (NvChad splash) throws E21.
 opt.expandtab = true
 opt.hidden = true
 opt.hlsearch = true

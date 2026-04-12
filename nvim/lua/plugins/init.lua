@@ -500,7 +500,7 @@ return {
   --   ,cp  -> prompt palette (browse pre-built prompts)
   {
     "CopilotC-Nvim/CopilotChat.nvim",
-    enabled = false,
+    enabled = true,
     dependencies = {
       "github/copilot.vim",
       "nvim-lua/plenary.nvim",
