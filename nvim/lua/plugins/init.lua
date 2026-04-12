@@ -485,9 +485,13 @@ return {
   -- ============================================================
   -- Copilot Chat: sidebar conversation powered by your Copilot sub
   -- ============================================================
-  -- Prereq: :Copilot setup (already configured above).
+  -- DISABLED: your Copilot token doesn't include Chat ("chat not
+  -- enabled for IDE token"). To re-enable:
+  --   1. Check your plan on github.com/settings/copilot
+  --   2. Run :Copilot setup to re-auth with chat scope
+  --   3. Change `enabled = false` to `true` below
   --
-  -- Usage:
+  -- Usage (once enabled):
   --   ,cc  -> open chat sidebar (ask anything about current buffer)
   --   ,ce  -> explain selection (visual mode) or current function
   --   ,cf  -> fix diagnostic on current line
@@ -496,6 +500,7 @@ return {
   --   ,cp  -> prompt palette (browse pre-built prompts)
   {
     "CopilotC-Nvim/CopilotChat.nvim",
+    enabled = false,
     dependencies = {
       "github/copilot.vim",
       "nvim-lua/plenary.nvim",
