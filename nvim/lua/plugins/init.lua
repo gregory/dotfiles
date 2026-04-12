@@ -517,9 +517,10 @@ return {
       { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
     },
     opts = {
-      -- gpt-4o wasn't enabled on this Copilot plan. claude-3.5-sonnet is
-      -- available and handles code tasks very well.
-      model = "claude-3.5-sonnet",
+      -- Don't hardcode a model name — Copilot's model catalog changes
+      -- and not every name is valid for every plan. Leave it unset so
+      -- CopilotChat picks its default, then swap at runtime via
+      -- :CopilotChatModels (interactive picker).
       window = {
         layout = "vertical",
         width = 0.4,
