@@ -527,6 +527,24 @@ return {
       },
       show_help = true,
       auto_insert_mode = true,
+      -- Chat buffer keymaps. Default submit is <C-s> on some versions.
+      -- Map both <CR> and <C-s> to submit so it's intuitive.
+      mappings = {
+        submit_prompt = {
+          normal = "<CR>",
+          insert = "<C-s>",
+        },
+        close = {
+          normal = "q",
+          insert = "<C-c>",
+        },
+        reset = {
+          normal = "<C-r>",
+        },
+        accept_diff = {
+          normal = "<C-y>",
+        },
+      },
       -- Treesitter markdown injections crash on nvim 0.12 with older
       -- nvim-treesitter checkouts. Turn them off in the chat buffer so
       -- CopilotChat works even if the parser update hasn't landed.
