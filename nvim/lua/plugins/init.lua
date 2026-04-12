@@ -532,24 +532,6 @@ return {
       },
       show_help = true,
       auto_insert_mode = true,
-      -- Custom prompts: generate code that can be applied as a diff
-      -- instead of just printing text in the chat.
-      prompts = {
-        -- ,cD → documented version of the selection, shown as a diff.
-        DocsInline = {
-          prompt = "Add documentation comments to the selected code. Output ONLY the complete code with the doc comments added, no explanation. Keep the code exactly the same, just add the doc comments.",
-          mapping = "<leader>cD",
-          description = "Add docs inline (diff)",
-          selection = require("CopilotChat.select").visual,
-        },
-        -- ,cF → fixed version of the selection, shown as a diff.
-        FixInline = {
-          prompt = "Fix any issues in the selected code. Output ONLY the fixed code, no explanation.",
-          mapping = "<leader>cF",
-          description = "Fix inline (diff)",
-          selection = require("CopilotChat.select").visual,
-        },
-      },
       -- Chat buffer keymaps. Default submit is <C-s> on some versions.
       -- Map both <CR> and <C-s> to submit so it's intuitive.
       mappings = {
@@ -575,9 +557,28 @@ return {
       highlight_selection = false,
     },
     config = function(_, opts)
-      require("CopilotChat").setup(opts)
-      -- Belt-and-braces: disable treesitter highlighter in copilot-chat
-      -- buffers to bypass any lingering query-predicate crash.
+      local chat = require("CopilotChat")
+      local select = require("CopilotChat.select")
+
+      opts.prompts = {
+        DocsInline = {
+          prompt = "Add documentation comments to the selected code. Output ONLY the complete code with the doc comments added, no explanation. Keep the code exactly the same, just add the doc comments.",
+          selection = select.visual,
+        },
+        FixInline = {
+          prompt = "Fix any issues in the selected code. Output ONLY the fixed code, no explanation.",
+          selection = select.visual,
+        },
+      }
+
+      chat.setup(opts)
+
+      -- ,cD / ,cF: inline docs / fix via custom prompts
+      vim.keymap.set({ "n", "x" }, "<leader>cD", "<cmd>CopilotChat DocsInline<CR>", { silent = true, desc = "Copilot docs inline (diff)" })
+      vim.keymap.set({ "n", "x" }, "<leader>cF", "<cmd>CopilotChat FixInline<CR>",  { silent = true, desc = "Copilot fix inline (diff)" })
+
+      -- Disable treesitter in chat buffers to work around nvim 0.12
+      -- query-predicate crash on markdown injections.
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "copilot-chat",
         callback = function()
