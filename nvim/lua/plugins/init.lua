@@ -517,7 +517,9 @@ return {
       { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
     },
     opts = {
-      model = "gpt-4o",
+      -- gpt-4o wasn't enabled on this Copilot plan. claude-3.5-sonnet is
+      -- available and handles code tasks very well.
+      model = "claude-3.5-sonnet",
       window = {
         layout = "vertical",
         width = 0.4,
