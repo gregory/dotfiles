@@ -500,7 +500,7 @@ return {
   --   ,cp  -> prompt palette (browse pre-built prompts)
   {
     "CopilotC-Nvim/CopilotChat.nvim",
-    enabled = false, -- "chat not enabled for IDE token" — needs Copilot Individual/Business plan
+    enabled = true,
     dependencies = {
       "github/copilot.vim",
       "nvim-lua/plenary.nvim",
@@ -522,10 +522,10 @@ return {
       { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
     },
     opts = {
-      -- Don't hardcode a model name — Copilot's model catalog changes
-      -- and not every name is valid for every plan. Leave it unset so
-      -- CopilotChat picks its default, then swap at runtime via
-      -- :CopilotChatModels (interactive picker).
+      -- CopilotChat's default (gpt-4.1) isn't available on every plan.
+      -- gpt-4o-mini is the safest baseline. Use :CopilotChatModels to
+      -- see what your plan offers and switch at runtime.
+      model = "gpt-4o-mini",
       window = {
         layout = "vertical",
         width = 0.4,
