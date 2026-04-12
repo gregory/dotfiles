@@ -500,7 +500,7 @@ return {
   --   ,cp  -> prompt palette (browse pre-built prompts)
   {
     "CopilotC-Nvim/CopilotChat.nvim",
-    enabled = true,
+    enabled = false, -- "chat not enabled for IDE token" — needs Copilot Individual/Business plan
     dependencies = {
       "github/copilot.vim",
       "nvim-lua/plenary.nvim",
