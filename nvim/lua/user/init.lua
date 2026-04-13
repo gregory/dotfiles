@@ -392,9 +392,6 @@ local function tweak_common()
   -- inherits env vars when it spawns the previewer, so updating BAT_THEME
   -- here takes effect on the next picker invocation — no reload needed.
   vim.env.BAT_THEME = is_dark and "gruvbox-dark" or "gruvbox-light"
-  if type(vim.g.lightline) == "table" then
-    vim.g.lightline = vim.tbl_extend("force", vim.g.lightline, { colorscheme = "Greg" })
-  end
 end
 
 function M.light_background()
@@ -489,64 +486,6 @@ function M.check_backspace()
   return line:sub(col, col):match "%s" ~= nil
 end
 
-local function lightline_should_suppress()
-  local ft = vim.bo.filetype or ""
-  return ft ~= "" and ft:match(vim.g.tcd_blacklist or "") ~= nil
-end
-
-function M.lightline_filename()
-  local git_dir = fn.fnamemodify(fn.getbufvar(0, "git_dir", ""), ":h")
-  local path = fn.expand "%:p"
-  if git_dir ~= "" and path:sub(1, #git_dir) == git_dir then
-    local file = path:sub(#git_dir + 2)
-    if not lightline_should_suppress() or fn.winwidth(0) > #file then
-      return file
-    end
-    return ""
-  end
-  if not lightline_should_suppress() and fn.winwidth(0) > 70 then
-    return fn.expand "%"
-  end
-  if vim.bo.filetype ~= "" then
-    return "[" .. vim.bo.filetype .. "]"
-  end
-  return ""
-end
-
-function M.lightline_mode()
-  local name = fn.expand "%:t"
-  if name == "__Tagbar__" then
-    return "Tagbar"
-  end
-  if name == "ControlP" then
-    return "CtrlP"
-  end
-  local ft = vim.bo.filetype
-  if ft == "vimfiler" then
-    return "VimFiler"
-  end
-  if ft == "javascript.jsx" or ft == "javascript" then
-    return "[JS]"
-  end
-  if ft == "" then
-    return fn["lightline#mode"]()
-  end
-  return "[" .. ft .. "]"
-end
-
-function M.lightline_fileencoding()
-  if fn.winwidth(0) > 100 then
-    return vim.bo.fileencoding ~= "" and vim.bo.fileencoding or ""
-  end
-  return ""
-end
-
-function M.lightline_filetype()
-  if fn.winwidth(0) > 100 then
-    return vim.bo.filetype ~= "" and vim.bo.filetype or "<>"
-  end
-  return ""
-end
 
 function M.coc_current_function()
   return vim.b.coc_current_function or ""
@@ -590,10 +529,6 @@ api.nvim_create_user_command("Fold", function(opts)
 end, { nargs = "?" })
 
 _G.PrintFooBar = M.print_foobar
-_G.LightlineFilename = M.lightline_filename
-_G.LightlineMode = M.lightline_mode
-_G.LightlineFileEncoding = M.lightline_fileencoding
-_G.LightlineFiletype = M.lightline_filetype
 _G.CocCurrentFunction = M.coc_current_function
 
 cmd [[cabbrev grep Ggrep]]

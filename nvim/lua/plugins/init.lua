@@ -560,22 +560,26 @@ return {
       local chat = require("CopilotChat")
       local select = require("CopilotChat.select")
 
-      opts.prompts = {
-        DocsInline = {
-          prompt = "Add documentation comments to the selected code. Output ONLY the complete code with the doc comments added, no explanation. Keep the code exactly the same, just add the doc comments.",
-          selection = select.visual,
-        },
-        FixInline = {
-          prompt = "Fix any issues in the selected code. Output ONLY the fixed code, no explanation.",
-          selection = select.visual,
-        },
-      }
+      opts.selection = select.visual -- default selection for all prompts
 
       chat.setup(opts)
 
-      -- ,cD / ,cF: inline docs / fix via custom prompts
-      vim.keymap.set({ "n", "x" }, "<leader>cD", "<cmd>CopilotChat DocsInline<CR>", { silent = true, desc = "Copilot docs inline (diff)" })
-      vim.keymap.set({ "n", "x" }, "<leader>cF", "<cmd>CopilotChat FixInline<CR>",  { silent = true, desc = "Copilot fix inline (diff)" })
+      -- ,cD: ask copilot to document the selection, then show diff
+      vim.keymap.set({ "n", "x" }, "<leader>cD", function()
+        local actions = require("CopilotChat.actions")
+        chat.ask(
+          "Add documentation comments to the selected code. Output ONLY the complete code with the doc comments added, no explanation.",
+          { selection = select.visual }
+        )
+      end, { silent = true, desc = "Copilot docs inline" })
+
+      -- ,cF: ask copilot to fix the selection, then show diff
+      vim.keymap.set({ "n", "x" }, "<leader>cF", function()
+        chat.ask(
+          "Fix any issues in the selected code. Output ONLY the fixed code, no explanation.",
+          { selection = select.visual }
+        )
+      end, { silent = true, desc = "Copilot fix inline" })
 
       -- Disable treesitter in chat buffers to work around nvim 0.12
       -- query-predicate crash on markdown injections.
@@ -606,13 +610,8 @@ return {
   -- Colorscheme
   { "morhetz/gruvbox" },
 
-  -- Statusline
-  {
-    "itchyny/lightline.vim",
-    config = function()
-      require("user.lightline").setup()
-    end,
-  },
+  -- Statusline: using NvChad's built-in statusline (loaded via base46).
+  -- lightline.vim removed — was conflicting and lacked Nerd Font icons.
 
   -- ============================================================
   -- REMOVED (see commit message for rationale):

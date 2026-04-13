@@ -127,46 +127,7 @@ g.undotree_SetFocusWhenToggle = 1
 
 g.html_no_rendering = 1
 
-g.lightline = {
-  active = {
-    left = {
-      { "mode", "paste" },
-      { "filename", "modified" },
-    },
-    right = {
-      { "position", "modified" },
-      { "percent", "filetype", "fileencoding" },
-      { "syntastic", "cocstatus" },
-    },
-  },
-  inactive = {
-    left = {
-      { "filename", "modified" },
-    },
-    right = {
-      { "position" },
-    },
-  },
-  component_function = {
-    gitbranch = "fugitive#head",
-    filename = "LightlineFilename",
-    fileencoding = "LightlineFileEncoding",
-    filetype = "LightlineFiletype",
-    mode = "LightlineMode",
-    cocstatus = "coc#status",
-    currentfunction = "CocCurrentFunction",
-  },
-  component = { charvaluehex = "0x%B", position = "%{winnr()}: %n %2l:%-1v" },
-  component_expand = { syntastic = "SyntasticStatuslineFlag" },
-  component_type = { syntastic = "error" },
-  subseparator = { left = ">", right = ">" },
-  separator = { left = "", right = "" },
-}
-
-g.lightline.tab = {
-  active = { "tabnum", "filename", "modified" },
-  inactive = { "tabnum", "filename", "modified" },
-}
+-- lightline removed — using NvChad's built-in statusline.
 
 g.javascript_enable_domhtmlcss = 1
 
@@ -198,7 +159,7 @@ g.fzf_action = {
   end,
 }
 
-g.lightline_theme = "Greg"
+-- lightline_theme removed with lightline.
 
 g.Choosewin_overlay_enable = 1
 
