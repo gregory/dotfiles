@@ -522,77 +522,54 @@ return {
       { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
     },
     opts = {
-      -- No model hardcoded — CopilotChat will prompt with
-      -- :CopilotChatModels on first use if the default isn't available.
-      -- Once you pick one, set it here to skip the prompt next time.
-      window = {
-        layout = "vertical",
-        width = 0.4,
-      },
+      -- First run: :CopilotChatModels to pick your model, then
+      -- hardcode it here (uncomment + replace):
+      -- model = "claude-3.5-sonnet",
+      window = { layout = "vertical", width = 0.4 },
       show_help = true,
       auto_insert_mode = true,
-      -- Show inline diff overlay in the source buffer so you can review
-      -- and accept/reject changes directly.
-      auto_apply_diff = false,
-      -- Chat buffer keymaps.
+      -- Built-in chat buffer keymaps:
+      --   <C-s>  send (insert)    <CR>   send (normal)
+      --   gd     show diff        <C-y>  accept diff
+      --   gy     yank code block  gj     jump to diff
+      --   q      close            <C-c>  close (insert)
       mappings = {
-        submit_prompt = {
-          normal = "<CR>",
-          insert = "<C-s>",
+        submit_prompt = { normal = "<CR>", insert = "<C-s>" },
+        close         = { normal = "q",    insert = "<C-c>" },
+        reset         = { normal = "<C-r>" },
+        accept_diff   = { normal = "<C-y>", insert = "<C-y>" },
+        show_diff     = { normal = "gd" },
+        yank_diff     = { normal = "gy" },
+        jump_to_diff  = { normal = "gj" },
+      },
+      -- Custom prompts available as /DocsInline and /FixInline in chat
+      prompts = {
+        DocsInline = {
+          prompt = "> /COPILOT_GENERATE\n\nAdd documentation comments to the selected code. Return the ENTIRE selected code with documentation added. Do NOT remove or change any existing code, ONLY add doc comments.",
+          description = "Add docs (generates applicable diff)",
         },
-        close = {
-          normal = "q",
-          insert = "<C-c>",
-        },
-        reset = {
-          normal = "<C-r>",
-        },
-        accept_diff = {
-          normal = "<C-y>",
-          insert = "<C-y>",
-        },
-        show_diff = {
-          normal = "gd",
-        },
-        yank_diff = {
-          normal = "gy",
+        FixInline = {
+          prompt = "> /COPILOT_GENERATE\n\nFix any issues in the selected code. Return the ENTIRE code with fixes applied. Do NOT remove code that doesn't need fixing.",
+          description = "Fix code (generates applicable diff)",
         },
       },
-      -- Treesitter markdown injections crash on nvim 0.12 with older
-      -- nvim-treesitter checkouts. Turn them off in the chat buffer so
-      -- CopilotChat works even if the parser update hasn't landed.
       highlight_headers = false,
       highlight_selection = false,
     },
     config = function(_, opts)
       local chat = require("CopilotChat")
       local select = require("CopilotChat.select")
-
-      opts.selection = select.visual -- default selection for all prompts
-
+      opts.selection = select.visual
       chat.setup(opts)
 
-      -- ,cD: document selected code — the response stays in the chat,
-      -- press gd to see the diff overlay in your source buffer,
-      -- then <C-y> to apply it.
+      -- ,cD / ,cF: trigger the custom prompts on visual selection
       vim.keymap.set("x", "<leader>cD", function()
-        chat.ask(
-          "Add documentation comments to the selected code. "
-          .. "Return the ENTIRE selected code with documentation added. "
-          .. "Do NOT remove or change any existing code, ONLY add doc comments.",
-          { selection = select.visual }
-        )
-      end, { silent = true, desc = "Copilot docs inline" })
+        chat.ask("/DocsInline", { selection = select.visual })
+      end, { silent = true, desc = "Copilot add docs (diff)" })
 
-      -- ,cF: fix selected code — same workflow: gd to preview, <C-y> to apply.
       vim.keymap.set("x", "<leader>cF", function()
-        chat.ask(
-          "Fix any issues in the selected code. "
-          .. "Return the ENTIRE selected code with fixes applied. "
-          .. "Do NOT remove any code that doesn't need fixing.",
-          { selection = select.visual }
-        )
-      end, { silent = true, desc = "Copilot fix inline" })
+        chat.ask("/FixInline", { selection = select.visual })
+      end, { silent = true, desc = "Copilot fix code (diff)" })
 
       -- Disable treesitter in chat buffers to work around nvim 0.12
       -- query-predicate crash on markdown injections.
