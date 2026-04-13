@@ -522,18 +522,19 @@ return {
       { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
     },
     opts = {
-      -- CopilotChat's default (gpt-4.1) isn't available on every plan.
-      -- gpt-4o-mini is the safest baseline. Use :CopilotChatModels to
-      -- see what your plan offers and switch at runtime.
-      model = "gpt-4o-mini",
+      -- No model hardcoded — CopilotChat will prompt with
+      -- :CopilotChatModels on first use if the default isn't available.
+      -- Once you pick one, set it here to skip the prompt next time.
       window = {
         layout = "vertical",
         width = 0.4,
       },
       show_help = true,
       auto_insert_mode = true,
-      -- Chat buffer keymaps. Default submit is <C-s> on some versions.
-      -- Map both <CR> and <C-s> to submit so it's intuitive.
+      -- Show inline diff overlay in the source buffer so you can review
+      -- and accept/reject changes directly.
+      auto_apply_diff = false,
+      -- Chat buffer keymaps.
       mappings = {
         submit_prompt = {
           normal = "<CR>",
@@ -548,6 +549,13 @@ return {
         },
         accept_diff = {
           normal = "<C-y>",
+          insert = "<C-y>",
+        },
+        show_diff = {
+          normal = "gd",
+        },
+        yank_diff = {
+          normal = "gy",
         },
       },
       -- Treesitter markdown injections crash on nvim 0.12 with older
@@ -564,19 +572,24 @@ return {
 
       chat.setup(opts)
 
-      -- ,cD: ask copilot to document the selection, then show diff
-      vim.keymap.set({ "n", "x" }, "<leader>cD", function()
-        local actions = require("CopilotChat.actions")
+      -- ,cD: document selected code — the response stays in the chat,
+      -- press gd to see the diff overlay in your source buffer,
+      -- then <C-y> to apply it.
+      vim.keymap.set("x", "<leader>cD", function()
         chat.ask(
-          "Add documentation comments to the selected code. Output ONLY the complete code with the doc comments added, no explanation.",
+          "Add documentation comments to the selected code. "
+          .. "Return the ENTIRE selected code with documentation added. "
+          .. "Do NOT remove or change any existing code, ONLY add doc comments.",
           { selection = select.visual }
         )
       end, { silent = true, desc = "Copilot docs inline" })
 
-      -- ,cF: ask copilot to fix the selection, then show diff
-      vim.keymap.set({ "n", "x" }, "<leader>cF", function()
+      -- ,cF: fix selected code — same workflow: gd to preview, <C-y> to apply.
+      vim.keymap.set("x", "<leader>cF", function()
         chat.ask(
-          "Fix any issues in the selected code. Output ONLY the fixed code, no explanation.",
+          "Fix any issues in the selected code. "
+          .. "Return the ENTIRE selected code with fixes applied. "
+          .. "Do NOT remove any code that doesn't need fixing.",
           { selection = select.visual }
         )
       end, { silent = true, desc = "Copilot fix inline" })
