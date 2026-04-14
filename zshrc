@@ -38,6 +38,9 @@ if [[ -s "$NVM_DIR/nvm.sh" ]]; then
   # Add default node bin to PATH so `which node` works without triggering load
   if [[ -f "$NVM_DIR/alias/default" ]]; then
     _nvm_default_ver="$(<"$NVM_DIR/alias/default")"
+    # nvm stores versions under v<version>/ (e.g. v20.12.1), but the alias file
+    # may contain the bare version (20.12.1). Normalise with a leading `v`.
+    [[ "$_nvm_default_ver" != v* ]] && _nvm_default_ver="v$_nvm_default_ver"
     [[ -d "$NVM_DIR/versions/node/$_nvm_default_ver/bin" ]] && \
       export PATH="$NVM_DIR/versions/node/$_nvm_default_ver/bin:$PATH"
     unset _nvm_default_ver
