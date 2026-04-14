@@ -4,3 +4,6 @@ vim/*
 .vim/tmp/
 .vim/tags
 ctags*
+*.un~
+.claude/
+ctags-patterns-for-javascript/

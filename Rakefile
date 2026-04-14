@@ -12,13 +12,13 @@ task :install do
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   brew install direnv
   brew install ripgrep bat fzf
-  brew install vim --with-lua #https://github.com/Shougo/neocomplete.vim#vim-for-mac-os-x
+  brew install vim neovim
   `curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim`
 
   system %Q{ cp -r $HOME/dotfiles/bin/* /usr/local/bin/}
   replace_all = ENV['REPLACE_ALL'] || false
-  files = Dir['*'] - %w[Rakefile README.md LICENSE"]
+  files = Dir['*'] - %w[Rakefile README.md LICENSE]
   files.each do |file|
     system %Q{mkdir -p "$HOME/.#{File.dirname(file)}"} if file =~ /\//
     if File.exist?(File.join(ENV['PWD'], "#{file.sub(/\.erb$/, '')}"))
@@ -65,9 +65,6 @@ def link_file(file)
     File.open(File.join(ENV['HOME'], ".#{file.sub(/\.erb$/, '')}"), 'w') do |new_file|
     new_file.write ERB.new(File.read(file)).result(binding)
   end
-  elsif file =~ /zshrc$/ # copy zshrc instead of link
-    puts "copying ~/.#{file}"
-    system %Q{cp "$PWD/#{file}" "$HOME/.#{file}"}
   else
     puts "linking ~/.#{file}"
     system %Q{ln -fs "$PWD/#{file}" "$HOME/.#{file}"}
