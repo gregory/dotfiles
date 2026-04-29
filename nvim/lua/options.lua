@@ -23,7 +23,27 @@ opt.lazyredraw = false
 opt.linebreak = true
 opt.list = false
 opt.listchars = { tab = ">.", trail = ".", extends = "#", nbsp = "." }
-opt.mouse = ""
+-- Enable mouse in all modes so the wheel scrolls fzf-lua's builtin
+-- previewer and, critically, so drag-selection stays scoped to the nvim
+-- window where the drag started (otherwise iTerm's native terminal
+-- selection bleeds across vertical/horizontal splits). Hold Option/Alt
+-- in iTerm if you ever need to force native terminal selection.
+opt.mouse = "a"
+
+-- Share yank register with the macOS system clipboard. Without this,
+-- visually selecting with the mouse + pressing `y` copies to vim's
+-- unnamed register only — Cmd+V in other apps stays empty. With it,
+-- any yank (including the `y` after a mouse drag) lands in pbpaste.
+opt.clipboard = "unnamedplus"
+
+-- Make the vertical split separator a blank space instead of │ / |.
+-- When you drag-select across a split with iTerm-native selection
+-- (Option+drag, or simply when mouse mode isn't capturing), the copied
+-- text won't include a stray separator character. The column is still
+-- visually distinguishable via the WinSeparator highlight.
+opt.fillchars:append({ vert = " ", vertleft = " ", vertright = " ",
+                       horiz = " ", horizup = " ", horizdown = " ",
+                       verthoriz = " " })
 opt.backup = false
 opt.errorbells = false
 opt.eadirection = "ver"

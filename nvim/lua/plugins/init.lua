@@ -50,10 +50,174 @@ local function flash_on_fzf_results(selected, _opts)
   end)
 end
 
+-- ============================================================
+-- Custom labeled-jump ("smart flash").
+--
+-- Behaves like flash.nvim's `s`, with one extra trick:
+--   1. press `s`
+--   2. type one or more chars to filter visible matches
+--   3. while the label overlay is live:
+--        <Space>   -> page down (<C-f>), refresh labels
+--        <S-Space> -> page up   (<C-b>), refresh labels
+--   4. press the label letter of your target to jump there
+--
+-- flash.nvim's prompt is a blocking char-reader that doesn't expose
+-- key hooks, so we reimplement the minimum needed with extmarks.
+-- ============================================================
+local function smart_flash()
+  local ns         = vim.api.nvim_create_namespace("smart_flash")
+  local all_labels = "asdfghjklqwertyuiopzxcvbnm"
+  local pattern    = ""
+  local buf        = vim.api.nvim_get_current_buf()
+  local win        = vim.api.nvim_get_current_win()
+
+  local t_esc   = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+  local t_bs    = vim.api.nvim_replace_termcodes("<BS>",  true, false, true)
+  local t_sspc  = vim.api.nvim_replace_termcodes("<S-Space>", true, false, true)
+  local t_cf    = vim.api.nvim_replace_termcodes("<C-f>", true, true, true)
+  local t_cb    = vim.api.nvim_replace_termcodes("<C-b>", true, true, true)
+
+  local function scroll(keys)
+    -- "nx" = no remap + execute synchronously so the viewport is
+    -- updated before we loop back and recompute matches.
+    vim.api.nvim_feedkeys(keys, "nx", false)
+  end
+
+  local function clear()
+    vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+  end
+
+  local function available_labels()
+    local out, seen = {}, {}
+    for c in pattern:lower():gmatch(".") do seen[c] = true end
+    for i = 1, #all_labels do
+      local c = all_labels:sub(i, i)
+      if not seen[c] then table.insert(out, c) end
+    end
+    return out
+  end
+
+  local function find_matches_for(pat)
+    if pat == "" then return {} end
+    local first   = vim.fn.line("w0")
+    local last    = vim.fn.line("w$")
+    local pat_esc = vim.pesc(pat:lower())
+    local out     = {}
+    for lnum = first, last do
+      local line  = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
+      local lower = line:lower()
+      local start = 1
+      while true do
+        local s = lower:find(pat_esc, start, false)
+        if not s then break end
+        table.insert(out, { lnum = lnum, col = s - 1 })
+        start = s + 1
+      end
+      if #out >= #all_labels then break end
+    end
+    return out
+  end
+
+  local function find_matches() return find_matches_for(pattern) end
+
+  local function render(matches, labels)
+    clear()
+    for i, m in ipairs(matches) do
+      local label = labels[i]
+      if not label then break end
+      -- Highlight the match itself in yellow.
+      pcall(vim.api.nvim_buf_set_extmark, buf, ns, m.lnum - 1, m.col, {
+        end_col    = math.min(m.col + #pattern,
+                       #(vim.api.nvim_buf_get_lines(buf, m.lnum - 1, m.lnum, false)[1] or "")),
+        hl_group   = "FlashMatch",
+        priority   = 65534,
+      })
+      -- Overlay the jump label on top of the match's first char.
+      pcall(vim.api.nvim_buf_set_extmark, buf, ns, m.lnum - 1, m.col, {
+        virt_text         = { { label, "FlashLabel" } },
+        virt_text_pos     = "overlay",
+        hl_mode           = "combine",
+        priority          = 65535,
+      })
+    end
+  end
+
+  while true do
+    local matches = find_matches()
+    local labels  = available_labels()
+    render(matches, labels)
+    vim.cmd("redraw")
+
+    local ok, ch = pcall(vim.fn.getcharstr)
+    if not ok or ch == "" or ch == t_esc then
+      clear(); return
+    end
+
+    -- Backspace: shrink pattern.
+    if ch == t_bs then
+      if #pattern > 0 then pattern = pattern:sub(1, -2) end
+      goto continue
+    end
+
+    -- Space / Shift-Space (or <C-f>/<C-b> as terminal-proof fallback):
+    -- scroll viewport, BUT only after the user has typed at least one
+    -- pattern char (otherwise `s<Space>` would surprise-scroll).
+    if #pattern > 0 then
+      if ch == " " or ch == t_cf then
+        clear()
+        scroll(t_cf)
+        goto continue
+      end
+      if ch == t_sspc or ch == t_cb then
+        clear()
+        scroll(t_cb)
+        goto continue
+      end
+    end
+
+    -- Only treat printable chars past this point.
+    if #ch ~= 1 or ch:byte() < 32 or ch:byte() >= 127 then
+      goto continue
+    end
+
+    -- Prefer extending the pattern over jumping: if appending ch still
+    -- has matches, it's a refinement. Otherwise, ch is interpreted as
+    -- a jump label — this is how easymotion/flash disambiguate.
+    do
+      local trial = pattern .. ch
+      local trial_matches = find_matches_for(trial)
+      if #trial_matches > 0 then
+        pattern = trial
+        goto continue
+      end
+    end
+
+    -- No extended match — ch must be a label (or noise).
+    if #matches > 0 then
+      for i, label in ipairs(labels) do
+        if ch == label and matches[i] then
+          clear()
+          vim.api.nvim_win_set_cursor(win, { matches[i].lnum, matches[i].col })
+          return
+        end
+      end
+    end
+    -- Unrecognized char: ignore and keep prompting.
+
+    ::continue::
+  end
+end
+
 return {
   -- Disable NvChad's bundled indent-blankline: it hooks ColorScheme and
   -- crashes on gruvbox (which doesn't define IblChar). We don't use it.
   { "lukas-reineke/indent-blankline.nvim", enabled = false },
+
+  -- Colorschemes used by F1 / F3. F2 keeps gruvbox-light (already loaded
+  -- by NvChad via morhetz/gruvbox). We load these eagerly so F-keys never
+  -- hit a missing-colorscheme error on first press.
+  { "xero/miasma.nvim",      lazy = false, priority = 900 },
+  { "maxmx03/solarized.nvim", lazy = false, priority = 900 },
 
   -- nvim-treesitter: NvChad pins this but on nvim 0.12 an old checkout
   -- crashes inside query_predicates.lua ("attempt to call method
@@ -95,7 +259,17 @@ return {
     cmd = "FzfLua",
     keys = {
       { "<CR>", "<cmd>FzfLua git_files<CR>", desc = "FZF git files" },
-      { "<C-g>", "<cmd>FzfLua live_grep<CR>", desc = "FZF live grep" },
+      {
+        "<C-g>",
+        function()
+          local f = vim.api.nvim_buf_get_name(0)
+          local dir = (f ~= "" and vim.fn.fnamemodify(f, ":p:h")) or vim.fn.getcwd()
+          local root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(dir) .. " rev-parse --show-toplevel")[1]
+          local cwd = (vim.v.shell_error == 0 and root ~= "") and root or dir
+          require("fzf-lua").live_grep({ cwd = cwd })
+        end,
+        desc = "FZF live grep (git root)",
+      },
       -- ? = search in current buffer. Press <c-l> after typing a query to
       -- close fzf and flash-jump to any of the matches directly in the
       -- buffer (each hit gets a big flash label).
@@ -124,13 +298,15 @@ return {
       { "<Tab>", "<cmd>FzfLua buffers<CR>", desc = "FZF buffers (all open)" },
     },
     opts = {
-      winopts = { preview = { default = "bat" } },
-      previewers = {
-        bat = {
-          cmd = "bat",
-          args = "--color=always --style=numbers,changes",
-          -- Theme is controlled dynamically via BAT_THEME env var, set in
-          -- user.tweak_common() so it tracks vim.o.background.
+      -- Use the builtin (nvim-window) previewer instead of bat so the
+      -- mouse wheel scrolls the preview natively. Syntax highlighting
+      -- comes from nvim's own colorscheme / treesitter, which means it
+      -- automatically tracks F1/F2/F3 without BAT_THEME juggling.
+      winopts = {
+        preview = {
+          default      = "builtin",
+          scrollbar    = "float",
+          scrollchars  = { "┃", "" },
         },
       },
       -- fzf has a native "jump" mode (basically easymotion for the result
@@ -146,6 +322,14 @@ return {
           ["ctrl-a"] = "select-all+accept",
           ["ctrl-s"] = "jump-accept", -- flash-style jump to any result
           ["alt-s"]  = "jump",        -- jump without accepting (just move)
+          -- Preview scroll (works regardless of terminal shift-arrow support)
+          ["ctrl-f"] = "preview-page-down",
+          ["ctrl-b"] = "preview-page-up",
+          ["alt-j"]  = "preview-down",
+          ["alt-k"]  = "preview-up",
+          -- Shift-arrows still work as a fallback on capable terminals
+          ["shift-down"] = "preview-page-down",
+          ["shift-up"]   = "preview-page-up",
         },
       },
     },
@@ -177,7 +361,7 @@ return {
       },
     },
     keys = {
-      { "s", function() require("flash").jump() end,       mode = { "n", "x", "o" }, desc = "Flash jump" },
+      { "s", smart_flash,                                   mode = { "n", "x", "o" }, desc = "Smart flash (space scrolls)" },
       { "S", function() require("flash").treesitter() end, mode = { "n", "x", "o" }, desc = "Flash treesitter" },
       { "r", function() require("flash").remote() end,     mode = "o",               desc = "Remote flash" },
 
@@ -389,13 +573,14 @@ return {
   },
 
   -- Quick "edit parent dir as a buffer" (kept alongside neo-tree).
-  -- Use `-` to bounce up directories like in netrw.
+  -- `-` used to bounce up dirs (netrw-style) but was reassigned to
+  -- alternate-buffer switching. Use `_` (shift+`-`) instead.
   {
     "stevearc/oil.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     cmd = "Oil",
     keys = {
-      { "-", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
+      { "_", "<cmd>Oil<CR>", desc = "Oil (parent dir)" },
     },
     opts = {
       default_file_explorer = false,
@@ -424,14 +609,40 @@ return {
       },
       on_attach = function(bufnr)
         local gs = require("gitsigns")
-        local opts = { buffer = bufnr, silent = true }
-        vim.keymap.set("n", "gj", function() gs.nav_hunk("next") end, opts)
-        vim.keymap.set("n", "gk", function() gs.nav_hunk("prev") end, opts)
-        -- Moved off <leader>h* to free that prefix for flash line motion.
-        -- New prefix: <leader>G (uppercase, since ,g* is fugitive/fzf-lua).
-        vim.keymap.set("n", "<leader>Gp", gs.preview_hunk, opts)
-        vim.keymap.set("n", "<leader>Gs", gs.stage_hunk, opts)
-        vim.keymap.set("n", "<leader>Gb", function() gs.blame_line({ full = true }) end, opts)
+        local function desc(d) return { buffer = bufnr, silent = true, desc = d } end
+
+        -- Hunk navigation (bare, same letter as `]c`/`[c` but keeps the
+        -- `g*` git namespace).
+        vim.keymap.set("n", "gj", function() gs.nav_hunk("next") end, desc("Next git hunk"))
+        vim.keymap.set("n", "gk", function() gs.nav_hunk("prev") end, desc("Prev git hunk"))
+
+        -- <leader>G* — hunk ops. ,g* is reserved for fugitive/fzf-lua.
+        --   Gp preview · Gs stage · Gr reset · Gu undo stage
+        --   GS stage-buffer · GR reset-buffer
+        --   Gb blame-line · Gt toggle inline blame virttext
+        --   Gq all project hunks → quickfix (same as :GdiffQF shortcut)
+        --   Gd diff this buffer vs index · GD vs last commit
+        vim.keymap.set("n", "<leader>Gp", gs.preview_hunk,          desc("Preview hunk"))
+        vim.keymap.set("n", "<leader>Gs", gs.stage_hunk,            desc("Stage hunk"))
+        vim.keymap.set("n", "<leader>Gr", gs.reset_hunk,            desc("Reset hunk"))
+        vim.keymap.set("n", "<leader>Gu", gs.undo_stage_hunk,       desc("Undo stage hunk"))
+        vim.keymap.set("n", "<leader>GS", gs.stage_buffer,          desc("Stage buffer"))
+        vim.keymap.set("n", "<leader>GR", gs.reset_buffer,          desc("Reset buffer"))
+        vim.keymap.set("n", "<leader>Gb", function() gs.blame_line({ full = true }) end, desc("Blame line (popup)"))
+        vim.keymap.set("n", "<leader>Gt", gs.toggle_current_line_blame, desc("Toggle inline blame"))
+        vim.keymap.set("n", "<leader>Gd", gs.diffthis,              desc("Diff this vs index"))
+        vim.keymap.set("n", "<leader>GD", function() gs.diffthis("~") end, desc("Diff this vs last commit"))
+        vim.keymap.set("n", "<leader>Gq", function()
+          gs.setqflist("all", { use_location_list = false })
+        end, desc("All hunks → quickfix"))
+
+        -- Visual-mode hunk ops: stage/reset a precise line range.
+        vim.keymap.set("v", "<leader>Gs", function()
+          gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+        end, desc("Stage selected lines"))
+        vim.keymap.set("v", "<leader>Gr", function()
+          gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
+        end, desc("Reset selected lines"))
       end,
     },
   },
@@ -447,12 +658,20 @@ return {
   {
     "tpope/vim-fugitive",
     name = "vim-fugitive",
+    -- Lazy-load on the commands we actually invoke. `Gclog`/`0Gclog` are
+    -- the log-into-quickfix entry points (bound to `gh`). `GBrowse` comes
+    -- from vim-rhubarb (declared as a separate plugin) but needs fugitive
+    -- loaded first — adding it here ensures the `<leader>gy/gY` bindings
+    -- work on first invocation.
     cmd = {
       "G", "Git", "Gread", "Gwrite", "Ggrep",
-      "Gdiffsplit", "Gvdiffsplit", "GMove", "GDelete", "GRemove", "GdiffInTab",
+      "Gdiffsplit", "Gvdiffsplit", "GMove", "GDelete", "GRemove",
+      "GdiffInTab", "GdiffQF",
+      "Gclog",
+      "GBrowse",
     },
   },
-  { "scrooloose/nerdcommenter" },
+  { "scrooloose/nerdcommenter", lazy = false },
   { "stefandtw/quickfix-reflector.vim" },
   { "editorconfig/editorconfig-vim" },
   { "moll/vim-node" },
@@ -492,7 +711,7 @@ return {
   --   3. Change `enabled = false` to `true` below
   --
   -- Usage (once enabled):
-  --   ,cc  -> open chat sidebar (ask anything about current buffer)
+  --   ,cc  -> open chat sidebar (normal mode only — visual ,cc = nerdcommenter)
   --   ,ce  -> explain selection (visual mode) or current function
   --   ,cf  -> fix diagnostic on current line
   --   ,ct  -> generate tests for selection/function
@@ -512,7 +731,8 @@ return {
       "CopilotChatCommit", "CopilotChatPrompts",
     },
     keys = {
-      { "<leader>cc", "<cmd>CopilotChatToggle<CR>",  mode = { "n", "x" }, desc = "Copilot chat toggle" },
+      -- ,cc in normal = Copilot chat; in visual = nerdcommenter (see below)
+      { "<leader>cc", "<cmd>CopilotChatToggle<CR>",  mode = "n",          desc = "Copilot chat toggle" },
       { "<leader>ce", "<cmd>CopilotChatExplain<CR>", mode = { "n", "x" }, desc = "Copilot explain" },
       { "<leader>cf", "<cmd>CopilotChatFix<CR>",     mode = { "n", "x" }, desc = "Copilot fix" },
       { "<leader>ct", "<cmd>CopilotChatTests<CR>",   mode = { "n", "x" }, desc = "Copilot tests" },

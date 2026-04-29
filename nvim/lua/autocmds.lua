@@ -135,9 +135,30 @@ api.nvim_create_autocmd("FileType", {
   end,
 })
 
-api.nvim_create_autocmd({ "CursorHold", "FocusLost" }, {
+-- Detect files modified outside of nvim and reload them.
+-- `autoread` is set in options.lua, but vim only consults it on certain
+-- events. Triggering `:checktime` here forces the check on:
+--   FocusGained — coming back to nvim from another app
+--   BufEnter    — switching buffers
+--   CursorHold  — idle in a buffer (catches edits while nvim is focused,
+--                 e.g. running a formatter in a terminal split)
+--   TermClose   — after a terminal command exits, in case it touched files
+api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI", "TermClose" }, {
   group = custom_group,
-  command = "checktime",
+  callback = function()
+    if vim.bo.buftype == "" and vim.fn.mode() ~= "c" then
+      pcall(vim.cmd, "checktime")
+    end
+  end,
+})
+
+-- Surface the reload as a notification so you know something happened
+-- (otherwise vim silently swaps in the new content under the cursor).
+api.nvim_create_autocmd("FileChangedShellPost", {
+  group = custom_group,
+  callback = function()
+    vim.notify("File changed on disk — buffer reloaded", vim.log.levels.INFO)
+  end,
 })
 
 -- Always lcd to the directory of the current file so `:e <Tab>` completes
@@ -158,6 +179,39 @@ api.nvim_create_autocmd("BufEnter", {
     local dir = fn.fnamemodify(name, ":p:h")
     if dir ~= "" and fn.isdirectory(dir) == 1 then
       pcall(cmd, "silent! lcd " .. fn.fnameescape(dir))
+    end
+  end,
+})
+
+-- Start terminals in insert/terminal mode so `:term`, `:split | term`,
+-- and the custom terminal_opener (mappings.lua) drop you straight into
+-- the shell instead of n-terminal-normal mode. BufEnter re-applies it
+-- when you hop back into an existing terminal buffer.
+api.nvim_create_autocmd({ "TermOpen", "BufEnter" }, {
+  group = custom_group,
+  callback = function()
+    if vim.bo.buftype == "terminal" then
+      cmd "startinsert"
+    end
+  end,
+})
+
+-- Inside fzf-lua's terminal prompt, neutralize the global terminal-mode
+-- window-nav / resize mappings (mappings.lua:220-227) so they don't kick us
+-- out of the picker. We buffer-locally remap each one back to its raw key,
+-- letting fzf receive <C-h/j/k/l> and <S-Up/Down/Left/Right> for its own
+-- actions (window nav still works from non-fzf terminals).
+api.nvim_create_autocmd("FileType", {
+  group = custom_group,
+  pattern = "fzf",
+  callback = function()
+    -- <C-x> is critical: NvChad maps it in terminal mode to escape
+    -- terminal mode, which swallows fzf-lua's ctrl-x action (e.g.
+    -- buf_del in the buffers picker). Passing it through here lets
+    -- the fzf binary receive it and trigger the Lua callback.
+    local keys = { "<C-h>", "<C-j>", "<C-k>", "<C-l>", "<C-x>", "<S-Up>", "<S-Down>", "<S-Left>", "<S-Right>" }
+    for _, k in ipairs(keys) do
+      vim.keymap.set("t", k, k, { buffer = true, nowait = true })
     end
   end,
 })

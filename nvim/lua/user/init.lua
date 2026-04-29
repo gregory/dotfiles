@@ -4,6 +4,48 @@ local api = vim.api
 local fn = vim.fn
 local cmd = vim.cmd
 local uv = vim.uv or vim.loop
+
+-- ============================================================
+-- iTerm profile names triggered by F1 / F2 / F3. Edit these to
+-- match profiles that actually exist in iTerm (Preferences ->
+-- Profiles). Set to nil to skip the iTerm switch for a key.
+-- ============================================================
+local ITERM_PROFILE_F1 = "Miasma"          -- dark, matches miasma.nvim
+local ITERM_PROFILE_F2 = "Solarized Light" -- paired with gruvbox light in nvim
+local ITERM_PROFILE_F3 = "Solarized Dark"  -- paired with solarized dark in nvim
+
+-- Returns true when macOS is in dark mode. Any failure (non-macOS,
+-- `defaults` not on PATH, unexpected output) is treated as dark, which
+-- is the safe fallback for an unknown terminal.
+function M.is_macos_dark_mode()
+  if vim.fn.has("mac") ~= 1 and vim.fn.has("macunix") ~= 1 then
+    return true
+  end
+  -- `defaults read -g AppleInterfaceStyle` prints "Dark\n" in dark mode
+  -- and exits non-zero (key missing) in light mode. jobstart avoids the
+  -- stderr noise that plain vim.fn.system would print.
+  local out = vim.fn.system({ "defaults", "read", "-g", "AppleInterfaceStyle" })
+  if vim.v.shell_error ~= 0 then
+    return false -- key absent -> light mode
+  end
+  return out:match("Dark") ~= nil
+end
+
+-- Switch iTerm2's current-tab profile via OSC 50. No-op outside iTerm.
+local function set_iterm_profile(name)
+  if not name or name == "" then return end
+  if not (vim.env.LC_TERMINAL == "iTerm2" or vim.env.TERM_PROGRAM == "iTerm.app") then
+    return
+  end
+  -- When running inside tmux, wrap in the DCS passthrough so the sequence
+  -- reaches iTerm instead of being swallowed by tmux.
+  local seq = "\027]50;SetProfile=" .. name .. "\007"
+  if vim.env.TMUX then
+    seq = "\027Ptmux;\027" .. seq:gsub("\027", "\027\027") .. "\027\\"
+  end
+  io.stdout:write(seq)
+end
+M.set_iterm_profile = set_iterm_profile
 local loader_ok, loader = pcall(require, "lazy.core.loader")
 local config = loader_ok and require "lazy.core.config" or nil
 
@@ -234,6 +276,19 @@ function M.trim_trailing_whitespace()
   fn.winrestview(view)
 end
 
+-- Called by the insert-mode `<Esc>` and `fd` mappings (mappings.lua):
+-- write the current buffer to disk only when it makes sense to.
+-- Bails out for paste mode (auto-save would mangle a paste flow), special
+-- buffers (terminal/quickfix/help/oil/neo-tree), read-only buffers, and
+-- unnamed buffers (where `:write!` would E32 anyway).
+function M.save_if_real()
+  if vim.o.paste then return end
+  if vim.bo.buftype ~= "" then return end
+  if not vim.bo.modifiable then return end
+  if api.nvim_buf_get_name(0) == "" then return end
+  pcall(cmd, "silent! write!")
+end
+
 function M.rename_file()
   local old_name = fn.expand "%"
   local new_name = fn.input("New file name: ", old_name)
@@ -360,6 +415,38 @@ local function tweak_common()
   cmd "hi! link javascriptOperator Identifier"
   cmd "hi! link IndentGuidesEven CursorLine"
   cmd "hi! link IndentGuidesOdd Noise"
+  -- "Floating windows" split look — buffers opaque, gaps transparent.
+  --
+  -- How it works with iTerm2's profile transparency (bin/iterm-setup-
+  -- transparency.sh, ~12% transparency + blur):
+  --
+  --   • Buffer cells  → Normal has the theme's solid guibg. iTerm still
+  --                     composites with transparency, but because the
+  --                     cell is painted with a near-opaque theme color,
+  --                     wallpaper only hints through — buffers stay readable.
+  --   • Separator col → WinSeparator has bg=NONE. A cell with no explicit
+  --                     bg uses the terminal's default, which iTerm2
+  --                     transparentizes fully → wallpaper + blur visibly
+  --                     show in that column. Reads as a real gap between
+  --                     two opaque "windows".
+  --   • fillchar stays space (copy-selection fix preserved — dragging a
+  --     visual selection across the gap doesn't pick up a `│` char).
+  --
+  -- Everything runs inside tweak_common(), which fires after every F1/F2/F3
+  -- theme switch (light/dark/transparent_background each call it), so the
+  -- effect persists across theme flips.
+  do
+    local is_dark_win = vim.o.background == "dark"
+    -- Gap glyph color: only used if you ever switch fillchars back to `│`.
+    -- With space fillchar, fg doesn't render — but keep it sensible for
+    -- the hypothetical case. bg=NONE is the load-bearing part.
+    local sep_fg = is_dark_win and "#5c6370" or "#bdae93"
+    api.nvim_set_hl(0, "WinSeparator", { fg = sep_fg, bg = "NONE" })
+    api.nvim_set_hl(0, "VertSplit",    { fg = sep_fg, bg = "NONE" })
+    -- EndOfBuffer (the `~` lines past EOF) also defaults to transparent
+    -- so the bottom of a short buffer matches its surrounding gap.
+    api.nvim_set_hl(0, "EndOfBuffer",  { bg = "NONE" })
+  end
   -- flash.nvim labels: gruvbox doesn't define these loudly enough, so we
   -- paint the jump labels in a high-contrast magenta/yellow combo.
   api.nvim_set_hl(0, "FlashLabel",    { fg = "#1d2021", bg = "#fb4934", bold = true })
@@ -397,22 +484,42 @@ end
 function M.light_background()
   load_theme "light"
   tweak_common()
+  set_iterm_profile(ITERM_PROFILE_F2)
 end
 
 function M.dark_background()
-  load_theme "dark"
+  -- F1: miasma.nvim — dark, desaturated olive/green palette.
+  vim.opt.termguicolors = true
+  vim.opt.background = "dark"
+  local ok = pcall(cmd, "colorscheme miasma")
+  if not ok then
+    pcall(cmd, "colorscheme gruvbox") -- graceful fallback
+  end
   tweak_common()
+  set_iterm_profile(ITERM_PROFILE_F1)
 end
 
 function M.transparent_background()
-  load_theme "dark"
+  -- F3: solarized dark (via maxmx03/solarized.nvim).
+  vim.opt.termguicolors = true
+  vim.opt.background = "dark"
+  local ok_cfg = pcall(function()
+    require("solarized").setup({ transparent = { enabled = false } })
+  end)
+  local ok = pcall(cmd, "colorscheme solarized")
+  if not ok then
+    pcall(cmd, "colorscheme gruvbox")
+  end
   tweak_common()
-  M.set_transparency()
+  set_iterm_profile(ITERM_PROFILE_F3)
 end
 
+-- Auto-pick theme on startup from macOS Appearance (System Settings ->
+-- Appearance). Dark -> F1 (miasma), Light -> F2 (gruvbox light). If
+-- detection fails (non-macOS, `defaults` missing, etc.), default to F1.
+-- F1/F2/F3 keys still override at any time.
 function M.set_theme()
-  local profile = uv.os_getenv("ITERM_PROFILE")
-  if profile == "Dark" then
+  if M.is_macos_dark_mode() then
     M.dark_background()
   else
     M.light_background()
@@ -511,9 +618,44 @@ api.nvim_create_user_command("Qdo", function(opts)
 end, { bang = true, nargs = 1, complete = "command" })
 
 api.nvim_create_user_command("GdiffInTab", function()
+  -- Fugitive deprecated `:Gdiff` in favor of `:Gdiffsplit` (and it now
+  -- collides with `Gdiffsplit!`, producing E464). Gdiffsplit does its own
+  -- vertical split + loads the index/HEAD version in diff mode, so we no
+  -- longer need the manual `:vsplit` that used to precede it.
   cmd "tabedit %"
-  cmd "vsplit"
-  cmd "Gdiff"
+  cmd "Gdiffsplit"
+end, {})
+
+-- :GdiffQF — project-wide "what changed" into the quickfix list.
+--
+-- Uses gitsigns' setqflist("all") which walks every tracked+dirty buffer
+-- in the repo and emits one quickfix entry per hunk. Result: `:cnext` /
+-- `:cprev` (bound to ]q/[q in mappings.lua) stepping through every change
+-- in the working tree, each landing at the exact line of the hunk.
+--
+-- This is the "default diff UX" — it replaces the habit of `:Git diff`
+-- (which dumps unparsable text in a scratch buffer) with a navigable list.
+-- For the old tab-based side-by-side view, use :GdiffInTab.
+api.nvim_create_user_command("GdiffQF", function()
+  local ok, gs = pcall(require, "gitsigns")
+  if not ok then
+    vim.notify("gitsigns not available", vim.log.levels.ERROR)
+    return
+  end
+  -- setqflist is async; open + jump to first entry from its callback so
+  -- we don't race against an empty list.
+  gs.setqflist("all", {
+    use_location_list = false,
+    open = false,
+    callback = function()
+      if #fn.getqflist() == 0 then
+        vim.notify("No git hunks in the working tree", vim.log.levels.INFO)
+        return
+      end
+      cmd "botright copen"
+      cmd "cfirst"
+    end,
+  })
 end, {})
 
 api.nvim_create_user_command("Prettier", function()

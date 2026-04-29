@@ -7,14 +7,32 @@ task :lunchtime do
   `(crontab -l ; echo "0 12 * * 1-5 bash -c \"say -v 'Vicki' 'It is lunch time, baby'\"") | sort - | uniq - | crontab -`
 end
 
+desc "install iTerm2 GlobalKeyMap entries + profile transparency"
+task :iterm do
+  # Must be run with iTerm2 quit (⌘Q) — the scripts enforce this and
+  # exit with a clear message otherwise. Re-running is safe / idempotent.
+  # Transparency pairs with nvim's Normal/NormalNC bg=NONE in user/init.lua
+  # to give the "floating windows" look between splits.
+  sh "bash #{File.expand_path('bin/iterm-setup-keys.sh', __dir__)}"
+  sh "bash #{File.expand_path('bin/iterm-setup-transparency.sh', __dir__)}"
+end
+
 task :install do
-  #`brew install reattach-to-user-namespace`
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  brew install direnv
-  brew install ripgrep bat fzf
-  brew install vim --with-lua #https://github.com/Shougo/neocomplete.vim#vim-for-mac-os-x
-  `curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-      https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim`
+  # Bare shell lines used to live here (brew install …, /usr/bin/ruby …)
+  # but they aren't valid Ruby — they caused the whole Rakefile to fail
+  # to parse, breaking every task including :iterm. Wrapping each in `sh`.
+  sh 'which brew >/dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+  sh 'brew install direnv'
+  sh 'brew install ripgrep bat fzf'
+  sh 'brew install vim'  # --with-lua was removed from Homebrew in 2019
+  # Nerd Font for NvChad statusline icons (LSP, git branch, file icons, ...).
+  sh 'brew install --cask font-jetbrains-mono-nerd-font'
+  sh 'curl -fLo ~/.vim/autoload/plug.vim --create-dirs ' \
+     'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+
+  # iTerm2 key-forwarding entries + profile transparency/background image.
+  # Both scripts no-op with a clear message if iTerm2 is currently running.
+  Rake::Task[:iterm].invoke
 
   system %Q{ cp -r $HOME/dotfiles/bin/* /usr/local/bin/}
   replace_all = ENV['REPLACE_ALL'] || false
