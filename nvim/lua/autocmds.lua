@@ -122,10 +122,14 @@ api.nvim_create_autocmd("FileType", {
 -- events. Triggering `:checktime` here forces the check on:
 --   FocusGained — coming back to nvim from another app
 --   BufEnter    — switching buffers
---   CursorHold  — idle in a buffer (catches edits while nvim is focused,
---                 e.g. running a formatter in a terminal split)
 --   TermClose   — after a terminal command exits, in case it touched files
-api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI", "TermClose" }, {
+--
+-- CursorHold and CursorHoldI were dropped. Together with updatetime restored to
+-- NvChad's 250 (see below), they would stat() the file four times a second, and
+-- CursorHoldI did it while typing. The two cases the old comment described —
+-- coming back from another app, and a formatter running in a split — are already
+-- covered by FocusGained and TermClose.
+api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose" }, {
   group = custom_group,
   callback = function()
     if vim.bo.buftype == "" and vim.fn.mode() ~= "c" then
@@ -277,12 +281,11 @@ api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   end,
 })
 
-api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  group = custom_group,
-  callback = function()
-    vim.o.updatetime = 2000
-  end,
-})
+-- Removed: a pattern-less BufRead/BufNewFile autocmd that re-set the GLOBAL
+-- `updatetime = 2000` on every file opened. It silently overrode NvChad's 250,
+-- which gitsigns relies on for responsive blame and hunk updates. Nothing here
+-- needed the slower value; the CursorHold consumers that did (see the checktime
+-- autocmd above) have been narrowed instead.
 
 api.nvim_create_autocmd("BufReadPost", {
   group = custom_group,

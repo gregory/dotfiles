@@ -16,7 +16,10 @@ opt.expandtab = true
 opt.hidden = true
 opt.hlsearch = true
 opt.incsearch = true
-opt.laststatus = 2
+-- laststatus deliberately NOT set to 2 here. NvChad sets 3 (one global
+-- statusline), and every module in user/statusline.lua keys off
+-- vim.g.statusline_winid, i.e. it is written for the global bar. With 2 you get
+-- a per-window re-evaluation of the whole generator instead.
 -- lazyredraw breaks flash.nvim label rendering (labels flicker / don't
 -- appear). Disable it; modern nvim doesn't benefit from it much anyway.
 opt.lazyredraw = false
@@ -71,13 +74,27 @@ opt.textwidth = 100
 opt.title = true
 opt.undolevels = 1000
 opt.visualbell = true
-opt.viminfo = "'100,f1"
+-- Neovim's default shada is `!,'100,<50,s10,h`. The old value here was
+-- `'100,f1`, which REPLACED it and so silently dropped:
+--   <50  cap on lines saved per register  -> one big yank got persisted forever
+--   s10  10KiB cap per item               -> and slowed every quit
+--   h    don't restore hlsearch on load   -> old highlights came back at startup
+-- Keeping f1 (store file marks) but appending it to the defaults instead.
+opt.shada = "!,'100,<50,s10,h,f1"
 opt.wildignore = { "*.swp", "*.bak", "*.pyc", "*.class" }
 opt.wildmenu = true
 opt.wildmode = "longest:full:full"
-opt.formatoptions = "l"
+-- This was `opt.formatoptions = "l"` — an ASSIGNMENT, not an append, so it wiped
+-- c q j r o t n. That meant no `gq` comment reflow, no comment-leader stripping
+-- on J, and no automatic comment continuation. Appending `l` to a sane base
+-- instead.
+opt.formatoptions = "jcroql"
 opt.autoread = true
-opt.path:append "**"
+
+-- `opt.path:append "**"` removed: with wildignore holding only *.swp/*.bak/
+-- *.pyc/*.class, it made `gf`, `:find` and <C-x><C-i> recurse the entire tree,
+-- node_modules included, across 27 projects. `gd` via vtsls is the right tool
+-- for following an import now.
 pcall(function()
   opt.ttymouse = "xterm2"
 end)

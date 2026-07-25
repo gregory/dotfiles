@@ -44,6 +44,14 @@ M.mason = {
 local user_stl = require "user.statusline"
 user_stl.setup()
 
+-- NvChad's "colorify" (virtual colour swatches next to hex values) is enabled by
+-- default and rescans the visible viewport on TextChanged / TextChangedI /
+-- TextChangedP — i.e. on every character typed and every step through the
+-- completion menu. Its lspvars half additionally does an LSP document-colour
+-- round trip on the current line per keystroke. With no CSS-heavy workflow here,
+-- that is a per-keystroke cost for nothing.
+M.colorify = { enabled = false }
+
 M.ui = {
   statusline = {
     theme = "default",
