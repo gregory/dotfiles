@@ -138,7 +138,12 @@ end, { expr = true, silent = true, noremap = true })
 map("n", "cl", function()
   user.toggle_curline()
 end, { silent = true, nowait = true })
-map({ "n", "v", "o" }, "<F6>", "<cmd>Prettier<CR>", { silent = true, noremap = true })
+-- <F6> = format. Was `:Prettier`, a coc command — coc never loads, so this
+-- threw. conform handles it, falling back to the LSP formatter where no
+-- external formatter is configured.
+map({ "n", "v", "o" }, "<F6>", function()
+  require("conform").format { async = true, lsp_format = "fallback" }
+end, { silent = true, noremap = true, desc = "Format buffer/selection" })
 map("n", "<C-o>", function()
   user.zoom_toggle()
 end, { silent = true, noremap = true })
@@ -164,9 +169,20 @@ map("n", "<leader>D",  "<cmd>tabclose<CR>",    { silent = true, noremap = true }
 
 -- Bare `g*` — fugitive one-shots (keep the muscle memory)
 map("n", "gb",  ":Git blame<CR>",           { nowait = true, desc = "Git blame (fugitive)" })
-map("n", "gd",  ":Git diff<CR>",            { nowait = true, desc = "Git diff (text dump)" })
 map("n", "gl",  ":Git log -15 --<CR>",      { nowait = true, desc = "Git log (last 15)" })
-map("n", "gr",  ":Git reset HEAD %<CR>",    { nowait = true, desc = "Git reset HEAD (buffer)" })
+-- `gd` and `gr` deliberately moved to <leader>g*, because both collided with
+-- LSP:
+--   gd -> NvChad maps it BUFFER-LOCALLY to vim.lsp.buf.definition on LspAttach,
+--         and buffer-local beats global, so :Git diff silently disappeared in
+--         every code buffer the moment servers started working.
+--   gr -> a complete mapping AND the prefix of six nvim 0.12 builtins (grn
+--         rename, gra code action, grr references, gri implementation, grt type
+--         definition, grx codelens). Every one of them waited out timeoutlen.
+--         Freeing the prefix gets all six for nothing.
+-- Moving `Git reset HEAD %` off a bare two-key sequence is a bonus: it is
+-- destructive.
+map("n", "<leader>gd", ":Git diff<CR>",         { nowait = true, desc = "Git diff (text dump)" })
+map("n", "<leader>gu", ":Git reset HEAD %<CR>", { nowait = true, desc = "Git unstage buffer" })
 map("n", "gck", ":Git checkout -- %<CR>",   { nowait = true, desc = "Git checkout -- (buffer)" })
 map("n", "gc",  ":Git commit<CR>",          { nowait = true, desc = "Git commit" })
 map("n", "gp",  ":Git push -f<CR>",         { nowait = true, desc = "Git push -f" })
@@ -394,3 +410,38 @@ map("n", "<leader>S", "<cmd>aboveleft split<CR>")
 map("n", "<leader>V", "<cmd>aboveleft vsplit<CR>")
 map("n", "<leader>s", "<cmd>split<CR>")
 map("n", "<leader>v", "<cmd>vsplit<CR>")
+
+-- ─── LSP ───────────────────────────────────────────────────────────────────
+-- Most of what you'd reach for already ships with nvim 0.12 and only needed
+-- un-shadowing (see the gd/gr note above): grn rename, gra code action,
+-- grr references, gri implementation, grt type definition, gO symbols,
+-- ]d/[d/]D/[D diagnostics, <C-W>d diagnostic float, <C-S> signature help.
+-- Note <Space> is an expr map to <C-w>, so <Space>d opens the diagnostic float.
+
+-- Hover. Cannot live on `K` — that is `10kzz` here, and nvim only claims K when
+-- it is unmapped (lsp.lua checks maparg('K') == ''), so hover simply had no key.
+map("n", "gK", vim.lsp.buf.hover, { desc = "LSP hover" })
+
+-- Route the builtin gr* list-producers through fzf-lua, which is the picker
+-- that is actually configured here. Each still supports send-to-quickfix, so
+-- ]q/[q keeps working.
+map("n", "grr", "<cmd>FzfLua lsp_references<CR>",       { desc = "LSP references" })
+map("n", "gri", "<cmd>FzfLua lsp_implementations<CR>",  { desc = "LSP implementations" })
+map("n", "gO",  "<cmd>FzfLua lsp_document_symbols<CR>", { desc = "LSP document symbols" })
+map({ "n", "x" }, "gra", "<cmd>FzfLua lsp_code_actions<CR>", { desc = "LSP code actions" })
+
+-- Diagnostics as a list ("issues"). <leader>i / <leader>I were both free.
+map("n", "<leader>i", "<cmd>FzfLua diagnostics_document<CR>",  { desc = "Diagnostics (buffer)" })
+map("n", "<leader>I", "<cmd>FzfLua diagnostics_workspace<CR>", { desc = "Diagnostics (workspace)" })
+
+-- `gd` -> definition via fzf-lua, and drop NvChad's buffer-local <leader>D so
+-- <leader>D stays :tabclose (grt already covers type definition).
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspMaps", { clear = true }),
+  callback = function(args)
+    local opts = { buffer = args.buf, silent = true }
+    vim.keymap.set("n", "gd", "<cmd>FzfLua lsp_definitions<CR>",
+      vim.tbl_extend("force", opts, { desc = "LSP definitions" }))
+    pcall(vim.keymap.del, "n", "<leader>D", { buffer = args.buf })
+  end,
+})

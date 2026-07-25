@@ -9,6 +9,36 @@ M.base46 = {
   theme = "onedark",
 }
 
+-- Language servers and formatters, installed with :MasonInstallAll.
+--
+-- Mason rather than `npm install -g`: npm globals live under the active node
+-- version's prefix, so switching node makes every server vanish. That exact
+-- failure was already in this config as g.coc_node_path pointing at a v16.12.0
+-- that no longer exists. Mason installs into its own prefix and only needs
+-- *some* node on PATH, so it survives version switches (and the nvm -> fnm move).
+-- NvChad prepends mason/bin to vim.env.PATH unconditionally, so no extra wiring.
+M.mason = {
+  pkgs = {
+    -- TypeScript / JavaScript. vtsls over ts_ls: Vue 3 hybrid mode requires it
+    -- (takeover mode was removed in vue-language-server 3.0), and it exposes
+    -- the tsserver commands ts_ls does not (organize imports, add missing).
+    "vtsls",
+    "eslint-lsp",           -- highest-value server across 27 JS projects
+    "vue-language-server",  -- 268 .vue files
+    "json-lsp",
+    "html-lsp",
+    "css-lsp",
+    "yaml-language-server",
+    "bash-language-server", -- 288 .sh files
+    "lua-language-server",  -- NvChad enables lua_ls but never installed it
+
+    -- formatters for conform.nvim
+    "prettier",
+    "stylua",
+    "shfmt",
+  },
+}
+
 -- Custom statusline modules layered on top of NvChad's default theme.
 -- See lua/user/statusline.lua for the module implementations.
 local user_stl = require "user.statusline"

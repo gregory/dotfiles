@@ -87,29 +87,11 @@ api.nvim_create_autocmd("FileType", {
   end,
 })
 
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = "css",
-  callback = function()
-    vim.bo.omnifunc = "csscomplete#CompleteCSS"
-  end,
-})
-
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = { "html", "markdown" },
-  callback = function()
-    vim.bo.omnifunc = "htmlcomplete#CompleteTags"
-  end,
-})
-
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = "javascript",
-  callback = function()
-    vim.bo.omnifunc = "javascriptcomplete#CompleteJS"
-  end,
-})
+-- The css / html+markdown / javascript omnifunc autocmds are gone: vim.lsp sets
+-- omnifunc on attach ONLY when it is empty or default, so setting the old
+-- vimscript completers here BLOCKED LSP omni-completion for exactly the
+-- filetypes that now have real servers (cssls, html, vtsls).
+-- The python/xml/less ones below are kept — no server covers those here.
 
 api.nvim_create_autocmd("FileType", {
   group = custom_group,
@@ -364,26 +346,15 @@ api.nvim_create_autocmd({ "BufEnter", "WinEnter", "WinNew", "VimResized" }, {
   end,
 })
 
-api.nvim_create_autocmd("CursorHold", {
-  group = custom_group,
-  callback = function()
-    pcall(fn.CocActionAsync, "highlight")
-  end,
-})
-
-api.nvim_create_autocmd("User", {
-  group = custom_group,
-  pattern = "CocJumpPlaceholder",
-  callback = function()
-    pcall(fn.CocActionAsync, "showSignatureHelp")
-  end,
-})
-
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = { "typescript", "json" },
-  callback = function()
-    vim.bo.formatexpr = "CocAction('formatSelected')"
-  end,
-})
+-- Three coc.nvim autocmds removed here. coc never loaded (its spec has no
+-- event/cmd/keys/ft trigger under defaults = { lazy = true }), so all three were
+-- either no-ops or actively harmful:
+--
+--   CursorHold -> CocActionAsync("highlight")     — a pcall that failed on every
+--     idle tick. The LSP equivalent is vim.lsp.document_highlight.
+--   User CocJumpPlaceholder -> showSignatureHelp  — never fired.
+--   FileType typescript,json -> formatexpr = "CocAction('formatSelected')"
+--     — actively harmful. vim.lsp sets formatexpr on attach ONLY if it is empty
+--     or default, so this blocked LSP range formatting for the two filetypes
+--     most used here, and made `gq` throw E117 in them.
 
