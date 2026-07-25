@@ -216,8 +216,24 @@ return {
   -- Colorschemes used by F1 / F3. F2 keeps gruvbox-light (already loaded
   -- by NvChad via morhetz/gruvbox). We load these eagerly so F-keys never
   -- hit a missing-colorscheme error on first press.
-  { "xero/miasma.nvim",      lazy = false, priority = 900 },
-  { "maxmx03/solarized.nvim", lazy = false, priority = 900 },
+  -- No lazy = false / priority needed: lazy.nvim's ColorSchemePre hook loads a
+  -- colorscheme plugin on `:colorscheme <name>`, which is how gruvbox (declared
+  -- with no trigger at all, further down) has always worked here. The F-key
+  -- theme switchers pcall the :colorscheme command and fall back to gruvbox, so
+  -- a failed load cannot break startup either.
+  { "xero/miasma.nvim" },
+  { "maxmx03/solarized.nvim" },
+
+  -- Two fuzzy finders and three file explorers were installed at once.
+  -- fzf-lua is the one that is actually configured here (rich keymap block,
+  -- builtin previewer, --jump-labels, flash integration), and neo-tree is the
+  -- one in use — so telescope and nvim-tree are disabled rather than left to
+  -- shadow keys and add clone weight. NvChad maps keys to both, so those are
+  -- re-pointed at fzf-lua / Neotree in mappings.lua.
+  -- oil.nvim stays: "edit a directory as a buffer" is something neo-tree does
+  -- not do.
+  { "nvim-telescope/telescope.nvim", enabled = false },
+  { "nvim-tree/nvim-tree.lua", enabled = false },
 
   -- nvim-treesitter on the `main` branch.
   --
@@ -728,11 +744,14 @@ return {
   {
     "tpope/vim-fugitive",
     name = "vim-fugitive",
+    -- vim-rhubarb as a DEPENDENCY, not its own spec: :GBrowse is defined by
+    -- fugitive, which then dispatches to a handler rhubarb registers. As a
+    -- standalone spec rhubarb had no trigger at all, so <leader>gy/gY were
+    -- broken; giving it cmd = "GBrowse" would race with fugitive's own command,
+    -- while a dependency guarantees load order.
+    dependencies = { "tpope/vim-rhubarb" },
     -- Lazy-load on the commands we actually invoke. `Gclog`/`0Gclog` are
-    -- the log-into-quickfix entry points (bound to `gh`). `GBrowse` comes
-    -- from vim-rhubarb (declared as a separate plugin) but needs fugitive
-    -- loaded first — adding it here ensures the `<leader>gy/gY` bindings
-    -- work on first invocation.
+    -- the log-into-quickfix entry points (bound to `gh`).
     cmd = {
       "G", "Git", "Gread", "Gwrite", "Ggrep",
       "Gdiffsplit", "Gvdiffsplit", "GMove", "GDelete", "GRemove",
@@ -741,35 +760,27 @@ return {
       "GBrowse",
     },
   },
-  { "scrooloose/nerdcommenter", lazy = false },
-  { "stefandtw/quickfix-reflector.vim" },
-  { "editorconfig/editorconfig-vim" },
-  { "moll/vim-node" },
-  { "tpope/vim-rhubarb" },
-  { "terryma/vim-multiple-cursors" },
+  -- Editable quickfix list: edit entries in :copen and :w writes them back to
+  -- the files. Given how much of this config lives in the quickfix list
+  -- (GdiffQF, Gclog, ]q/[q) this is worth keeping — it just needed a trigger.
+  { "stefandtw/quickfix-reflector.vim", ft = "qf" },
 
-  -- coc.nvim kept for now — migration to native LSP deferred.
-  -- coc_global_extensions auto-installs the listed CoC extensions on
-  -- first launch so `:CocInstall` is not required. coc-snippets gives
-  -- us tabstop-aware expansion; honza/vim-snippets is the actual
-  -- snippet corpus (thousands of JS/TS/React/Ruby/Python/… templates).
-  {
-    "neoclide/coc.nvim",
-    branch = "release",
-    init = function()
-      vim.g.coc_global_extensions = {
-        "coc-snippets",
-        "coc-json",
-        "coc-tsserver",
-        "coc-eslint",
-        "coc-prettier",
-        "coc-css",
-        "coc-html",
-        "coc-yaml",
-      }
-    end,
-  },
-  { "honza/vim-snippets" },
+  -- Removed here (all were unreachable — no event/cmd/keys/ft under
+  -- defaults = { lazy = true }, no lua/ module, nobody's dependency, so lazy.nvim
+  -- had no way to load them; verified at runtime):
+  --   scrooloose/nerdcommenter   -> `gc` is built into Neovim since 0.10
+  --   editorconfig/editorconfig-vim -> built into Neovim since 0.9; NvChad even
+  --                                 calls require("editorconfig").config()
+  --   moll/vim-node              -> `gd` on an import does this via vtsls now
+  --   terryma/vim-multiple-cursors -> deprecated upstream. No builtin
+  --                                 equivalent; `*` then `cgn` then `.` covers
+  --                                 most of it.
+  --   neoclide/coc.nvim          -> replaced by nvim-cmp + native LSP (see
+  --                                 configs/lspconfig.lua). Its `init` was still
+  --                                 setting g:coc_global_extensions every start.
+  --   honza/vim-snippets         -> LuaSnip + friendly-snippets are installed
+  --                                 and wired by NvChad; nvim also ships
+  --                                 vim.snippet. Was declared TWICE.
 
   -- ============================================================
   -- Copilot Chat: sidebar conversation powered by your Copilot sub
@@ -871,24 +882,49 @@ return {
       })
     end,
   },
-  { "honza/vim-snippets" },
+  -- vim-surround: ys / cs / ds. This was DEAD — verified with
+  -- maparg("ys", "n") == "" — because it had no trigger. VeryLazy rather than
+  -- `keys` because its lhs set is large (ys yss yS ySS cs cS ds + visual S/gS)
+  -- and vim-repeat has to be loaded alongside it for `.` to repeat a surround.
+  -- Both are tiny vimscript; after UIEnter the cost is negligible.
+  {
+    "tpope/vim-surround",
+    event = "VeryLazy",
+    dependencies = { "tpope/vim-repeat" },
+  },
 
-  { "hashivim/vim-terraform" },
-  { "tpope/vim-endwise" },
-  { "Chiel92/vim-autoformat" },
-  { "tpope/vim-repeat" },
-  { "tpope/vim-surround" },
-  { "kana/vim-submode" },
-  { "jiangmiao/auto-pairs" },
-  { "MattesGroeger/vim-bookmarks", lazy = false },
-  { "kshenoy/vim-signature" },
-  { "tomtom/tlib_vim" },
-  { "sheerun/vim-polyglot" },
-  { "marcweber/vim-addon-mw-utils" },
-  { "junegunn/vim-easy-align", lazy = false },
+  -- Marks in the signcolumn, and the <Plug> maps used by mappings.lua:71-77.
+  -- Was `lazy = false` only because of those maps; `keys` is enough.
+  {
+    "MattesGroeger/vim-bookmarks",
+    keys = { "bm", "bi", "bn", "bp", "ba", "bC", "bx" },
+  },
 
-  -- Colorscheme
+  -- <CR> in visual mode aligns. Was `lazy = false` for the same reason.
+  {
+    "junegunn/vim-easy-align",
+    keys = { { "<CR>", "<Plug>(EasyAlign)", mode = "x" } },
+  },
+
+  -- Colorschemes need no trigger and must NOT be lazy = false: lazy.nvim's
+  -- ColorSchemePre hook loads the right plugin on `:colorscheme <name>`.
+  -- gruvbox has always worked this way here, which is the proof.
   { "morhetz/gruvbox" },
+
+  -- Removed here (same unreachable-spec reason as the block above):
+  --   hashivim/vim-terraform  -> treesitter terraform/hcl parsers + terraformls
+  --   tpope/vim-endwise       -> nvim-autopairs; add back with
+  --                              ft = { "ruby", "eruby", "lua", "sh", "vim" }
+  --                              if the Ruby project misses it
+  --   Chiel92/vim-autoformat  -> conform.nvim
+  --   kana/vim-submode        -> the <S-Up/Down/Left/Right> resize maps cover it
+  --   jiangmiao/auto-pairs    -> NvChad ships nvim-autopairs as a cmp dependency
+  --   kshenoy/vim-signature   -> fought vim-bookmarks over the signcolumn;
+  --                              plain marks are covered by `M` -> FzfLua marks
+  --   sheerun/vim-polyglot    -> treesitter. Unmaintained, and its syntax files
+  --                              fight both treesitter and nvim's own ftplugins
+  --   tomtom/tlib_vim, marcweber/vim-addon-mw-utils -> snipMate dependencies,
+  --                              orphaned once vim-snippets went
 
   -- Statusline: using NvChad's built-in statusline (loaded via base46).
   -- lightline.vim removed — was conflicting and lacked Nerd Font icons.

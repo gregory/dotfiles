@@ -93,93 +93,53 @@ if fn.has "persistent_undo" == 1 then
   opt.undodir = undo_dir
 end
 
-g.polyglot_disabled = { "javascript" }
-g.AutoPairsFlyMode = 1
-g.AutoPairsMapCR = 0
-g.AutoPairsShortcutBackInsert = "<c-b>"
-g.ale_fixers = { ["*"] = { "remove_trailing_lines", "trim_whitespace" }, javascript = { "eslint" } }
-g.ale_fix_on_save = 1
-g.ale_lint_on_text_changed = "never"
-g.ale_keep_list_window_open = 1
-g.ale_set_loclist = 1
-
-g.EasyMotion_smartcase = 1
-g.smartpairs_uber_mode = 1
+-- ~70 lines of plugin globals were removed from here. Every one configured a
+-- plugin that is either not installed at all, or was installed but unreachable
+-- (no trigger under defaults = { lazy = true }):
+--
+--   polyglot_disabled           -> vim-polyglot removed; treesitter now
+--   AutoPairs*                  -> auto-pairs removed; nvim-autopairs is active
+--   ale_*                       -> ALE was never installed; eslint-lsp now
+--   EasyMotion_*                -> replaced by flash.nvim
+--   smartpairs_uber_mode        -> not installed
+--   CtrlSpace*                  -> removed (harpoon covers pinned buffers)
+--   NERDTree*                   -> removed (neo-tree + oil)
+--   acp_enableAtStartup         -> not installed
+--   terraform_*                 -> vim-terraform removed; terraformls now
+--   tcd_blacklist               -> not installed
+--   signify_*                   -> replaced by gitsigns
+--   prettier#*                  -> vim-prettier not installed; conform now
+--   html_no_rendering, javascript_enable_domhtmlcss -> polyglot-era
+--   indent_guides_*             -> indent-blankline is enabled = false
+--   fzf_action                  -> for junegunn/fzf.vim, which is gone;
+--                                  fzf-lua uses its own `actions` table
+--   Choosewin_overlay_enable    -> not installed
+--
+-- Kept below: bookmark_* (vim-bookmarks is live), undotree_*, and g.ignore /
+-- g.excludes (g.ignore is consumed by autocmds.lua).
 
 g.bookmark_save_per_working_dir = 1
 g.bookmark_auto_save = 1
-g.CtrlSpaceDefaultMappingKey = "<x>"
-g.CtrlSpaceSaveWorkspaceOnSwitch = 1
-g.CtrlSpaceKeys = { Buffer = { b = "PrintFooBar" } }
 
-g.NERDTreeMinimalUI = 1
-g.NERDTreeWinSize = 40
-g.NERDTreeDirArrows = 0
-g.NERDTreeQuitOnOpen = 1
-g.NERDTreeAutoDeleteBuffer = 1
-g.NERDTreeIgnore = { "^node_modules$[[dir]]", "^coverage$[[dir]]" }
-
-g.acp_enableAtStartup = 0
-g.terraform_completion_keys = 1
-g.terraform_registry_module_completion = 0
-
-g.EasyMotion_do_mapping = 0
-g.EasyMotion_startofline = 0
-
-g.tcd_blacklist = [[\v(cheat40|denite|gundo|help|nerdtree|netrw|peekaboo|quickmenu|startify|tagbar|undotree|unite|vimfiler|vimshell|fzf)]]
-
-g.signify_vcs_list = { "git" }
-g.signify_sign_change = "~"
-
-g["prettier#autoformat"] = 1
-g["prettier#config#trailing_comma"] = "none"
-g["prettier#config#bracket_spacing"] = "true"
-g["prettier#config#print_width"] = 100
-
-g["asterisk#keeppos"] = 1
-g.coc_snippet_next = "<c-j>"
-g.coc_snippet_prev = "<c-k>"
-g.coc_node_path = fn.expand "~/.nvm/versions/node/v16.12.0/bin/node"
-
-g.AutoPairs = g.AutoPairs or {}
+-- coc globals removed along with coc.nvim. Note coc_node_path pointed at
+-- ~/.nvm/versions/node/v16.12.0/bin/node — a version that is not installed
+-- (only 18/22/24 were, and nvm itself is gone now in favour of fnm). That is
+-- exactly why language servers are installed through mason rather than pinned
+-- to a node path: see chadrc.lua.
+--
+-- g.AutoPairs removed too: jiangmiao/auto-pairs is gone, and nvim-autopairs
+-- (which NvChad ships as an nvim-cmp dependency) is what is actually running.
 
 g.undotree_SetFocusWhenToggle = 1
 
-g.html_no_rendering = 1
-
 -- lightline removed — using NvChad's built-in statusline.
 
-g.javascript_enable_domhtmlcss = 1
-
-g.indent_guides_enable_on_vim_startup = 1
-g.indent_guides_auto_colors = 0
-g.indent_guides_start_level = 1
-g.indent_guides_guide_size = 1
-g.indent_guides_color_change_percent = 100
-
-g.ignore = { ".git", "node_modules/", "packages", "vendor", ".svg", ".eot", "log/", ".jpg", [[\/\.]], [[^\..*]] }
+g.ignore ={ ".git", "node_modules/", "packages", "vendor", ".svg", ".eot", "log/", ".jpg", [[\/\.]], [[^\..*]] }
 local joined = {}
 for _, pattern in ipairs(g.ignore) do
   table.insert(joined, pattern)
 end
 g.excludes = " \\| GREP_OPTIONS='' egrep -v -e '" .. table.concat(joined, "\\|") .. "'"
 
-g.fzf_action = {
-  ["ctrl-o"] = "tab split",
-  ["ctrl-s"] = "split",
-  ["ctrl-v"] = "vsplit",
-  ["ctrl-q"] = function(lines)
-    local items = {}
-    for _, line in ipairs(lines) do
-      table.insert(items, { filename = line })
-    end
-    vim.fn.setqflist(items)
-    vim.cmd "copen"
-    vim.cmd "cc"
-  end,
-}
-
 -- lightline_theme removed with lightline.
-
-g.Choosewin_overlay_enable = 1
 

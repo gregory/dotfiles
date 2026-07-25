@@ -190,14 +190,9 @@ function M.warnings()
   return result
 end
 
--- ─── Coc status ────────────────────────────────────────────────────────────
-function M.coc_status()
-  if not is_active() then return "" end
-  if vim.o.columns < 120 then return "" end
-  local s = vim.g.coc_status
-  if not s or s == "" then return "" end
-  return "%#St_Lsp# " .. s .. " "
-end
+-- The coc_status module is gone with coc.nvim. It was evaluated on every redraw
+-- and could only ever return "" — vim.g.coc_status was never set, because coc
+-- never loaded. NvChad's own `lsp_msg` module covers server progress.
 
 -- ─── Indent info (only when non-default) ───────────────────────────────────
 function M.indent()

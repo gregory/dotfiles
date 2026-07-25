@@ -10,16 +10,17 @@ vim.keymap.set("n", "<S-Tab>", "<cmd>FzfLua buffers<CR>", { desc = "FZF buffers"
 -- (Oil parent-dir was moved to `_`.)
 vim.keymap.set("n", "-", "<C-^>", { silent = true, desc = "Alternate buffer" })
 
--- Nerdcommenter visual-mode mappings: force them explicitly so CopilotChat's
--- lazy.nvim keys spec (which claims ,cc in normal mode for chat toggle)
--- can't interfere with nerdcommenter's hasmapto() detection.
-vim.keymap.set("x", "<leader>cc", "<Plug>NERDCommenterComment", { desc = "Comment" })
-vim.keymap.set("x", "<leader>cu", "<Plug>NERDCommenterUncomment", { desc = "Uncomment" })
-vim.keymap.set("x", "<leader>c<Space>", "<Plug>NERDCommenterToggle", { desc = "Toggle comment" })
-vim.keymap.set("x", "<leader>cm", "<Plug>NERDCommenterMinimal", { desc = "Minimal comment" })
-vim.keymap.set("x", "<leader>cs", "<Plug>NERDCommenterSexy", { desc = "Sexy comment" })
-vim.keymap.set("x", "<leader>ci", "<Plug>NERDCommenterInvert", { desc = "Invert comment" })
-vim.keymap.set("x", "<leader>cy", "<Plug>NERDCommenterYank", { desc = "Yank then comment" })
+-- Commenting: Neovim's built-in `gc` (since 0.10) replaces nerdcommenter, which
+-- was loading eagerly (lazy = false) purely to provide these <Plug> maps — and
+-- was unreachable for anything else anyway.
+--
+-- `gc` toggles, so the old cc/cu/<Space> trio collapses into one binding.
+-- Dropped without replacement: cm/cs (minimal/sexy comment styles) and ci
+-- (invert) have no builtin equivalent; cy (yank then comment) is `y` then `gc`.
+-- NvChad also gives you <leader>/ -> gcc / gc.
+-- Note <leader>cc in NORMAL mode stays CopilotChat, hence x-mode only here.
+vim.keymap.set("x", "<leader>cc", "gc", { remap = true, desc = "Toggle comment" })
+vim.keymap.set("x", "<leader>c<Space>", "gc", { remap = true, desc = "Toggle comment" })
 
 local map = vim.keymap.set
 local user = require "user"
@@ -259,48 +260,41 @@ map("n", "<C-u>", function()
 end, { silent = true, noremap = true })
 map("n", "U", "<C-r>", { noremap = true })
 
--- cd via selecta
-map("n", "cd", function()
-  user.selecta_command("find * -type d" .. (vim.g.excludes or ""), "", "lcd")
-end, { noremap = true })
+-- `cd` unmapped. It called user.selecta_command, and `selecta` is not
+-- installed — so it was a silent no-op that also hit an E117 in that helper
+-- (fn.shell_error() — no such function; it is vim.v.shell_error).
+-- Leaving `cd` unmapped restores the `c` + `d` operator-motion, and removes the
+-- timeoutlen delay it was adding to every `c` press.
+-- For fuzzy directory jumping, `<leader>ff` / `cdw` in the shell cover it.
 
--- coc
-map("i", "<C-l>", "<Plug>(coc-snippets-expand)")
-map("v", "<C-j>", "<Plug>(coc-snippets-select)")
-map("i", "<C-j>", "<Plug>(coc-snippets-expand-jump)")
+-- Insert-mode <Tab>: Copilot first, then let nvim-cmp and Neovim's own defaults
+-- handle the rest.
+--
+-- The old chain called coc#_select_confirm / coc#expandableOrJumpable /
+-- coc#refresh. coc.nvim never loads (its spec has no trigger under
+-- defaults = { lazy = true }), so those threw E117 — specifically whenever the
+-- cmp menu was CLOSED and the cursor sat after a non-blank, because nvim-cmp
+-- installs its own global <Tab> and stashed this one as its fallback.
+--
+-- What handles it now, in order:
+--   1. Copilot ghost text visible          -> accept it (here)
+--   2. cmp menu open                       -> cmp's own <Tab> selects next
+--   3. LuaSnip placeholder pending         -> cmp's <Tab> jumps
+--   4. otherwise                           -> Neovim's default <Tab>, which
+--                                             since 0.12 is vim.snippet.jump
+-- Copilot's own Tab binding stays disabled via g:copilot_no_tab_map.
 map("i", "<Tab>", function()
-  -- Priority order in insert mode:
-  --   1. Copilot ghost-text suggestion visible → accept it
-  --   2. coc completion menu open            → confirm selection
-  --   3. coc snippet placeholder pending     → expand / jump
-  --   4. cursor right after whitespace       → literal Tab (indent)
-  --   5. otherwise                           → trigger coc refresh
-  --
-  -- Copilot.vim's own Tab binding is disabled via g:copilot_no_tab_map
-  -- (plugins/init.lua), so we drive it ourselves here.
   local ok, sugg = pcall(vim.fn["copilot#GetDisplayedSuggestion"])
   if ok and sugg and type(sugg) == "table" and sugg.text and sugg.text ~= "" then
-    return vim.fn["copilot#Accept"]("")
+    return vim.fn["copilot#Accept"] ""
   end
-  if fn.pumvisible() == 1 then
-    return fn["coc#_select_confirm"]()
-  elseif fn["coc#expandableOrJumpable"]() == 1 then
-    return fn["coc#rpc#request"]("doKeymap", { "snippets-expand-jump", "" })
-  elseif user.check_backspace() then
-    return "\t"
-  else
-    fn["coc#refresh"]()
-    return ""
-  end
+  return "<Tab>"
 end, { expr = true, silent = true, replace_keycodes = false })
-map("i", "<S-Tab>", function()
-  if fn.pumvisible() == 1 then
-    return vim.api.nvim_replace_termcodes("<C-p>", true, true, true)
-  end
-  return vim.api.nvim_replace_termcodes("<C-h>", true, true, true)
-end, { expr = true, silent = true })
-map("n", "<leader>rn", "<Plug>(coc-rename)")
-map("x", "<leader>f", "<Plug>(coc-format-selected)")
+
+-- <S-Tab>, <C-l>, <C-j>, <leader>rn and <leader>f were all coc bindings.
+-- Removed: cmp handles <S-Tab>; <C-l>/<C-j> go back to NvChad's cursor motions;
+-- rename is `grn` (builtin) or <leader>ra (NvChad's NvRenamer), which
+-- <leader>rn was shadowing; range formatting is <F6> via conform.
 
 -- rename current file (helper lives in user module)
 map("n", "mv", function() user.rename_file() end, { noremap = true })
@@ -445,3 +439,28 @@ vim.api.nvim_create_autocmd("LspAttach", {
     pcall(vim.keymap.del, "n", "<leader>D", { buffer = args.buf })
   end,
 })
+
+-- ─── Re-point NvChad's telescope / nvim-tree keys ──────────────────────────
+-- telescope.nvim and nvim-tree.lua are disabled (plugins/init.lua) in favour of
+-- fzf-lua and neo-tree, but NvChad maps 12 keys to them unconditionally in
+-- nvchad/mappings.lua. Without these overrides they'd fail with
+-- "Not an editor command: Telescope". This block must stay AFTER
+-- `require "nvchad.mappings"` at the top of this file.
+map("n", "<leader>ff", "<cmd>FzfLua files<CR>",            { desc = "Find files" })
+map("n", "<leader>fa", "<cmd>FzfLua files hidden=true no_ignore=true<CR>", { desc = "Find files (all)" })
+map("n", "<leader>fw", "<cmd>FzfLua live_grep<CR>",        { desc = "Live grep" })
+map("n", "<leader>fb", "<cmd>FzfLua buffers<CR>",          { desc = "Find buffers" })
+map("n", "<leader>fh", "<cmd>FzfLua helptags<CR>",         { desc = "Help tags" })
+map("n", "<leader>fo", "<cmd>FzfLua oldfiles<CR>",         { desc = "Recent files" })
+map("n", "<leader>fz", "<cmd>FzfLua blines<CR>",           { desc = "Find in buffer" })
+map("n", "<leader>cm", "<cmd>FzfLua git_commits<CR>",      { desc = "Git commits" })
+map("n", "<leader>gt", "<cmd>FzfLua git_status<CR>",       { desc = "Git status" })
+map("n", "<C-n>",      "<cmd>Neotree toggle<CR>",          { desc = "Neotree toggle" })
+map("n", "<leader>e",  "<cmd>Neotree focus<CR>",           { desc = "Neotree focus" })
+
+-- Deleted rather than re-pointed: both are telescope-only pickers AND both made
+-- a shorter mapping ambiguous — <leader>ma delayed <leader>m (neo-tree) and
+-- <leader>pt delayed <leader>p* (harpoon) by timeoutlen on every press.
+-- Marks are on `M` (FzfLua marks); terminals on <C-f>*/<C-g>*.
+pcall(vim.keymap.del, "n", "<leader>ma")
+pcall(vim.keymap.del, "n", "<leader>pt")

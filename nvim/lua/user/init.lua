@@ -96,67 +96,6 @@ function M.follow_symlink()
   end
 end
 
-function M.set_project_root()
-  local buf = api.nvim_get_current_buf()
-  local buftype = vim.bo[buf].buftype
-  if buftype ~= "" then
-    return
-  end
-
-  local name = api.nvim_buf_get_name(buf)
-  if name == "" or name:match "^%a+://" then
-    return
-  end
-
-  local buf_dir = fn.fnamemodify(name, ":p:h")
-  if buf_dir ~= "" and fn.isdirectory(buf_dir) == 1 then
-    pcall(cmd, "silent! lcd " .. fn.fnameescape(buf_dir))
-  end
-
-  local git_dir = trim(fn.system "git rev-parse --show-toplevel")
-  if vim.v.shell_error ~= 0 then
-    return
-  end
-
-  if git_dir ~= "" and not git_dir:match "^fatal:" and fn.isdirectory(git_dir) == 1 then
-    pcall(cmd, "silent! lcd " .. fn.fnameescape(git_dir))
-  end
-end
-
-function M.selecta_command(choice_command, selecta_args, vim_command)
-  if fn.executable "selecta" == 0 then
-    return
-  end
-  local original = fn.getcwd()
-  local buf_dir = fn.expand "%:p:h"
-  if buf_dir ~= "" then
-    cmd("lcd " .. fn.fnameescape(buf_dir))
-  end
-  local git_dir = trim(fn.system "git rev-parse --show-toplevel")
-  if git_dir ~= "" and not git_dir:match "^fatal:" then
-    cmd("lcd " .. fn.fnameescape(git_dir))
-  end
-  local selection = fn.system(choice_command .. " | selecta " .. (selecta_args or ""))
-  cmd "redraw!"
-  cmd("lcd " .. fn.fnameescape(original))
-  if fn.shell_error() ~= 0 then
-    return
-  end
-  selection = trim(selection)
-  if selection == "" then
-    return
-  end
-  cmd(vim_command .. " " .. fn.fnameescape(selection))
-end
-
-function M.selecta_file(path)
-  M.selecta_command("find " .. path .. "/* -type f", "", ":e")
-end
-
-function M.selecta_identifier()
-  fn.setreg("z", fn.expand "<cword>")
-  M.selecta_command("find * -type f", "-s " .. fn.getreg "z", ":e")
-end
 
 local terminal_close_group = api.nvim_create_augroup("user_terminal_close", { clear = false })
 
@@ -193,10 +132,10 @@ function M.open_terminal(opts)
   local buf = api.nvim_get_current_buf()
 
   if opts.kill then
-    local ok = pcall(api.nvim_buf_set_option, buf, "term_kill", opts.kill)
-    if not ok then
-      vim.b[buf].term_kill = opts.kill
-    end
+    -- Was wrapped in pcall(api.nvim_buf_set_option, buf, "term_kill", ...) —
+    -- that API is deprecated AND `term_kill` was never a buffer option (it is a
+    -- Vim 8 thing), so the pcall always failed and always fell through to this.
+    vim.b[buf].term_kill = opts.kill
   end
 
   if opts.close ~= false then
@@ -335,14 +274,6 @@ function M.rename_file()
   end
 end
 
-function M.set_transparency()
-  cmd "hi Normal     guibg=NONE ctermbg=NONE"
-  cmd "hi NormalNC   guibg=NONE ctermbg=NONE"
-  cmd "hi SignColumn guibg=NONE ctermbg=NONE"
-  cmd "hi LineNr     guibg=NONE ctermbg=NONE"
-  cmd "hi EndOfBuffer guibg=NONE ctermbg=NONE"
-  cmd "hi Terminal   guibg=NONE ctermbg=NONE"
-end
 
 -- Helper: load gruvbox with the requested background, fall back gracefully.
 -- F2 (light) uses vanilla gruvbox-light + a few targeted overrides so
@@ -578,60 +509,6 @@ end
 
 local hop_warning_shown = false
 
-local function load_hop()
-  local ok, hop = pcall(require, "hop")
-  if ok then
-    return hop
-  end
-
-  if not hop_warning_shown then
-    hop_warning_shown = true
-    vim.schedule(function()
-      vim.notify("hop.nvim is not available; search mappings will fall back to their defaults", vim.log.levels.WARN, {
-        title = "hop",
-      })
-    end)
-  end
-
-  return nil
-end
-
-function M.hop_patterns(opts)
-  local hop = load_hop()
-  if hop then
-    hop.hint_patterns(opts or {})
-    return true
-  end
-  return false
-end
-
-function M.hop_char1(opts)
-  local hop = load_hop()
-  if hop then
-    hop.hint_char1(opts or {})
-    return true
-  end
-  return false
-end
-
-
-function M.print_foobar()
-  vim.notify("Foo Bar!", vim.log.levels.INFO, { title = "CtrlSpace" })
-end
-
-function M.check_backspace()
-  local col = fn.col "." - 1
-  if col <= 0 then
-    return true
-  end
-  local line = fn.getline "."
-  return line:sub(col, col):match "%s" ~= nil
-end
-
-
-function M.coc_current_function()
-  return vim.b.coc_current_function or ""
-end
 
 function M.set_tmux_key_label(label)
   local term = uv.os_getenv("TERM")
@@ -693,20 +570,23 @@ api.nvim_create_user_command("GdiffQF", function()
   })
 end, {})
 
-api.nvim_create_user_command("Prettier", function()
-  cmd "CocCommand prettier.forceFormatDocument"
-end, {})
+-- :Prettier and :Format both went through coc, which never loaded, so both
+-- threw. conform handles them now (see configs/conform.lua), falling back to the
+-- LSP formatter for filetypes with no external formatter. Kept as two names
+-- because the muscle memory exists; <F6> and <leader>fm do the same thing.
+local function format_buffer()
+  require("conform").format { async = true, lsp_format = "fallback" }
+end
 
-api.nvim_create_user_command("Format", function()
-  fn.CocAction("format")
-end, {})
+api.nvim_create_user_command("Prettier", format_buffer, { desc = "Format buffer (conform)" })
+api.nvim_create_user_command("Format", format_buffer, { desc = "Format buffer (conform)" })
 
-api.nvim_create_user_command("Fold", function(opts)
-  fn.CocAction("fold", table.unpack(opts.fargs))
-end, { nargs = "?" })
+-- :Fold removed — it called CocAction("fold"). Treesitter folding is available
+-- instead: `:setlocal foldmethod=expr foldexpr=v:lua.vim.treesitter.foldexpr()`,
+-- and the z-prefix maps in mappings.lua drive it.
 
-_G.PrintFooBar = M.print_foobar
-_G.CocCurrentFunction = M.coc_current_function
+-- _G.PrintFooBar / _G.CocCurrentFunction removed: the first existed only for
+-- g.CtrlSpaceKeys (CtrlSpace is gone), the second for the coc statusline module.
 
 cmd [[cabbrev grep Ggrep]]
 cmd [[cabbrev git Git]]
