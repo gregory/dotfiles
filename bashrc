@@ -1,4 +1,6 @@
-stty -ixon
+# Only meaningful on a real terminal; guarding it keeps `stty: stdin isn't a
+# terminal` out of every non-interactive shell a tool spawns.
+[[ -t 0 ]] && stty -ixon
 
 export RUBY_GC_HEAP_INIT_SLOTS=600000
 export RUBY_GC_HEAP_FREE_SLOTS=600000
@@ -8,12 +10,13 @@ export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export EDITOR='vim'
-export GREP_OPTIONS='--color=auto -n' GREP_COLOR='7;35'
+# GREP_OPTIONS removed: it was dropped from GNU grep in 2.21 (2014) and warns
+# when set, and the `-n` in it forced line numbers into *every* grep result,
+# which silently breaks anything parsing grep output.
+export GREP_COLOR='7;35'
 export ZEUSSOCK=/tmp/zeus.sock
-if [ -f ~/.git-prompt.sh ]; then
-  source ~/.git-prompt.sh
-  export PS1='\h \w$(__git_ps1 "(%s)") \$ '
-fi
+# Removed the ~/.git-prompt.sh branch: the file does not exist, and the prompt
+# comes from oh-my-zsh's theme anyway.
 
 # Fix tmux vim color
 export LESS='-NR'
@@ -24,7 +27,9 @@ alias tmux="TERM=screen-256color-bce $HOME/dotfiles/bin/tmux"
 
 # find a file and less it
 function lgrep {
-   /usr/local/bin/rg --files-with-matches --no-messages $1 | fzf --preview "bat --style=numbers --color=always {} 2> /dev/null | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 $1 || rg --ignore-case --pretty --context 10 $1 {}"
+  # `rg` from PATH — this hardcoded /usr/local/bin/rg, an Intel-Homebrew path
+  # that does not exist on this machine (the binary is /opt/homebrew/bin/rg).
+   rg --files-with-matches --no-messages $1 | fzf --preview "bat --style=numbers --color=always {} 2> /dev/null | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 $1 || rg --ignore-case --pretty --context 10 $1 {}"
   #less $(egrep -r -e $1 $2 | selecta | cut -d: -f1)
 }
 
@@ -140,8 +145,9 @@ function cdpc {
   eval "$(docker-machine env $1)"
 }
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-[ -z "$ZSH_NAME" ] && [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+# Node version manager lives in ~/.zshrc (fnm) — NOT here.
+#
+# This file is sourced by ~/.zshrc, so loading nvm here meant it was loaded a
+# SECOND time on every interactive zsh: 279ms x 2 = 558ms of an 823ms startup.
+# If you ever use this file from a real bash shell, add fnm there instead:
+#   eval "$(fnm env --use-on-cd --shell bash)"
