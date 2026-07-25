@@ -18,7 +18,8 @@ vim.keymap.set("n", "-", "<C-^>", { silent = true, desc = "Alternate buffer" })
 -- Dropped without replacement: cm/cs (minimal/sexy comment styles) and ci
 -- (invert) have no builtin equivalent; cy (yank then comment) is `y` then `gc`.
 -- NvChad also gives you <leader>/ -> gcc / gc.
--- Note <leader>cc in NORMAL mode stays CopilotChat, hence x-mode only here.
+-- x-mode only: <leader>cc in NORMAL mode is the AI chat toggle (see the AI
+-- block at the end of this file).
 vim.keymap.set("x", "<leader>cc", "gc", { remap = true, desc = "Toggle comment" })
 vim.keymap.set("x", "<leader>c<Space>", "gc", { remap = true, desc = "Toggle comment" })
 
@@ -277,19 +278,38 @@ map("n", "U", "<C-r>", { noremap = true })
 -- installs its own global <Tab> and stashed this one as its fallback.
 --
 -- What handles it now, in order:
---   1. Copilot ghost text visible          -> accept it (here)
+--   0. sidekick has a Next Edit Suggestion pending -> jump to it / apply it
+--   1. Copilot ghost text visible          -> accept it
 --   2. cmp menu open                       -> cmp's own <Tab> selects next
 --   3. LuaSnip placeholder pending         -> cmp's <Tab> jumps
 --   4. otherwise                           -> Neovim's default <Tab>, which
 --                                             since 0.12 is vim.snippet.jump
 -- Copilot's own Tab binding stays disabled via g:copilot_no_tab_map.
+--
+-- NES goes FIRST: it is the "next place you need to edit" prediction, so it has
+-- to win over accepting inline text at the cursor.
 map("i", "<Tab>", function()
+  local ok_sk, sk = pcall(require, "sidekick")
+  if ok_sk and sk.nes_jump_or_apply() then
+    return ""
+  end
   local ok, sugg = pcall(vim.fn["copilot#GetDisplayedSuggestion"])
   if ok and sugg and type(sugg) == "table" and sugg.text and sugg.text ~= "" then
     return vim.fn["copilot#Accept"] ""
   end
   return "<Tab>"
 end, { expr = true, silent = true, replace_keycodes = false })
+
+-- Normal-mode <Tab> deliberately stays the buffer picker (set at the top of this
+-- file). Making it conditionally jump to a NES would mean a heavily-used key
+-- doing two different things depending on invisible state. NES lives on
+-- insert-mode <Tab> only; <leader>an jumps to a pending one from normal mode.
+map("n", "<leader>an", function()
+  local ok_sk, sk = pcall(require, "sidekick")
+  if not (ok_sk and sk.nes_jump_or_apply()) then
+    vim.notify("No next-edit suggestion pending", vim.log.levels.INFO)
+  end
+end, { desc = "Jump to next-edit suggestion" })
 
 -- <S-Tab>, <C-l>, <C-j>, <leader>rn and <leader>f were all coc bindings.
 -- Removed: cmp handles <S-Tab>; <C-l>/<C-j> go back to NvChad's cursor motions;
@@ -464,3 +484,16 @@ map("n", "<leader>e",  "<cmd>Neotree focus<CR>",           { desc = "Neotree foc
 -- Marks are on `M` (FzfLua marks); terminals on <C-f>*/<C-g>*.
 pcall(vim.keymap.del, "n", "<leader>ma")
 pcall(vim.keymap.del, "n", "<leader>pt")
+
+-- ─── AI: remap the old CopilotChat ,c* keys onto codecompanion ──────────────
+-- CopilotChat.nvim is removed (plugins/init.lua). Keeping the muscle memory:
+-- ,cc still opens a chat, and the action-oriented ones go through
+-- CodeCompanion's inline assistant with an explicit instruction.
+map("n", "<leader>cc", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "AI chat toggle" })
+map({ "n", "x" }, "<leader>cp", "<cmd>CodeCompanionActions<cr>", { desc = "AI prompt palette" })
+map({ "n", "x" }, "<leader>ce", ":CodeCompanion explain this<cr>", { desc = "AI explain" })
+map({ "n", "x" }, "<leader>cf", ":CodeCompanion fix the diagnostics here<cr>", { desc = "AI fix" })
+map({ "n", "x" }, "<leader>ct", ":CodeCompanion write tests for this<cr>", { desc = "AI tests" })
+map({ "n", "x" }, "<leader>cr", ":CodeCompanion review this for bugs and issues<cr>", { desc = "AI review" })
+map({ "n", "x" }, "<leader>co", ":CodeCompanion optimise this<cr>", { desc = "AI optimise" })
+map({ "n", "x" }, "<leader>cd", ":CodeCompanion add documentation<cr>", { desc = "AI docs" })

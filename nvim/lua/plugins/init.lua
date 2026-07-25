@@ -782,106 +782,93 @@ return {
   --                                 and wired by NvChad; nvim also ships
   --                                 vim.snippet. Was declared TWICE.
 
+  -- CopilotChat.nvim removed. Its 11 commands are covered by
+  -- codecompanion.nvim below, with a better-maintained implementation, and
+  -- running them on Copilot spends AI Credits on work the Claude subscription
+  -- already covers (Copilot's completions and next-edit suggestions stay free,
+  -- but chat and agent sessions are metered since 2026-06-01).
+  -- The pin here was also 59 commits behind, and the config still used the
+  -- legacy `> /COPILOT_GENERATE` idiom. The ,c* keys are remapped in
+  -- mappings.lua.
+
   -- ============================================================
-  -- Copilot Chat: sidebar conversation powered by your Copilot sub
+  -- AI: next-edit prediction + agentic editing
   -- ============================================================
-  -- DISABLED: your Copilot token doesn't include Chat ("chat not
-  -- enabled for IDE token"). To re-enable:
-  --   1. Check your plan on github.com/settings/copilot
-  --   2. Run :Copilot setup to re-auth with chat scope
-  --   3. Change `enabled = false` to `true` below
+  -- Split by subscription on purpose. Since 2026-06-01 Copilot bills by usage,
+  -- but "code completions and Next Edit suggestions remain included in all plans
+  -- and do not consume AI Credits" — while chat and agent sessions are metered.
+  -- So: completion + prediction on Copilot (free), agentic work on Claude
+  -- (already paid for).
+
+  -- sidekick.nvim — Copilot Next Edit Suggestions, the "Tab" behaviour from
+  -- Cursor: after an edit it predicts the NEXT place you need to change and
+  -- jumps you there. This is the one Cursor feature genuinely missing here.
+  -- Reuses the existing Copilot auth (~/.config/github-copilot).
   --
-  -- Usage (once enabled):
-  --   ,cc  -> open chat sidebar (normal mode only — visual ,cc = nerdcommenter)
-  --   ,ce  -> explain selection (visual mode) or current function
-  --   ,cf  -> fix diagnostic on current line
-  --   ,ct  -> generate tests for selection/function
-  --   ,cr  -> review code for issues
-  --   ,cp  -> prompt palette (browse pre-built prompts)
+  -- CAVEAT: this repo is feature-complete but dormant — 0 commits in 90 days,
+  -- 5 unmerged PRs, last release v2.3.0 (2026-03-20). It works, but expect no
+  -- fixes; the lazy-lock pin is the safety net. copilot.lua (actively developed)
+  -- also exposes NES, at the cost of replacing copilot.vim.
+  --
+  -- event = "VeryLazy", NOT keys: NES has to be resident to fetch a prediction
+  -- during a typing pause. It hooks into the <Tab> chain in mappings.lua rather
+  -- than taking a key of its own.
   {
-    "CopilotC-Nvim/CopilotChat.nvim",
-    enabled = true,
-    dependencies = {
-      "github/copilot.vim",
-      "nvim-lua/plenary.nvim",
-    },
-    cmd = {
-      "CopilotChat", "CopilotChatOpen", "CopilotChatToggle",
-      "CopilotChatExplain", "CopilotChatReview", "CopilotChatFix",
-      "CopilotChatOptimize", "CopilotChatDocs", "CopilotChatTests",
-      "CopilotChatCommit", "CopilotChatPrompts",
+    "folke/sidekick.nvim",
+    event = "VeryLazy",
+    opts = {
+      nes = { enabled = true },
+      cli = {
+        -- iTerm, not tmux/zellij
+        mux = { enabled = false },
+      },
     },
     keys = {
-      -- ,cc in normal = Copilot chat; in visual = nerdcommenter (see below)
-      { "<leader>cc", "<cmd>CopilotChatToggle<CR>",  mode = "n",          desc = "Copilot chat toggle" },
-      { "<leader>ce", "<cmd>CopilotChatExplain<CR>", mode = { "n", "x" }, desc = "Copilot explain" },
-      { "<leader>cf", "<cmd>CopilotChatFix<CR>",     mode = { "n", "x" }, desc = "Copilot fix" },
-      { "<leader>ct", "<cmd>CopilotChatTests<CR>",   mode = { "n", "x" }, desc = "Copilot tests" },
-      { "<leader>cr", "<cmd>CopilotChatReview<CR>",  mode = { "n", "x" }, desc = "Copilot review" },
-      { "<leader>co", "<cmd>CopilotChatOptimize<CR>", mode = { "n", "x" }, desc = "Copilot optimize" },
-      { "<leader>cd", "<cmd>CopilotChatDocs<CR>",    mode = { "n", "x" }, desc = "Copilot docs" },
-      { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
+      { "<leader>aa", function() require("sidekick.cli").toggle() end, desc = "Sidekick CLI toggle" },
+      { "<leader>ac", function() require("sidekick.cli").toggle { name = "claude", focus = true } end, desc = "Claude Code" },
+      { "<leader>ap", function() require("sidekick.cli").prompt() end, desc = "Sidekick prompt library" },
+      {
+        "<leader>av",
+        function() require("sidekick.cli").send { msg = "{selection}" } end,
+        mode = "x",
+        desc = "Send selection to CLI",
+      },
+    },
+  },
+
+  -- codecompanion.nvim — agentic multi-file editing with reviewable diffs,
+  -- inline "edit this selection" (the Cmd-K equivalent), and a chat buffer with
+  -- @-mentions of files/buffers/symbols.
+  --
+  -- Chat and agentic work run on the Claude subscription over ACP; inline runs on
+  -- Copilot because ACP is chat-only.
+  --
+  -- KNOWN LIMITATION of ACP in Neovim: no client implements terminal capability
+  -- (codecompanion documents terminal/* as "not implemented"), so Claude here can
+  -- read and edit files but CANNOT run your tests or builds. For that, use the
+  -- Claude Code terminal on <leader>ac above, which drives the real CLI.
+  {
+    "olimorris/codecompanion.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
+    cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions", "CodeCompanionCmd" },
+    keys = {
+      { "<leader>aC", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "x" }, desc = "CodeCompanion chat" },
+      { "<leader>ai", ":CodeCompanion<cr>", mode = { "n", "x" }, desc = "CodeCompanion inline (Cmd-K)" },
+      { "<leader>aA", "<cmd>CodeCompanionActions<cr>", mode = { "n", "x" }, desc = "CodeCompanion actions" },
     },
     opts = {
-      -- First run: :CopilotChatModels to pick your model, then
-      -- hardcode it here (uncomment + replace):
-      -- model = "claude-3.5-sonnet",
-      window = { layout = "vertical", width = 0.4 },
-      show_help = true,
-      auto_insert_mode = true,
-      -- Built-in chat buffer keymaps:
-      --   <C-s>  send (insert)    <CR>   send (normal)
-      --   gd     show diff        <C-y>  accept diff
-      --   gy     yank code block  gj     jump to diff
-      --   q      close            <C-c>  close (insert)
-      mappings = {
-        submit_prompt = { normal = "<CR>", insert = "<C-s>" },
-        close         = { normal = "q",    insert = "<C-c>" },
-        reset         = { normal = "<C-r>" },
-        accept_diff   = { normal = "<C-y>", insert = "<C-y>" },
-        show_diff     = { normal = "gd" },
-        yank_diff     = { normal = "gy" },
-        jump_to_diff  = { normal = "gj" },
+      -- NOTE: this key is `interactions`, not `strategies`. It was renamed
+      -- upstream (PR #2485, docs dated 2026-07-21) — every tutorial online still
+      -- says `strategies`. Renamed alongside it:
+      --   requires_approval  -> require_approval_before
+      --   user_confirmation  -> require_confirmation_after
+      interactions = {
+        chat = { adapter = "claude_code" },
+        inline = { adapter = "copilot" },
       },
-      -- Custom prompts available as /DocsInline and /FixInline in chat
-      prompts = {
-        DocsInline = {
-          prompt = "> /COPILOT_GENERATE\n\nAdd documentation comments to the selected code. Return the ENTIRE selected code with documentation added. Do NOT remove or change any existing code, ONLY add doc comments.",
-          description = "Add docs (generates applicable diff)",
-        },
-        FixInline = {
-          prompt = "> /COPILOT_GENERATE\n\nFix any issues in the selected code. Return the ENTIRE code with fixes applied. Do NOT remove code that doesn't need fixing.",
-          description = "Fix code (generates applicable diff)",
-        },
-      },
-      highlight_headers = false,
-      highlight_selection = false,
     },
-    config = function(_, opts)
-      local chat = require("CopilotChat")
-      local select = require("CopilotChat.select")
-      opts.selection = select.visual
-      chat.setup(opts)
-
-      -- ,cD / ,cF: trigger the custom prompts on visual selection
-      vim.keymap.set("x", "<leader>cD", function()
-        chat.ask("/DocsInline", { selection = select.visual })
-      end, { silent = true, desc = "Copilot add docs (diff)" })
-
-      vim.keymap.set("x", "<leader>cF", function()
-        chat.ask("/FixInline", { selection = select.visual })
-      end, { silent = true, desc = "Copilot fix code (diff)" })
-
-      -- Disable treesitter in chat buffers to work around nvim 0.12
-      -- query-predicate crash on markdown injections.
-      vim.api.nvim_create_autocmd("FileType", {
-        pattern = "copilot-chat",
-        callback = function()
-          pcall(vim.treesitter.stop)
-        end,
-      })
-    end,
   },
+
   -- vim-surround: ys / cs / ds. This was DEAD — verified with
   -- maparg("ys", "n") == "" — because it had no trigger. VeryLazy rather than
   -- `keys` because its lhs set is large (ys yss yS ySS cs cS ds + visual S/gS)
