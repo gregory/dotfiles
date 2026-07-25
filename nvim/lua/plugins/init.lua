@@ -219,18 +219,73 @@ return {
   { "xero/miasma.nvim",      lazy = false, priority = 900 },
   { "maxmx03/solarized.nvim", lazy = false, priority = 900 },
 
-  -- nvim-treesitter: NvChad pins this but on nvim 0.12 an old checkout
-  -- crashes inside query_predicates.lua ("attempt to call method
-  -- 'range' (a nil value)") as soon as an injection is parsed —
-  -- anything with a markdown fenced code block, including CopilotChat
-  -- responses. Force lazy.nvim to follow master so :Lazy sync picks up
-  -- the upstream fix, and run :TSUpdate on build so parsers stay in
-  -- sync with the query schema.
+  -- nvim-treesitter on the `main` branch.
+  --
+  -- This was pinned to `branch = "master"` with a custom build, and the result
+  -- was ZERO installed parsers. Two reasons:
+  --   1. NvChad v2.5 speaks the `main` API only — its :TSInstallAll runs
+  --      `require("nvim-treesitter").install(...)`, and on master that function
+  --      does not exist (the module exports just setup/define_modules/statusline).
+  --   2. The custom build called install.update(), which only refreshes parsers
+  --      that are ALREADY installed. With none installed it succeeded on an
+  --      empty set — a silent no-op, not an error.
+  -- master is also frozen upstream ("provided for backward compatibility only"),
+  -- so the query_predicates crash the old comment here described was never going
+  -- to be fixed there. And master's setup() takes no arguments at all, so there
+  -- is no way to express ensure_installed through a lazy.nvim spec on it.
+  --
+  -- Requires the tree-sitter CLI (brew install tree-sitter-cli) — `main`
+  -- compiles each parser locally. Note brew's `tree-sitter` formula ships no
+  -- bin/; the CLI is the separate `tree-sitter-cli` formula.
+  --
+  -- Highlighting itself needs nothing from this plugin: NvChad runs
+  -- `pcall(vim.treesitter.start)` on FileType *, which is nvim-core
+  -- highlighting and only wants a parser on the runtimepath. What this plugin
+  -- does provide is plugin/filetypes.lua, which registers the ft->lang aliases
+  -- core lacks — without it .jsx and .sh get nothing even with parsers present.
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "master",
-    build = function()
-      require("nvim-treesitter.install").update({ with_sync = true })()
+    branch = "main",
+    lazy = false, -- so plugin/filetypes.lua is sourced before any FileType fires
+    build = ":TSUpdate",
+    opts = {
+      -- NvChad's five (lua/luadoc/printf/vim/vimdoc) must be repeated here:
+      -- lazy.nvim merges opts with tbl_deep_extend("force", ...), which on an
+      -- array table overwrites index-by-index rather than appending.
+      ensure_installed = {
+        -- what actually gets edited here (js 3366, jsx 1541, mjs 1038, md 540,
+        -- ts 425, json 407, html 404, sh 288, vue 268, sql 241, yml 117)
+        "javascript", "jsdoc", "typescript", "tsx", "vue",
+        "html", "css", "scss",
+        -- no separate "jsonc" parser on this branch; the json parser serves
+        -- jsonc through an ft alias.
+        "json", "yaml", "toml",
+        "bash", "sql", "regex",
+        "markdown", "markdown_inline",
+        "ruby", "embedded_template",
+        "terraform", "hcl",
+        -- editing this config, and living in git
+        "lua", "luadoc", "vim", "vimdoc", "query", "printf",
+        "diff", "gitcommit", "git_rebase", "gitignore", "dockerfile",
+        -- deliberately NOT "comment": it injects into every comment in every
+        -- buffer and is measurable on large JS files.
+        -- there is no "jsx" parser — javascript handles JSX via the
+        -- javascriptreact -> javascript alias.
+      },
+    },
+    config = function(_, opts)
+      local ts = require "nvim-treesitter"
+      ts.setup {}
+      -- :TSUpdate (like master's update()) only touches parsers already
+      -- installed, so install the missing ones explicitly. NvChad's
+      -- :TSInstallAll reads this same opts.ensure_installed.
+      local installed = ts.get_installed "parsers"
+      local missing = vim.tbl_filter(function(lang)
+        return not vim.tbl_contains(installed, lang)
+      end, opts.ensure_installed)
+      if #missing > 0 then
+        ts.install(missing)
+      end
     end,
   },
 

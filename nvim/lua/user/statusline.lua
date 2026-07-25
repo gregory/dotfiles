@@ -25,17 +25,6 @@ end
 -- ─── Treesitter context ────────────────────────────────────────────────────
 -- Walks up the TS tree from the cursor to the nearest function/method/class
 -- and shows its name. Truncates long names to keep the bar tight.
-local ts_query_cache = {}
-
-local function get_ts_query(lang)
-  if ts_query_cache[lang] ~= nil then
-    return ts_query_cache[lang]
-  end
-  local ok, q = pcall(vim.treesitter.query.get, lang, "locals")
-  ts_query_cache[lang] = (ok and q) or false
-  return ts_query_cache[lang]
-end
-
 local context_node_types = {
   function_declaration = true,
   function_definition  = true,
@@ -48,23 +37,36 @@ local context_node_types = {
   local_function       = true,
 }
 
+-- Memoised per (buffer, changedtick, cursor row). This runs on EVERY redraw,
+-- so without a cache it re-derived the enclosing function on every keystroke
+-- once real parsers were installed. Keyed on changedtick so an edit
+-- invalidates it, and on the row because that is what can change the answer.
+local context_cache = { key = nil, value = "" }
+
 function M.context()
   if not is_active() then return "" end
   if vim.o.columns < 100 then return "" end
+  -- A breadcrumb is not worth a reparse mid-keystroke: every insert-mode
+  -- keypress invalidates the tree, which is exactly when this is most costly
+  -- and least useful.
+  if api.nvim_get_mode().mode:find "i" then return context_cache.value end
 
   local buf = stbufnr()
-  local ok, parser = pcall(vim.treesitter.get_parser, buf)
-  if not ok or not parser then return "" end
-
   local win = vim.g.statusline_winid or 0
   local cursor_ok, cursor = pcall(api.nvim_win_get_cursor, win)
   if not cursor_ok then return "" end
   local row, col = cursor[1] - 1, cursor[2]
 
-  local tree = parser:parse()[1]
-  if not tree then return "" end
+  local key = buf .. ":" .. api.nvim_buf_get_changedtick(buf) .. ":" .. row
+  if context_cache.key == key then return context_cache.value end
+  context_cache.key = key
+  context_cache.value = ""
 
-  local node = tree:root():named_descendant_for_range(row, col, row, col)
+  -- vim.treesitter.get_node uses the already-parsed tree and handles injected
+  -- languages; the previous parser:parse() forced a fresh parse each redraw.
+  local ok, node = pcall(vim.treesitter.get_node, { bufnr = buf, pos = { row, col } })
+  if not ok or not node then return "" end
+
   local name
   while node do
     if context_node_types[node:type()] then
@@ -85,7 +87,8 @@ function M.context()
 
   if not name then return "" end
   if #name > 30 then name = name:sub(1, 29) .. "…" end
-  return "%#St_LspMsg#  " .. name .. " "
+  context_cache.value = "%#St_LspMsg#  " .. name .. " "
+  return context_cache.value
 end
 
 -- ─── Search count [n/N] ────────────────────────────────────────────────────
