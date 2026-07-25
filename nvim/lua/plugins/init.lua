@@ -462,6 +462,21 @@ return {
     "github/copilot.vim",
     event = "InsertEnter",
     cmd = "Copilot", -- also load when :Copilot is called (needed for setup)
+    init = function()
+      -- Use the language server VENDORED with this plugin instead of npx.
+      --
+      -- Without this, s:Command() in autoload/copilot/client.vim prefers npx
+      -- unconditionally (copilot_npx_command defaults to 1) and asks for
+      -- `@github/copilot-language-server@^<version>` — a CARET range, so npm
+      -- re-resolves the newest 1.x on EVERY launch. Measured in lsp.log:
+      -- 1.515 -> 1.517 -> 1.521 -> 1.526, with 7s, 8s and once 92s before
+      -- Copilot became usable, plus a 608MB ~/.npm/_npx cache.
+      --
+      -- The vendored dist/language-server.js only needs the platform binary
+      -- on node < 22; on node >= 22 it just require()s ./main. We're on v24.
+      -- Set in `init` (not `config`) so it lands before the first client start.
+      vim.g.copilot_npx_command = 0
+    end,
     config = function()
       -- Disable the default <Tab> mapping so it doesn't fight coc.
       vim.g.copilot_no_tab_map = true

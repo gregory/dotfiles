@@ -328,7 +328,11 @@ api.nvim_create_autocmd("User", {
   end,
 })
 
-api.nvim_create_autocmd({ "FileWritePre", "FileAppendPre", "FilterWritePre", "BufWritePre" }, {
+-- BufWritePre only. `FilterWritePre` fires when a range is piped through an
+-- external command (`!sort`, `!fmt`), where rewriting the whole buffer is both
+-- wrong and can target a non-modifiable buffer — that was the source of
+-- `E21: Cannot make changes, 'modifiable' is off`.
+api.nvim_create_autocmd("BufWritePre", {
   group = custom_group,
   callback = function()
     user.trim_trailing_whitespace()

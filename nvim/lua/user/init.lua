@@ -267,13 +267,48 @@ function M.qdo(bang, command)
   end
 end
 
+-- Filetypes where trailing whitespace is meaningful and must be preserved:
+-- two trailing spaces are a hard line break in markdown, and touching the
+-- whitespace of a diff/patch invalidates it.
+local trim_skip_filetypes = {
+  markdown = true,
+  text = true,
+  gitcommit = true,
+  diff = true,
+  patch = true,
+  mail = true,
+  make = true,
+  snippets = true,
+}
+
+-- Strip trailing whitespace on write.
+--
+-- Guards mirror save_if_real() below — without them this threw
+-- `E21: Cannot make changes, 'modifiable' is off` on non-modifiable buffers
+-- (reproducible with :checkhealth).
+--
+-- Deliberately does NOT collapse blank lines. This used to also run
+-- `g/^\n\{2,}/d`, which merged every run of 2+ blank lines in the whole file
+-- on every write — and since insert-mode <Esc> is mapped to save_if_real(),
+-- that reformatted the entire buffer on every <Esc>. Blank-line layout is
+-- meaningful in JS/TS section breaks and in markdown; that is a reformat, not
+-- a whitespace trim.
+--
+-- Uses the buffer API rather than `:%s` so it never moves the cursor, never
+-- clobbers the search register, and never triggers 'formatoptions'.
 function M.trim_trailing_whitespace()
-  local view = fn.winsaveview()
-  local search = fn.getreg "/"
-  cmd [[%s/\s\+$//e]]
-  cmd [[silent! g/^\n\{2,}/d]]
-  fn.setreg("/", search)
-  fn.winrestview(view)
+  if vim.bo.buftype ~= "" then return end
+  if not vim.bo.modifiable or vim.bo.readonly then return end
+  if api.nvim_buf_get_name(0) == "" then return end
+  if trim_skip_filetypes[vim.bo.filetype] then return end
+
+  local lines = api.nvim_buf_get_lines(0, 0, -1, false)
+  for i, line in ipairs(lines) do
+    local trimmed = line:gsub("[ \t]+$", "")
+    if trimmed ~= line then
+      api.nvim_buf_set_lines(0, i - 1, i, false, { trimmed })
+    end
+  end
 end
 
 -- Called by the insert-mode `<Esc>` and `fd` mappings (mappings.lua):
