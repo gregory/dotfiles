@@ -1,5 +1,36 @@
-CS_SESSION
+# Global gitignore (core.excludesfile). Things that should never be committed
+# from ANY repo — editor/OS cruft and local-only files. Project-specific
+# ignores belong in that project's own .gitignore.
+
+# macOS
 .DS_Store
-.svn
+.AppleDouble
+.LSOverride
+._*
+
+# Editors
 *~
 .*.swp
+.*.swo
+.idea/
+.vscode/
+*.sublime-workspace
+
+# Legacy VCS
+.svn
+
+# Local tool state
+CS_SESSION
+**/.claude/settings.local.json
+.direnv/
+
+# Secrets — a backstop, not a substitute for per-project ignores. Committed
+# credentials are the one mistake you cannot take back once pushed.
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Deliberately NOT here: node_modules/. A global ignore is invisible to
+# collaborators and silently hides files from `git status`; dependency
+# directories belong in each project's own .gitignore.
