@@ -324,6 +324,48 @@ api.nvim_create_autocmd("BufWritePre", {
   end,
 })
 
+-- Lint-fix then format, on every write.
+--
+-- One explicit hook rather than conform's own `format_on_save`, so the ORDER is
+-- guaranteed: eslint's auto-fixes first (they can leave odd spacing), prettier
+-- second to normalise the result. Two competing BufWritePre hooks would leave
+-- that order up to registration timing.
+--
+-- Heads-up on the cost: insert-mode <Esc> is mapped to save_if_real(), so this
+-- runs on every <Esc>, not just on an explicit :w. That is deliberate (chosen
+-- over gating it to real :w only), but it means every <Esc> spawns prettier.
+-- If it ever feels laggy, the gate is one flag in user.save_if_real().
+api.nvim_create_autocmd("BufWritePre", {
+  group = custom_group,
+  callback = function(args)
+    local buf = args.buf
+    if vim.bo[buf].buftype ~= "" then return end
+    if not vim.bo[buf].modifiable or vim.bo[buf].readonly then return end
+
+    -- 1. eslint --fix, only where an eslint server is actually attached. The
+    --    LspEslintFixAll command is created buffer-locally by eslint's on_attach
+    --    and uses request_sync, so it completes before we move on.
+    local eslint = vim.lsp.get_clients { bufnr = buf, name = "eslint" }
+    if #eslint > 0 then
+      pcall(vim.api.nvim_buf_call, buf, function()
+        vim.cmd "LspEslintFixAll"
+      end)
+    end
+
+    -- 2. prettier / shfmt / stylua / terraform_fmt per filetype, falling back to
+    --    the LSP formatter where conform has no entry. Must be synchronous so
+    --    the changes land in this write.
+    pcall(function()
+      require("conform").format {
+        bufnr = buf,
+        async = false,
+        lsp_format = "fallback",
+        timeout_ms = 3000,
+      }
+    end)
+  end,
+})
+
 if vim.env.TERM then
   api.nvim_create_autocmd("VimEnter", {
     group = custom_group,

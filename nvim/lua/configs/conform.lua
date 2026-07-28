@@ -40,10 +40,10 @@ local options = {
     },
   },
 
-  -- format_on_save is deliberately OFF. Insert-mode <Esc> is mapped to
-  -- save_if_real() (mappings.lua), so the buffer is written constantly —
-  -- formatting on top of that would reformat under the cursor mid-thought.
-  -- <F6> and <leader>fm format on demand instead.
+  -- format_on_save is intentionally NOT set here. Formatting on write is driven
+  -- by an explicit BufWritePre hook in autocmds.lua instead, so that eslint's
+  -- auto-fixes run BEFORE prettier — conform's own hook would race with the
+  -- eslint one. <F6> and <leader>fm still format on demand.
 }
 
 return options
