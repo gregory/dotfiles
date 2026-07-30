@@ -522,3 +522,24 @@ map("n", "<leader>qq", function()
   end
   vim.cmd(open and "cclose" or "copen")
 end, { desc = "Toggle quickfix" })
+
+-- ─── Tab / Shift-Tab step through matches while searching ───────────────────
+-- Vim already has this during an incremental search: <C-g> is the next match,
+-- <C-t> the previous. These just put it on Tab / Shift-Tab, which is what the
+-- fingers expect when several matches are on screen.
+--
+-- Scoped to SEARCH cmdlines only (getcmdtype() is "/" or "?"). Tab is 'wildchar'
+-- (9), so mapping it unconditionally would kill filename and command completion
+-- on the `:` cmdline; search patterns have no completion, so there Tab is free.
+--
+-- Needs 'incsearch' (on here). Note <C-g>/<C-t> move the match without changing
+-- the cmdline text, so flash's CmdlineChanged hook does not re-run — the labels
+-- stay on the matches they were assigned to, which is what you want: Tab walks
+-- the matches, a label jumps straight to one.
+map("c", "<Tab>", function()
+  return vim.fn.getcmdtype():match "[/?]" and "<C-g>" or "<Tab>"
+end, { expr = true, replace_keycodes = true, desc = "Search: next match" })
+
+map("c", "<S-Tab>", function()
+  return vim.fn.getcmdtype():match "[/?]" and "<C-t>" or "<S-Tab>"
+end, { expr = true, replace_keycodes = true, desc = "Search: previous match" })

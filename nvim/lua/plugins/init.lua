@@ -354,11 +354,18 @@ return {
             keymap = {
               fzf = {
                 ["ctrl-l"] = "select-all+accept",
+                -- Tab / Shift-Tab step through matches, mirroring what they do
+                -- during a `/` search (see the cmdline maps in mappings.lua).
+                -- fzf-lua binds neither by default, so this only displaces
+                -- fzf's built-in `toggle+down` multi-select — and only in this
+                -- picker, so Tab keeps toggling selection everywhere else.
+                ["tab"] = "down",
+                ["btab"] = "up",
               },
             },
           })
         end,
-        desc = "FZF buffer lines (+ <c-l> to flash-jump)",
+        desc = "FZF buffer lines (Tab/S-Tab next/prev, <c-l> to flash-jump)",
       },
       { "mru", "<cmd>FzfLua oldfiles<CR>", desc = "FZF MRU" },
       { "ge", "<cmd>FzfLua grep_project<CR>", desc = "FZF grep project" },
