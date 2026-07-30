@@ -96,67 +96,6 @@ function M.follow_symlink()
   end
 end
 
-function M.set_project_root()
-  local buf = api.nvim_get_current_buf()
-  local buftype = vim.bo[buf].buftype
-  if buftype ~= "" then
-    return
-  end
-
-  local name = api.nvim_buf_get_name(buf)
-  if name == "" or name:match "^%a+://" then
-    return
-  end
-
-  local buf_dir = fn.fnamemodify(name, ":p:h")
-  if buf_dir ~= "" and fn.isdirectory(buf_dir) == 1 then
-    pcall(cmd, "silent! lcd " .. fn.fnameescape(buf_dir))
-  end
-
-  local git_dir = trim(fn.system "git rev-parse --show-toplevel")
-  if vim.v.shell_error ~= 0 then
-    return
-  end
-
-  if git_dir ~= "" and not git_dir:match "^fatal:" and fn.isdirectory(git_dir) == 1 then
-    pcall(cmd, "silent! lcd " .. fn.fnameescape(git_dir))
-  end
-end
-
-function M.selecta_command(choice_command, selecta_args, vim_command)
-  if fn.executable "selecta" == 0 then
-    return
-  end
-  local original = fn.getcwd()
-  local buf_dir = fn.expand "%:p:h"
-  if buf_dir ~= "" then
-    cmd("lcd " .. fn.fnameescape(buf_dir))
-  end
-  local git_dir = trim(fn.system "git rev-parse --show-toplevel")
-  if git_dir ~= "" and not git_dir:match "^fatal:" then
-    cmd("lcd " .. fn.fnameescape(git_dir))
-  end
-  local selection = fn.system(choice_command .. " | selecta " .. (selecta_args or ""))
-  cmd "redraw!"
-  cmd("lcd " .. fn.fnameescape(original))
-  if fn.shell_error() ~= 0 then
-    return
-  end
-  selection = trim(selection)
-  if selection == "" then
-    return
-  end
-  cmd(vim_command .. " " .. fn.fnameescape(selection))
-end
-
-function M.selecta_file(path)
-  M.selecta_command("find " .. path .. "/* -type f", "", ":e")
-end
-
-function M.selecta_identifier()
-  fn.setreg("z", fn.expand "<cword>")
-  M.selecta_command("find * -type f", "-s " .. fn.getreg "z", ":e")
-end
 
 local terminal_close_group = api.nvim_create_augroup("user_terminal_close", { clear = false })
 
@@ -193,10 +132,10 @@ function M.open_terminal(opts)
   local buf = api.nvim_get_current_buf()
 
   if opts.kill then
-    local ok = pcall(api.nvim_buf_set_option, buf, "term_kill", opts.kill)
-    if not ok then
-      vim.b[buf].term_kill = opts.kill
-    end
+    -- Was wrapped in pcall(api.nvim_buf_set_option, buf, "term_kill", ...) —
+    -- that API is deprecated AND `term_kill` was never a buffer option (it is a
+    -- Vim 8 thing), so the pcall always failed and always fell through to this.
+    vim.b[buf].term_kill = opts.kill
   end
 
   if opts.close ~= false then
@@ -267,13 +206,48 @@ function M.qdo(bang, command)
   end
 end
 
+-- Filetypes where trailing whitespace is meaningful and must be preserved:
+-- two trailing spaces are a hard line break in markdown, and touching the
+-- whitespace of a diff/patch invalidates it.
+local trim_skip_filetypes = {
+  markdown = true,
+  text = true,
+  gitcommit = true,
+  diff = true,
+  patch = true,
+  mail = true,
+  make = true,
+  snippets = true,
+}
+
+-- Strip trailing whitespace on write.
+--
+-- Guards mirror save_if_real() below — without them this threw
+-- `E21: Cannot make changes, 'modifiable' is off` on non-modifiable buffers
+-- (reproducible with :checkhealth).
+--
+-- Deliberately does NOT collapse blank lines. This used to also run
+-- `g/^\n\{2,}/d`, which merged every run of 2+ blank lines in the whole file
+-- on every write — and since insert-mode <Esc> is mapped to save_if_real(),
+-- that reformatted the entire buffer on every <Esc>. Blank-line layout is
+-- meaningful in JS/TS section breaks and in markdown; that is a reformat, not
+-- a whitespace trim.
+--
+-- Uses the buffer API rather than `:%s` so it never moves the cursor, never
+-- clobbers the search register, and never triggers 'formatoptions'.
 function M.trim_trailing_whitespace()
-  local view = fn.winsaveview()
-  local search = fn.getreg "/"
-  cmd [[%s/\s\+$//e]]
-  cmd [[silent! g/^\n\{2,}/d]]
-  fn.setreg("/", search)
-  fn.winrestview(view)
+  if vim.bo.buftype ~= "" then return end
+  if not vim.bo.modifiable or vim.bo.readonly then return end
+  if api.nvim_buf_get_name(0) == "" then return end
+  if trim_skip_filetypes[vim.bo.filetype] then return end
+
+  local lines = api.nvim_buf_get_lines(0, 0, -1, false)
+  for i, line in ipairs(lines) do
+    local trimmed = line:gsub("[ \t]+$", "")
+    if trimmed ~= line then
+      api.nvim_buf_set_lines(0, i - 1, i, false, { trimmed })
+    end
+  end
 end
 
 -- Called by the insert-mode `<Esc>` and `fd` mappings (mappings.lua):
@@ -300,14 +274,6 @@ function M.rename_file()
   end
 end
 
-function M.set_transparency()
-  cmd "hi Normal     guibg=NONE ctermbg=NONE"
-  cmd "hi NormalNC   guibg=NONE ctermbg=NONE"
-  cmd "hi SignColumn guibg=NONE ctermbg=NONE"
-  cmd "hi LineNr     guibg=NONE ctermbg=NONE"
-  cmd "hi EndOfBuffer guibg=NONE ctermbg=NONE"
-  cmd "hi Terminal   guibg=NONE ctermbg=NONE"
-end
 
 -- Helper: load gruvbox with the requested background, fall back gracefully.
 -- F2 (light) uses vanilla gruvbox-light + a few targeted overrides so
@@ -543,60 +509,6 @@ end
 
 local hop_warning_shown = false
 
-local function load_hop()
-  local ok, hop = pcall(require, "hop")
-  if ok then
-    return hop
-  end
-
-  if not hop_warning_shown then
-    hop_warning_shown = true
-    vim.schedule(function()
-      vim.notify("hop.nvim is not available; search mappings will fall back to their defaults", vim.log.levels.WARN, {
-        title = "hop",
-      })
-    end)
-  end
-
-  return nil
-end
-
-function M.hop_patterns(opts)
-  local hop = load_hop()
-  if hop then
-    hop.hint_patterns(opts or {})
-    return true
-  end
-  return false
-end
-
-function M.hop_char1(opts)
-  local hop = load_hop()
-  if hop then
-    hop.hint_char1(opts or {})
-    return true
-  end
-  return false
-end
-
-
-function M.print_foobar()
-  vim.notify("Foo Bar!", vim.log.levels.INFO, { title = "CtrlSpace" })
-end
-
-function M.check_backspace()
-  local col = fn.col "." - 1
-  if col <= 0 then
-    return true
-  end
-  local line = fn.getline "."
-  return line:sub(col, col):match "%s" ~= nil
-end
-
-
-function M.coc_current_function()
-  return vim.b.coc_current_function or ""
-end
 
 function M.set_tmux_key_label(label)
   local term = uv.os_getenv("TERM")
@@ -658,23 +570,97 @@ api.nvim_create_user_command("GdiffQF", function()
   })
 end, {})
 
-api.nvim_create_user_command("Prettier", function()
-  cmd "CocCommand prettier.forceFormatDocument"
-end, {})
+-- :Prettier and :Format both went through coc, which never loaded, so both
+-- threw. conform handles them now (see configs/conform.lua), falling back to the
+-- LSP formatter for filetypes with no external formatter. Kept as two names
+-- because the muscle memory exists; <F6> and <leader>fm do the same thing.
+local function format_buffer()
+  require("conform").format { async = true, lsp_format = "fallback" }
+end
 
-api.nvim_create_user_command("Format", function()
-  fn.CocAction("format")
-end, {})
+api.nvim_create_user_command("Prettier", format_buffer, { desc = "Format buffer (conform)" })
+api.nvim_create_user_command("Format", format_buffer, { desc = "Format buffer (conform)" })
 
-api.nvim_create_user_command("Fold", function(opts)
-  fn.CocAction("fold", table.unpack(opts.fargs))
-end, { nargs = "?" })
+-- :Fold removed — it called CocAction("fold"). Treesitter folding is available
+-- instead: `:setlocal foldmethod=expr foldexpr=v:lua.vim.treesitter.foldexpr()`,
+-- and the z-prefix maps in mappings.lua drive it.
 
-_G.PrintFooBar = M.print_foobar
-_G.CocCurrentFunction = M.coc_current_function
+-- _G.PrintFooBar / _G.CocCurrentFunction removed: the first existed only for
+-- g.CtrlSpaceKeys (CtrlSpace is gone), the second for the coc statusline module.
 
 cmd [[cabbrev grep Ggrep]]
 cmd [[cabbrev git Git]]
 cmd [[abbrev requrie require]]
+
+-- ─── Diagnostics & lint into the quickfix list ─────────────────────────────
+
+-- All LSP diagnostics currently known, into the quickfix list.
+--
+-- IMPORTANT SCOPE NOTE: this only covers buffers Neovim has LOADED. LSP
+-- diagnostics are pushed per open buffer, so with one file open you get that
+-- file's diagnostics and nothing else. For a whole-project sweep use
+-- M.lint_project() below, which runs the project's own eslint.
+function M.diagnostics_to_qf(severity)
+  vim.diagnostic.setqflist {
+    open = true,
+    title = severity and ("Diagnostics (" .. severity .. ")") or "Diagnostics (loaded buffers)",
+    severity = severity and vim.diagnostic.severity[severity:upper()] or nil,
+  }
+end
+
+-- Walk up from `start` looking for the first directory containing any marker.
+local function find_up(start, markers)
+  local dir = vim.fs.dirname(start)
+  local found = vim.fs.find(markers, { path = dir, upward = true, type = "file" })[1]
+  return found and vim.fs.dirname(found) or nil
+end
+
+-- Run the project's own eslint over a directory and put every problem in the
+-- quickfix list. Asynchronous — eslint takes seconds, and on a large monorepo
+-- much longer.
+--
+-- Defaults to the nearest package.json directory, NOT the eslint config root.
+-- Measured on homelifedata/extranet: the propfolio service alone is 2.4s and 17
+-- problems, while the monorepo root is 50s and 38,876 problems — the latter is
+-- not something you can work with in a quickfix list. Pass a path to widen it.
+function M.lint_project(path)
+  local file = api.nvim_buf_get_name(0)
+  local root = path or find_up(file ~= "" and file or vim.uv.cwd() .. "/x", { "package.json" })
+  if not root then
+    vim.notify("lint: no package.json found above " .. (file ~= "" and file or "cwd"), vim.log.levels.WARN)
+    return
+  end
+
+  vim.notify("lint: running eslint in " .. vim.fn.fnamemodify(root, ":~") .. " …", vim.log.levels.INFO)
+
+  vim.system(
+    { "npx", "eslint", ".", "--format", "unix" },
+    { cwd = root, text = true },
+    function(res)
+      local lines = vim.split((res.stdout or "") .. (res.stderr or ""), "\n", { trimempty = true })
+      vim.schedule(function()
+        -- `--format unix` emits "path:line:col: message [Severity/rule]", which
+        -- the default errorformat already understands.
+        local items = vim.fn.getqflist { lines = lines, efm = "%f:%l:%c: %m" }
+        local qf = vim.tbl_filter(function(i) return i.valid == 1 end, items.items or {})
+        if #qf == 0 then
+          vim.notify("lint: clean (" .. vim.fn.fnamemodify(root, ":~") .. ")", vim.log.levels.INFO)
+          return
+        end
+        vim.fn.setqflist({}, " ", { title = "eslint " .. vim.fn.fnamemodify(root, ":~"), items = qf })
+        vim.cmd "copen"
+        vim.notify("lint: " .. #qf .. " problem(s)", vim.log.levels.WARN)
+      end)
+    end
+  )
+end
+
+api.nvim_create_user_command("DiagnosticsQF", function(o)
+  M.diagnostics_to_qf(o.args ~= "" and o.args or nil)
+end, { nargs = "?", complete = function() return { "ERROR", "WARN", "INFO", "HINT" } end })
+
+api.nvim_create_user_command("LintProject", function(o)
+  M.lint_project(o.args ~= "" and vim.fn.expand(o.args) or nil)
+end, { nargs = "?", complete = "dir" })
 
 return M

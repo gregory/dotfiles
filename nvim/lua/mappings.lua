@@ -10,16 +10,18 @@ vim.keymap.set("n", "<S-Tab>", "<cmd>FzfLua buffers<CR>", { desc = "FZF buffers"
 -- (Oil parent-dir was moved to `_`.)
 vim.keymap.set("n", "-", "<C-^>", { silent = true, desc = "Alternate buffer" })
 
--- Nerdcommenter visual-mode mappings: force them explicitly so CopilotChat's
--- lazy.nvim keys spec (which claims ,cc in normal mode for chat toggle)
--- can't interfere with nerdcommenter's hasmapto() detection.
-vim.keymap.set("x", "<leader>cc", "<Plug>NERDCommenterComment", { desc = "Comment" })
-vim.keymap.set("x", "<leader>cu", "<Plug>NERDCommenterUncomment", { desc = "Uncomment" })
-vim.keymap.set("x", "<leader>c<Space>", "<Plug>NERDCommenterToggle", { desc = "Toggle comment" })
-vim.keymap.set("x", "<leader>cm", "<Plug>NERDCommenterMinimal", { desc = "Minimal comment" })
-vim.keymap.set("x", "<leader>cs", "<Plug>NERDCommenterSexy", { desc = "Sexy comment" })
-vim.keymap.set("x", "<leader>ci", "<Plug>NERDCommenterInvert", { desc = "Invert comment" })
-vim.keymap.set("x", "<leader>cy", "<Plug>NERDCommenterYank", { desc = "Yank then comment" })
+-- Commenting: Neovim's built-in `gc` (since 0.10) replaces nerdcommenter, which
+-- was loading eagerly (lazy = false) purely to provide these <Plug> maps — and
+-- was unreachable for anything else anyway.
+--
+-- `gc` toggles, so the old cc/cu/<Space> trio collapses into one binding.
+-- Dropped without replacement: cm/cs (minimal/sexy comment styles) and ci
+-- (invert) have no builtin equivalent; cy (yank then comment) is `y` then `gc`.
+-- NvChad also gives you <leader>/ -> gcc / gc.
+-- x-mode only: <leader>cc in NORMAL mode is the AI chat toggle (see the AI
+-- block at the end of this file).
+vim.keymap.set("x", "<leader>cc", "gc", { remap = true, desc = "Toggle comment" })
+vim.keymap.set("x", "<leader>c<Space>", "gc", { remap = true, desc = "Toggle comment" })
 
 local map = vim.keymap.set
 local user = require "user"
@@ -138,7 +140,12 @@ end, { expr = true, silent = true, noremap = true })
 map("n", "cl", function()
   user.toggle_curline()
 end, { silent = true, nowait = true })
-map({ "n", "v", "o" }, "<F6>", "<cmd>Prettier<CR>", { silent = true, noremap = true })
+-- <F6> = format. Was `:Prettier`, a coc command — coc never loads, so this
+-- threw. conform handles it, falling back to the LSP formatter where no
+-- external formatter is configured.
+map({ "n", "v", "o" }, "<F6>", function()
+  require("conform").format { async = true, lsp_format = "fallback" }
+end, { silent = true, noremap = true, desc = "Format buffer/selection" })
 map("n", "<C-o>", function()
   user.zoom_toggle()
 end, { silent = true, noremap = true })
@@ -164,9 +171,20 @@ map("n", "<leader>D",  "<cmd>tabclose<CR>",    { silent = true, noremap = true }
 
 -- Bare `g*` — fugitive one-shots (keep the muscle memory)
 map("n", "gb",  ":Git blame<CR>",           { nowait = true, desc = "Git blame (fugitive)" })
-map("n", "gd",  ":Git diff<CR>",            { nowait = true, desc = "Git diff (text dump)" })
 map("n", "gl",  ":Git log -15 --<CR>",      { nowait = true, desc = "Git log (last 15)" })
-map("n", "gr",  ":Git reset HEAD %<CR>",    { nowait = true, desc = "Git reset HEAD (buffer)" })
+-- `gd` and `gr` deliberately moved to <leader>g*, because both collided with
+-- LSP:
+--   gd -> NvChad maps it BUFFER-LOCALLY to vim.lsp.buf.definition on LspAttach,
+--         and buffer-local beats global, so :Git diff silently disappeared in
+--         every code buffer the moment servers started working.
+--   gr -> a complete mapping AND the prefix of six nvim 0.12 builtins (grn
+--         rename, gra code action, grr references, gri implementation, grt type
+--         definition, grx codelens). Every one of them waited out timeoutlen.
+--         Freeing the prefix gets all six for nothing.
+-- Moving `Git reset HEAD %` off a bare two-key sequence is a bonus: it is
+-- destructive.
+map("n", "<leader>gd", ":Git diff<CR>",         { nowait = true, desc = "Git diff (text dump)" })
+map("n", "<leader>gu", ":Git reset HEAD %<CR>", { nowait = true, desc = "Git unstage buffer" })
 map("n", "gck", ":Git checkout -- %<CR>",   { nowait = true, desc = "Git checkout -- (buffer)" })
 map("n", "gc",  ":Git commit<CR>",          { nowait = true, desc = "Git commit" })
 map("n", "gp",  ":Git push -f<CR>",         { nowait = true, desc = "Git push -f" })
@@ -243,48 +261,60 @@ map("n", "<C-u>", function()
 end, { silent = true, noremap = true })
 map("n", "U", "<C-r>", { noremap = true })
 
--- cd via selecta
-map("n", "cd", function()
-  user.selecta_command("find * -type d" .. (vim.g.excludes or ""), "", "lcd")
-end, { noremap = true })
+-- `cd` unmapped. It called user.selecta_command, and `selecta` is not
+-- installed — so it was a silent no-op that also hit an E117 in that helper
+-- (fn.shell_error() — no such function; it is vim.v.shell_error).
+-- Leaving `cd` unmapped restores the `c` + `d` operator-motion, and removes the
+-- timeoutlen delay it was adding to every `c` press.
+-- For fuzzy directory jumping, `<leader>ff` / `cdw` in the shell cover it.
 
--- coc
-map("i", "<C-l>", "<Plug>(coc-snippets-expand)")
-map("v", "<C-j>", "<Plug>(coc-snippets-select)")
-map("i", "<C-j>", "<Plug>(coc-snippets-expand-jump)")
+-- Insert-mode <Tab>: Copilot first, then let nvim-cmp and Neovim's own defaults
+-- handle the rest.
+--
+-- The old chain called coc#_select_confirm / coc#expandableOrJumpable /
+-- coc#refresh. coc.nvim never loads (its spec has no trigger under
+-- defaults = { lazy = true }), so those threw E117 — specifically whenever the
+-- cmp menu was CLOSED and the cursor sat after a non-blank, because nvim-cmp
+-- installs its own global <Tab> and stashed this one as its fallback.
+--
+-- What handles it now, in order:
+--   0. sidekick has a Next Edit Suggestion pending -> jump to it / apply it
+--   1. Copilot ghost text visible          -> accept it
+--   2. cmp menu open                       -> cmp's own <Tab> selects next
+--   3. LuaSnip placeholder pending         -> cmp's <Tab> jumps
+--   4. otherwise                           -> Neovim's default <Tab>, which
+--                                             since 0.12 is vim.snippet.jump
+-- Copilot's own Tab binding stays disabled via g:copilot_no_tab_map.
+--
+-- NES goes FIRST: it is the "next place you need to edit" prediction, so it has
+-- to win over accepting inline text at the cursor.
 map("i", "<Tab>", function()
-  -- Priority order in insert mode:
-  --   1. Copilot ghost-text suggestion visible → accept it
-  --   2. coc completion menu open            → confirm selection
-  --   3. coc snippet placeholder pending     → expand / jump
-  --   4. cursor right after whitespace       → literal Tab (indent)
-  --   5. otherwise                           → trigger coc refresh
-  --
-  -- Copilot.vim's own Tab binding is disabled via g:copilot_no_tab_map
-  -- (plugins/init.lua), so we drive it ourselves here.
-  local ok, sugg = pcall(vim.fn["copilot#GetDisplayedSuggestion"])
-  if ok and sugg and type(sugg) == "table" and sugg.text and sugg.text ~= "" then
-    return vim.fn["copilot#Accept"]("")
-  end
-  if fn.pumvisible() == 1 then
-    return fn["coc#_select_confirm"]()
-  elseif fn["coc#expandableOrJumpable"]() == 1 then
-    return fn["coc#rpc#request"]("doKeymap", { "snippets-expand-jump", "" })
-  elseif user.check_backspace() then
-    return "\t"
-  else
-    fn["coc#refresh"]()
+  local ok_sk, sk = pcall(require, "sidekick")
+  if ok_sk and sk.nes_jump_or_apply() then
     return ""
   end
-end, { expr = true, silent = true, replace_keycodes = false })
-map("i", "<S-Tab>", function()
-  if fn.pumvisible() == 1 then
-    return vim.api.nvim_replace_termcodes("<C-p>", true, true, true)
+  local ok, sugg = pcall(vim.fn["copilot#GetDisplayedSuggestion"])
+  if ok and sugg and type(sugg) == "table" and sugg.text and sugg.text ~= "" then
+    return vim.fn["copilot#Accept"] ""
   end
-  return vim.api.nvim_replace_termcodes("<C-h>", true, true, true)
-end, { expr = true, silent = true })
-map("n", "<leader>rn", "<Plug>(coc-rename)")
-map("x", "<leader>f", "<Plug>(coc-format-selected)")
+  return "<Tab>"
+end, { expr = true, silent = true, replace_keycodes = false })
+
+-- Normal-mode <Tab> deliberately stays the buffer picker (set at the top of this
+-- file). Making it conditionally jump to a NES would mean a heavily-used key
+-- doing two different things depending on invisible state. NES lives on
+-- insert-mode <Tab> only; <leader>an jumps to a pending one from normal mode.
+map("n", "<leader>an", function()
+  local ok_sk, sk = pcall(require, "sidekick")
+  if not (ok_sk and sk.nes_jump_or_apply()) then
+    vim.notify("No next-edit suggestion pending", vim.log.levels.INFO)
+  end
+end, { desc = "Jump to next-edit suggestion" })
+
+-- <S-Tab>, <C-l>, <C-j>, <leader>rn and <leader>f were all coc bindings.
+-- Removed: cmp handles <S-Tab>; <C-l>/<C-j> go back to NvChad's cursor motions;
+-- rename is `grn` (builtin) or <leader>ra (NvChad's NvRenamer), which
+-- <leader>rn was shadowing; range formatting is <F6> via conform.
 
 -- rename current file (helper lives in user module)
 map("n", "mv", function() user.rename_file() end, { noremap = true })
@@ -394,3 +424,122 @@ map("n", "<leader>S", "<cmd>aboveleft split<CR>")
 map("n", "<leader>V", "<cmd>aboveleft vsplit<CR>")
 map("n", "<leader>s", "<cmd>split<CR>")
 map("n", "<leader>v", "<cmd>vsplit<CR>")
+
+-- ─── LSP ───────────────────────────────────────────────────────────────────
+-- Most of what you'd reach for already ships with nvim 0.12 and only needed
+-- un-shadowing (see the gd/gr note above): grn rename, gra code action,
+-- grr references, gri implementation, grt type definition, gO symbols,
+-- ]d/[d/]D/[D diagnostics, <C-W>d diagnostic float, <C-S> signature help.
+-- Note <Space> is an expr map to <C-w>, so <Space>d opens the diagnostic float.
+
+-- Hover. Cannot live on `K` — that is `10kzz` here, and nvim only claims K when
+-- it is unmapped (lsp.lua checks maparg('K') == ''), so hover simply had no key.
+map("n", "gK", vim.lsp.buf.hover, { desc = "LSP hover" })
+
+-- Route the builtin gr* list-producers through fzf-lua, which is the picker
+-- that is actually configured here. Each still supports send-to-quickfix, so
+-- ]q/[q keeps working.
+map("n", "grr", "<cmd>FzfLua lsp_references<CR>",       { desc = "LSP references" })
+map("n", "gri", "<cmd>FzfLua lsp_implementations<CR>",  { desc = "LSP implementations" })
+map("n", "gO",  "<cmd>FzfLua lsp_document_symbols<CR>", { desc = "LSP document symbols" })
+map({ "n", "x" }, "gra", "<cmd>FzfLua lsp_code_actions<CR>", { desc = "LSP code actions" })
+
+-- Diagnostics as a list ("issues"). <leader>i / <leader>I were both free.
+map("n", "<leader>i", "<cmd>FzfLua diagnostics_document<CR>",  { desc = "Diagnostics (buffer)" })
+map("n", "<leader>I", "<cmd>FzfLua diagnostics_workspace<CR>", { desc = "Diagnostics (workspace)" })
+
+-- `gd` -> definition via fzf-lua, and drop NvChad's buffer-local <leader>D so
+-- <leader>D stays :tabclose (grt already covers type definition).
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspMaps", { clear = true }),
+  callback = function(args)
+    local opts = { buffer = args.buf, silent = true }
+    vim.keymap.set("n", "gd", "<cmd>FzfLua lsp_definitions<CR>",
+      vim.tbl_extend("force", opts, { desc = "LSP definitions" }))
+    pcall(vim.keymap.del, "n", "<leader>D", { buffer = args.buf })
+  end,
+})
+
+-- ─── Re-point NvChad's telescope / nvim-tree keys ──────────────────────────
+-- telescope.nvim and nvim-tree.lua are disabled (plugins/init.lua) in favour of
+-- fzf-lua and neo-tree, but NvChad maps 12 keys to them unconditionally in
+-- nvchad/mappings.lua. Without these overrides they'd fail with
+-- "Not an editor command: Telescope". This block must stay AFTER
+-- `require "nvchad.mappings"` at the top of this file.
+map("n", "<leader>ff", "<cmd>FzfLua files<CR>",            { desc = "Find files" })
+map("n", "<leader>fa", "<cmd>FzfLua files hidden=true no_ignore=true<CR>", { desc = "Find files (all)" })
+map("n", "<leader>fw", "<cmd>FzfLua live_grep<CR>",        { desc = "Live grep" })
+map("n", "<leader>fb", "<cmd>FzfLua buffers<CR>",          { desc = "Find buffers" })
+map("n", "<leader>fh", "<cmd>FzfLua helptags<CR>",         { desc = "Help tags" })
+map("n", "<leader>fo", "<cmd>FzfLua oldfiles<CR>",         { desc = "Recent files" })
+map("n", "<leader>fz", "<cmd>FzfLua blines<CR>",           { desc = "Find in buffer" })
+map("n", "<leader>cm", "<cmd>FzfLua git_commits<CR>",      { desc = "Git commits" })
+map("n", "<leader>gt", "<cmd>FzfLua git_status<CR>",       { desc = "Git status" })
+map("n", "<C-n>",      "<cmd>Neotree toggle<CR>",          { desc = "Neotree toggle" })
+map("n", "<leader>e",  "<cmd>Neotree focus<CR>",           { desc = "Neotree focus" })
+
+-- Deleted rather than re-pointed: both are telescope-only pickers AND both made
+-- a shorter mapping ambiguous — <leader>ma delayed <leader>m (neo-tree) and
+-- <leader>pt delayed <leader>p* (harpoon) by timeoutlen on every press.
+-- Marks are on `M` (FzfLua marks); terminals on <C-f>*/<C-g>*.
+pcall(vim.keymap.del, "n", "<leader>ma")
+pcall(vim.keymap.del, "n", "<leader>pt")
+
+-- ─── AI: remap the old CopilotChat ,c* keys onto codecompanion ──────────────
+-- CopilotChat.nvim is removed (plugins/init.lua). Keeping the muscle memory:
+-- ,cc still opens a chat, and the action-oriented ones go through
+-- CodeCompanion's inline assistant with an explicit instruction.
+map("n", "<leader>cc", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "AI chat toggle" })
+map({ "n", "x" }, "<leader>cp", "<cmd>CodeCompanionActions<cr>", { desc = "AI prompt palette" })
+map({ "n", "x" }, "<leader>ce", ":CodeCompanion explain this<cr>", { desc = "AI explain" })
+map({ "n", "x" }, "<leader>cf", ":CodeCompanion fix the diagnostics here<cr>", { desc = "AI fix" })
+map({ "n", "x" }, "<leader>ct", ":CodeCompanion write tests for this<cr>", { desc = "AI tests" })
+map({ "n", "x" }, "<leader>cr", ":CodeCompanion review this for bugs and issues<cr>", { desc = "AI review" })
+map({ "n", "x" }, "<leader>co", ":CodeCompanion optimise this<cr>", { desc = "AI optimise" })
+map({ "n", "x" }, "<leader>cd", ":CodeCompanion add documentation<cr>", { desc = "AI docs" })
+
+-- ─── Quickfix: diagnostics and project lint ─────────────────────────────────
+-- `,q` was one of only five free <leader> prefixes (o q u y z), and it is the
+-- natural mnemonic. Complements the existing ]q/[q navigation.
+--
+-- Two DIFFERENT scopes, and the distinction matters:
+--   ,qd  every LSP diagnostic Neovim currently knows — which is only the
+--        buffers it has LOADED. With one file open you get that file and
+--        nothing else. This is where messages like "'env' is declared but its
+--        value is never read" (source: ts, from vtsls) show up.
+--   ,ql  the project's own eslint over the nearest package — covers files you
+--        have never opened. This is the real "all lint errors" answer.
+map("n", "<leader>qd", function() require("user").diagnostics_to_qf() end,
+  { desc = "Diagnostics (loaded buffers) → quickfix" })
+map("n", "<leader>qe", function() require("user").diagnostics_to_qf "ERROR" end,
+  { desc = "Diagnostics, errors only → quickfix" })
+map("n", "<leader>ql", function() require("user").lint_project() end,
+  { desc = "eslint on this package → quickfix" })
+map("n", "<leader>qq", function()
+  local open = false
+  for _, w in ipairs(vim.fn.getwininfo()) do
+    if w.quickfix == 1 then open = true end
+  end
+  vim.cmd(open and "cclose" or "copen")
+end, { desc = "Toggle quickfix" })
+
+-- ─── Tab / Shift-Tab step through matches while searching ───────────────────
+-- Vim already has this during an incremental search: <C-g> is the next match,
+-- <C-t> the previous. These just put it on Tab / Shift-Tab, which is what the
+-- fingers expect when several matches are on screen.
+--
+-- Scoped to SEARCH cmdlines only (getcmdtype() is "/" or "?"). Tab is 'wildchar'
+-- (9), so mapping it unconditionally would kill filename and command completion
+-- on the `:` cmdline; search patterns have no completion, so there Tab is free.
+--
+-- Needs 'incsearch' (on here). Note <C-g>/<C-t> move the match without changing
+-- the cmdline text, so flash's CmdlineChanged hook does not re-run — the labels
+-- stay on the matches they were assigned to, which is what you want: Tab walks
+-- the matches, a label jumps straight to one.
+map("c", "<Tab>", function()
+  return vim.fn.getcmdtype():match "[/?]" and "<C-g>" or "<Tab>"
+end, { expr = true, replace_keycodes = true, desc = "Search: next match" })
+
+map("c", "<S-Tab>", function()
+  return vim.fn.getcmdtype():match "[/?]" and "<C-t>" or "<S-Tab>"
+end, { expr = true, replace_keycodes = true, desc = "Search: previous match" })

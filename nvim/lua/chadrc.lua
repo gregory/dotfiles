@@ -9,10 +9,54 @@ M.base46 = {
   theme = "onedark",
 }
 
+-- Language servers and formatters, installed with :MasonInstallAll.
+--
+-- Mason rather than `npm install -g`: npm globals live under the active node
+-- version's prefix, so switching node makes every server vanish. That exact
+-- failure was already in this config as g.coc_node_path pointing at a v16.12.0
+-- that no longer exists. Mason installs into its own prefix and only needs
+-- *some* node on PATH, so it survives version switches (and the nvm -> fnm move).
+-- NvChad prepends mason/bin to vim.env.PATH unconditionally, so no extra wiring.
+M.mason = {
+  pkgs = {
+    -- TypeScript / JavaScript. vtsls over ts_ls: Vue 3 hybrid mode requires it
+    -- (takeover mode was removed in vue-language-server 3.0), and it exposes
+    -- the tsserver commands ts_ls does not (organize imports, add missing).
+    "vtsls",
+    "eslint-lsp",           -- highest-value server across 27 JS projects
+    "vue-language-server",  -- 268 .vue files
+    "json-lsp",
+    "html-lsp",
+    "css-lsp",
+    "yaml-language-server",
+    "bash-language-server", -- 288 .sh files
+    "lua-language-server",  -- NvChad enables lua_ls but never installed it
+
+    -- formatters for conform.nvim
+    "prettier",
+    "stylua",
+    "shfmt",
+
+    -- Copilot's language server. Here rather than npx or an npm global: the
+    -- server copilot.vim vendors (1.408.0) is far behind and its sign-in RPC
+    -- fails, while npx re-resolved a new version on every launch. See the
+    -- g:copilot_command note on the copilot.vim spec in plugins/init.lua.
+    "copilot-language-server",
+  },
+}
+
 -- Custom statusline modules layered on top of NvChad's default theme.
 -- See lua/user/statusline.lua for the module implementations.
 local user_stl = require "user.statusline"
 user_stl.setup()
+
+-- NvChad's "colorify" (virtual colour swatches next to hex values) is enabled by
+-- default and rescans the visible viewport on TextChanged / TextChangedI /
+-- TextChangedP — i.e. on every character typed and every step through the
+-- completion menu. Its lspvars half additionally does an LSP document-colour
+-- round trip on the current line per keystroke. With no CSS-heavy workflow here,
+-- that is a per-keystroke cost for nothing.
+M.colorify = { enabled = false }
 
 M.ui = {
   statusline = {
@@ -26,7 +70,6 @@ M.ui = {
       "git",
       "%=",
       "context",
-      "coc_status",
       "lsp_msg",
       "%=",
       "macro",
@@ -45,7 +88,6 @@ M.ui = {
       macro      = user_stl.macro,
       vsel       = user_stl.vsel,
       warnings   = user_stl.warnings,
-      coc_status = user_stl.coc_status,
       indent     = user_stl.indent,
       unsaved    = user_stl.unsaved,
     },

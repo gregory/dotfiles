@@ -87,29 +87,11 @@ api.nvim_create_autocmd("FileType", {
   end,
 })
 
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = "css",
-  callback = function()
-    vim.bo.omnifunc = "csscomplete#CompleteCSS"
-  end,
-})
-
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = { "html", "markdown" },
-  callback = function()
-    vim.bo.omnifunc = "htmlcomplete#CompleteTags"
-  end,
-})
-
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = "javascript",
-  callback = function()
-    vim.bo.omnifunc = "javascriptcomplete#CompleteJS"
-  end,
-})
+-- The css / html+markdown / javascript omnifunc autocmds are gone: vim.lsp sets
+-- omnifunc on attach ONLY when it is empty or default, so setting the old
+-- vimscript completers here BLOCKED LSP omni-completion for exactly the
+-- filetypes that now have real servers (cssls, html, vtsls).
+-- The python/xml/less ones below are kept — no server covers those here.
 
 api.nvim_create_autocmd("FileType", {
   group = custom_group,
@@ -140,10 +122,14 @@ api.nvim_create_autocmd("FileType", {
 -- events. Triggering `:checktime` here forces the check on:
 --   FocusGained — coming back to nvim from another app
 --   BufEnter    — switching buffers
---   CursorHold  — idle in a buffer (catches edits while nvim is focused,
---                 e.g. running a formatter in a terminal split)
 --   TermClose   — after a terminal command exits, in case it touched files
-api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI", "TermClose" }, {
+--
+-- CursorHold and CursorHoldI were dropped. Together with updatetime restored to
+-- NvChad's 250 (see below), they would stat() the file four times a second, and
+-- CursorHoldI did it while typing. The two cases the old comment described —
+-- coming back from another app, and a formatter running in a split — are already
+-- covered by FocusGained and TermClose.
+api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose" }, {
   group = custom_group,
   callback = function()
     if vim.bo.buftype == "" and vim.fn.mode() ~= "c" then
@@ -295,12 +281,11 @@ api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   end,
 })
 
-api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  group = custom_group,
-  callback = function()
-    vim.o.updatetime = 2000
-  end,
-})
+-- Removed: a pattern-less BufRead/BufNewFile autocmd that re-set the GLOBAL
+-- `updatetime = 2000` on every file opened. It silently overrode NvChad's 250,
+-- which gitsigns relies on for responsive blame and hunk updates. Nothing here
+-- needed the slower value; the CursorHold consumers that did (see the checktime
+-- autocmd above) have been narrowed instead.
 
 api.nvim_create_autocmd("BufReadPost", {
   group = custom_group,
@@ -328,10 +313,56 @@ api.nvim_create_autocmd("User", {
   end,
 })
 
-api.nvim_create_autocmd({ "FileWritePre", "FileAppendPre", "FilterWritePre", "BufWritePre" }, {
+-- BufWritePre only. `FilterWritePre` fires when a range is piped through an
+-- external command (`!sort`, `!fmt`), where rewriting the whole buffer is both
+-- wrong and can target a non-modifiable buffer — that was the source of
+-- `E21: Cannot make changes, 'modifiable' is off`.
+api.nvim_create_autocmd("BufWritePre", {
   group = custom_group,
   callback = function()
     user.trim_trailing_whitespace()
+  end,
+})
+
+-- Lint-fix then format, on every write.
+--
+-- One explicit hook rather than conform's own `format_on_save`, so the ORDER is
+-- guaranteed: eslint's auto-fixes first (they can leave odd spacing), prettier
+-- second to normalise the result. Two competing BufWritePre hooks would leave
+-- that order up to registration timing.
+--
+-- Heads-up on the cost: insert-mode <Esc> is mapped to save_if_real(), so this
+-- runs on every <Esc>, not just on an explicit :w. That is deliberate (chosen
+-- over gating it to real :w only), but it means every <Esc> spawns prettier.
+-- If it ever feels laggy, the gate is one flag in user.save_if_real().
+api.nvim_create_autocmd("BufWritePre", {
+  group = custom_group,
+  callback = function(args)
+    local buf = args.buf
+    if vim.bo[buf].buftype ~= "" then return end
+    if not vim.bo[buf].modifiable or vim.bo[buf].readonly then return end
+
+    -- 1. eslint --fix, only where an eslint server is actually attached. The
+    --    LspEslintFixAll command is created buffer-locally by eslint's on_attach
+    --    and uses request_sync, so it completes before we move on.
+    local eslint = vim.lsp.get_clients { bufnr = buf, name = "eslint" }
+    if #eslint > 0 then
+      pcall(vim.api.nvim_buf_call, buf, function()
+        vim.cmd "LspEslintFixAll"
+      end)
+    end
+
+    -- 2. prettier / shfmt / stylua / terraform_fmt per filetype, falling back to
+    --    the LSP formatter where conform has no entry. Must be synchronous so
+    --    the changes land in this write.
+    pcall(function()
+      require("conform").format {
+        bufnr = buf,
+        async = false,
+        lsp_format = "fallback",
+        timeout_ms = 3000,
+      }
+    end)
   end,
 })
 
@@ -360,26 +391,15 @@ api.nvim_create_autocmd({ "BufEnter", "WinEnter", "WinNew", "VimResized" }, {
   end,
 })
 
-api.nvim_create_autocmd("CursorHold", {
-  group = custom_group,
-  callback = function()
-    pcall(fn.CocActionAsync, "highlight")
-  end,
-})
-
-api.nvim_create_autocmd("User", {
-  group = custom_group,
-  pattern = "CocJumpPlaceholder",
-  callback = function()
-    pcall(fn.CocActionAsync, "showSignatureHelp")
-  end,
-})
-
-api.nvim_create_autocmd("FileType", {
-  group = custom_group,
-  pattern = { "typescript", "json" },
-  callback = function()
-    vim.bo.formatexpr = "CocAction('formatSelected')"
-  end,
-})
+-- Three coc.nvim autocmds removed here. coc never loaded (its spec has no
+-- event/cmd/keys/ft trigger under defaults = { lazy = true }), so all three were
+-- either no-ops or actively harmful:
+--
+--   CursorHold -> CocActionAsync("highlight")     — a pcall that failed on every
+--     idle tick. The LSP equivalent is vim.lsp.document_highlight.
+--   User CocJumpPlaceholder -> showSignatureHelp  — never fired.
+--   FileType typescript,json -> formatexpr = "CocAction('formatSelected')"
+--     — actively harmful. vim.lsp sets formatexpr on attach ONLY if it is empty
+--     or default, so this blocked LSP range formatting for the two filetypes
+--     most used here, and made `gq` throw E117 in them.
 

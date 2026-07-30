@@ -17,8 +17,9 @@
   b = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
   rb = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/remotes/origin"
   rlb ="!git for-each-ref --sort=-committerdate refs/$1 --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
-  lb ="!git for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'|less"
-	fame = !python -m gitfame --cost hour,month --loc ins
+  lb ="!git for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
+  # `fame` removed: it called `python` (only python3 exists here) and gitfame,
+  # which is not installed — dead on both counts.
 [color]
   ui = true
   interactive = auto
@@ -30,42 +31,95 @@
   match = red
   filename = magenta
 [core]
-	excludesfile = /Users/greg/.gitignore
+	excludesfile = ~/.gitignore
   editor = vim
   autocrlf = input
-  pager = less -MN
+  # -N is deliberately absent: it numbered every diff line, which makes copying
+  # a hunk out of a diff painful. -F quits if the output fits on one screen,
+  # -R keeps colour.
+  pager = less -MRF
   logAllRefUpdates = true
+
+  # Performance. Measured in ~/src/github.com/life-connect/adb (8148 tracked
+  # files but 178,752 files on disk): `git status --porcelain` took 64ms, of
+  # which 47ms was the untracked-file walk (`-uno` ran in 17ms). The prompt runs
+  # status on every command, so this was paid constantly.
+  fsmonitor = true
+  untrackedCache = true
+
+[maintenance]
+  # Keeps the commit-graph and loose objects in shape in the background.
+  # Enable per repo with `git maintenance start` — none of the big repos
+  # (extranet 18GB, adb 11GB, hlc-infra 2.8GB) had a commit-graph at all.
+  #
+  # NOTE: `git maintenance start` writes its `maintenance.repo = <abs path>`
+  # entries into whichever file this is, which is a tracked dotfile. Those paths
+  # are machine-specific, so they live in ~/.gitconfig.local instead (see the
+  # include at the end of this file) and this file stays portable.
+  auto = true
+
+[fetch]
+  prune = true
+  pruneTags = true
+  parallel = 0
+
+[rerere]
+  # pull.rebase is on below, so the same conflicts come back on every rebase.
+  # This replays resolutions already made once.
+  enabled = true
+  autoUpdate = true
+
+[rebase]
+  autoStash = true
+  # Rewrites branches stacked on the one being rebased instead of orphaning
+  # them.
+  updateRefs = true
 [apply]
   whitespace = nowarn
 [format]
   pretty = %C(yellow)%h%Creset %s %C(red)(%an, %cr)%Creset
 [merge]
-  tool = meld
+  # `tool = meld` removed — meld is not installed, and it is a GTK/Linux tool.
+  # Shows the merge base alongside both sides, so you can see what each branch
+  # actually changed instead of guessing from two conflicting versions.
+  conflictStyle = zdiff3
 [mergetool]
   keepBackup = false
 [push]
   default = simple
+  # Stops `git push` on a fresh branch from failing with "no upstream".
+  autoSetupRemote = true
 [pull]
   rebase = true
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+[branch]
+  # `git branch` lists most-recently-worked-on first.
+  sort = -committerdate
+[column]
+  ui = auto
 [url "https://"]
 	insteadOf = git://
-[filter "media"]
-	clean = git media clean %f
-	smudge = git media smudge %f
-	required = true
+
+# Removed: [difftool/mergetool "sourcetree"] — /Applications/SourceTree.app is
+# not installed, and the mergetool cmd pointed inside that missing bundle.
+# Removed: [filter "media"] with required = true — git-media was superseded by
+# git-lfs around 2015, nothing on this machine uses it, and `required` meant any
+# repo that did reference it would hard-fail rather than degrade. No repo does.
 
 [diff]
 	wsErrorHighlight = all
+  # Follows moved code blocks far better than the default Myers algorithm.
+  algorithm = histogram
 [credential]
 	helper = osxkeychain
+
 [filter "lfs"]
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
+
+# Machine-specific settings: absolute paths, per-machine identities, and
+# anything `git maintenance start` appends. Kept out of version control.
+# Last so it wins over anything above.
+[include]
+	path = ~/.gitconfig.local

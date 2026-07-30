@@ -216,21 +216,92 @@ return {
   -- Colorschemes used by F1 / F3. F2 keeps gruvbox-light (already loaded
   -- by NvChad via morhetz/gruvbox). We load these eagerly so F-keys never
   -- hit a missing-colorscheme error on first press.
-  { "xero/miasma.nvim",      lazy = false, priority = 900 },
-  { "maxmx03/solarized.nvim", lazy = false, priority = 900 },
+  -- No lazy = false / priority needed: lazy.nvim's ColorSchemePre hook loads a
+  -- colorscheme plugin on `:colorscheme <name>`, which is how gruvbox (declared
+  -- with no trigger at all, further down) has always worked here. The F-key
+  -- theme switchers pcall the :colorscheme command and fall back to gruvbox, so
+  -- a failed load cannot break startup either.
+  { "xero/miasma.nvim" },
+  { "maxmx03/solarized.nvim" },
 
-  -- nvim-treesitter: NvChad pins this but on nvim 0.12 an old checkout
-  -- crashes inside query_predicates.lua ("attempt to call method
-  -- 'range' (a nil value)") as soon as an injection is parsed —
-  -- anything with a markdown fenced code block, including CopilotChat
-  -- responses. Force lazy.nvim to follow master so :Lazy sync picks up
-  -- the upstream fix, and run :TSUpdate on build so parsers stay in
-  -- sync with the query schema.
+  -- Two fuzzy finders and three file explorers were installed at once.
+  -- fzf-lua is the one that is actually configured here (rich keymap block,
+  -- builtin previewer, --jump-labels, flash integration), and neo-tree is the
+  -- one in use — so telescope and nvim-tree are disabled rather than left to
+  -- shadow keys and add clone weight. NvChad maps keys to both, so those are
+  -- re-pointed at fzf-lua / Neotree in mappings.lua.
+  -- oil.nvim stays: "edit a directory as a buffer" is something neo-tree does
+  -- not do.
+  { "nvim-telescope/telescope.nvim", enabled = false },
+  { "nvim-tree/nvim-tree.lua", enabled = false },
+
+  -- nvim-treesitter on the `main` branch.
+  --
+  -- This was pinned to `branch = "master"` with a custom build, and the result
+  -- was ZERO installed parsers. Two reasons:
+  --   1. NvChad v2.5 speaks the `main` API only — its :TSInstallAll runs
+  --      `require("nvim-treesitter").install(...)`, and on master that function
+  --      does not exist (the module exports just setup/define_modules/statusline).
+  --   2. The custom build called install.update(), which only refreshes parsers
+  --      that are ALREADY installed. With none installed it succeeded on an
+  --      empty set — a silent no-op, not an error.
+  -- master is also frozen upstream ("provided for backward compatibility only"),
+  -- so the query_predicates crash the old comment here described was never going
+  -- to be fixed there. And master's setup() takes no arguments at all, so there
+  -- is no way to express ensure_installed through a lazy.nvim spec on it.
+  --
+  -- Requires the tree-sitter CLI (brew install tree-sitter-cli) — `main`
+  -- compiles each parser locally. Note brew's `tree-sitter` formula ships no
+  -- bin/; the CLI is the separate `tree-sitter-cli` formula.
+  --
+  -- Highlighting itself needs nothing from this plugin: NvChad runs
+  -- `pcall(vim.treesitter.start)` on FileType *, which is nvim-core
+  -- highlighting and only wants a parser on the runtimepath. What this plugin
+  -- does provide is plugin/filetypes.lua, which registers the ft->lang aliases
+  -- core lacks — without it .jsx and .sh get nothing even with parsers present.
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "master",
-    build = function()
-      require("nvim-treesitter.install").update({ with_sync = true })()
+    branch = "main",
+    lazy = false, -- so plugin/filetypes.lua is sourced before any FileType fires
+    build = ":TSUpdate",
+    opts = {
+      -- NvChad's five (lua/luadoc/printf/vim/vimdoc) must be repeated here:
+      -- lazy.nvim merges opts with tbl_deep_extend("force", ...), which on an
+      -- array table overwrites index-by-index rather than appending.
+      ensure_installed = {
+        -- what actually gets edited here (js 3366, jsx 1541, mjs 1038, md 540,
+        -- ts 425, json 407, html 404, sh 288, vue 268, sql 241, yml 117)
+        "javascript", "jsdoc", "typescript", "tsx", "vue",
+        "html", "css", "scss",
+        -- no separate "jsonc" parser on this branch; the json parser serves
+        -- jsonc through an ft alias.
+        "json", "yaml", "toml",
+        "bash", "sql", "regex",
+        "markdown", "markdown_inline",
+        "ruby", "embedded_template",
+        "terraform", "hcl",
+        -- editing this config, and living in git
+        "lua", "luadoc", "vim", "vimdoc", "query", "printf",
+        "diff", "gitcommit", "git_rebase", "gitignore", "dockerfile",
+        -- deliberately NOT "comment": it injects into every comment in every
+        -- buffer and is measurable on large JS files.
+        -- there is no "jsx" parser — javascript handles JSX via the
+        -- javascriptreact -> javascript alias.
+      },
+    },
+    config = function(_, opts)
+      local ts = require "nvim-treesitter"
+      ts.setup {}
+      -- :TSUpdate (like master's update()) only touches parsers already
+      -- installed, so install the missing ones explicitly. NvChad's
+      -- :TSInstallAll reads this same opts.ensure_installed.
+      local installed = ts.get_installed "parsers"
+      local missing = vim.tbl_filter(function(lang)
+        return not vim.tbl_contains(installed, lang)
+      end, opts.ensure_installed)
+      if #missing > 0 then
+        ts.install(missing)
+      end
     end,
   },
 
@@ -283,11 +354,18 @@ return {
             keymap = {
               fzf = {
                 ["ctrl-l"] = "select-all+accept",
+                -- Tab / Shift-Tab step through matches, mirroring what they do
+                -- during a `/` search (see the cmdline maps in mappings.lua).
+                -- fzf-lua binds neither by default, so this only displaces
+                -- fzf's built-in `toggle+down` multi-select — and only in this
+                -- picker, so Tab keeps toggling selection everywhere else.
+                ["tab"] = "down",
+                ["btab"] = "up",
               },
             },
           })
         end,
-        desc = "FZF buffer lines (+ <c-l> to flash-jump)",
+        desc = "FZF buffer lines (Tab/S-Tab next/prev, <c-l> to flash-jump)",
       },
       { "mru", "<cmd>FzfLua oldfiles<CR>", desc = "FZF MRU" },
       { "ge", "<cmd>FzfLua grep_project<CR>", desc = "FZF grep project" },
@@ -346,16 +424,27 @@ return {
     "folke/flash.nvim",
     event = "VeryLazy",
     opts = {
-      label = { uppercase = false, rainbow = { enabled = false } },
+      -- uppercase left at flash's DEFAULT (true), and it matters in search mode.
+      -- It appends the uppercase variants to the label pool
+      -- (flash/state.lua:78-81), so a label can be typed as a CAPITAL — and a
+      -- capital cannot be mistaken for a continuation of the lowercase pattern
+      -- you are typing. It was set to false here, which left a lowercase-only
+      -- pool ("asdfghjkl…"), so pressing label `a` after `/fun` was
+      -- indistinguishable from extending the search to `funa` — which is how
+      -- you got "pattern not found: funa" instead of jumping to `function`.
+      label = { rainbow = { enabled = false } },
       modes = {
-        -- Enable labels on / and ? results. As you type the search, every
-        -- visible match gets a letter — press the letter to jump straight
-        -- there (no more cycling with n/N). <CR> still accepts the first
-        -- match like normal search.
+        -- Labels on / and ? results: as you type, every visible match gets a
+        -- letter — press it to jump straight there instead of cycling n/N.
+        -- <CR> still accepts the first match like a normal search.
         search = {
           enabled = true,
           highlight = { backdrop = false },
-          incremental = true,
+          -- `incremental` left at flash's default (false); it was true here.
+          -- With it on, Vim's own incsearch evaluates every intermediate
+          -- pattern, so the instant a label lands in the cmdline Vim can raise
+          -- E486 on the combined string and abort before flash's
+          -- CmdlineChanged handler gets to jump.
         },
         char = { enabled = false }, -- don't hijack f/F/t/T
       },
@@ -462,6 +551,49 @@ return {
     "github/copilot.vim",
     event = "InsertEnter",
     cmd = "Copilot", -- also load when :Copilot is called (needed for setup)
+    init = function()
+      -- Pin the language server, and pin it to a CURRENT one.
+      --
+      -- Two problems, one fix:
+      --
+      -- 1. npx churn. s:Command() in autoload/copilot/client.vim prefers npx
+      --    unconditionally and asks for the server with a CARET range, so npm
+      --    re-resolved the newest 1.x on EVERY launch. lsp.log showed
+      --    1.515 -> 1.517 -> 1.521 -> 1.526, with 7s, 8s and once 92s before
+      --    Copilot was usable, plus a 608MB ~/.npm/_npx cache.
+      --
+      -- 2. The server vendored with copilot.vim v1.59.0 is 1.408.0 — 118 minor
+      --    versions behind what npx was fetching. An earlier attempt set only
+      --    copilot_npx_command = 0, which fixed the startup cost but BROKE
+      --    `:Copilot signin`: that old server answers the sign-in RPC with
+      --    "You are not signed into GitHub. Please use `:LspCopilotSignIn`" —
+      --    a command that does not exist in this setup — so signing in was
+      --    impossible.
+      --
+      -- Setting g:copilot_command makes `script` non-empty in s:Command(), which
+      -- turns npx off by itself (solving 1) while pointing at mason's
+      -- copilot-language-server, which is current (solving 2). Mason's prefix is
+      -- independent of the active Node version, unlike an npm global, so this
+      -- survives fnm switching versions.
+      -- No "--stdio" here: copilot.vim appends it itself
+      -- (client.vim:713 `let command = node + argv + ['--stdio']`), and passing
+      -- it produced `--stdio --stdio` on the command line.
+      local server = vim.fn.stdpath "data" .. "/mason/bin/copilot-language-server"
+      if vim.fn.executable(server) == 1 then
+        vim.g.copilot_command = { server }
+      else
+        -- Fall back to the vendored server rather than leaving Copilot dead.
+        -- Startup stays fast, but sign-in may not work until
+        -- `:MasonInstall copilot-language-server` restores the current one.
+        vim.g.copilot_npx_command = 0
+        vim.schedule(function()
+          vim.notify(
+            "copilot: mason copilot-language-server missing — :MasonInstall copilot-language-server",
+            vim.log.levels.WARN
+          )
+        end)
+      end
+    end,
     config = function()
       -- Disable the default <Tab> mapping so it doesn't fight coc.
       vim.g.copilot_no_tab_map = true
@@ -658,11 +790,14 @@ return {
   {
     "tpope/vim-fugitive",
     name = "vim-fugitive",
+    -- vim-rhubarb as a DEPENDENCY, not its own spec: :GBrowse is defined by
+    -- fugitive, which then dispatches to a handler rhubarb registers. As a
+    -- standalone spec rhubarb had no trigger at all, so <leader>gy/gY were
+    -- broken; giving it cmd = "GBrowse" would race with fugitive's own command,
+    -- while a dependency guarantees load order.
+    dependencies = { "tpope/vim-rhubarb" },
     -- Lazy-load on the commands we actually invoke. `Gclog`/`0Gclog` are
-    -- the log-into-quickfix entry points (bound to `gh`). `GBrowse` comes
-    -- from vim-rhubarb (declared as a separate plugin) but needs fugitive
-    -- loaded first — adding it here ensures the `<leader>gy/gY` bindings
-    -- work on first invocation.
+    -- the log-into-quickfix entry points (bound to `gh`).
     cmd = {
       "G", "Git", "Gread", "Gwrite", "Ggrep",
       "Gdiffsplit", "Gvdiffsplit", "GMove", "GDelete", "GRemove",
@@ -671,154 +806,158 @@ return {
       "GBrowse",
     },
   },
-  { "scrooloose/nerdcommenter", lazy = false },
-  { "stefandtw/quickfix-reflector.vim" },
-  { "editorconfig/editorconfig-vim" },
-  { "moll/vim-node" },
-  { "tpope/vim-rhubarb" },
-  { "terryma/vim-multiple-cursors" },
+  -- Editable quickfix list: edit entries in :copen and :w writes them back to
+  -- the files. Given how much of this config lives in the quickfix list
+  -- (GdiffQF, Gclog, ]q/[q) this is worth keeping — it just needed a trigger.
+  { "stefandtw/quickfix-reflector.vim", ft = "qf" },
 
-  -- coc.nvim kept for now — migration to native LSP deferred.
-  -- coc_global_extensions auto-installs the listed CoC extensions on
-  -- first launch so `:CocInstall` is not required. coc-snippets gives
-  -- us tabstop-aware expansion; honza/vim-snippets is the actual
-  -- snippet corpus (thousands of JS/TS/React/Ruby/Python/… templates).
-  {
-    "neoclide/coc.nvim",
-    branch = "release",
-    init = function()
-      vim.g.coc_global_extensions = {
-        "coc-snippets",
-        "coc-json",
-        "coc-tsserver",
-        "coc-eslint",
-        "coc-prettier",
-        "coc-css",
-        "coc-html",
-        "coc-yaml",
-      }
-    end,
-  },
-  { "honza/vim-snippets" },
+  -- Removed here (all were unreachable — no event/cmd/keys/ft under
+  -- defaults = { lazy = true }, no lua/ module, nobody's dependency, so lazy.nvim
+  -- had no way to load them; verified at runtime):
+  --   scrooloose/nerdcommenter   -> `gc` is built into Neovim since 0.10
+  --   editorconfig/editorconfig-vim -> built into Neovim since 0.9; NvChad even
+  --                                 calls require("editorconfig").config()
+  --   moll/vim-node              -> `gd` on an import does this via vtsls now
+  --   terryma/vim-multiple-cursors -> deprecated upstream. No builtin
+  --                                 equivalent; `*` then `cgn` then `.` covers
+  --                                 most of it.
+  --   neoclide/coc.nvim          -> replaced by nvim-cmp + native LSP (see
+  --                                 configs/lspconfig.lua). Its `init` was still
+  --                                 setting g:coc_global_extensions every start.
+  --   honza/vim-snippets         -> LuaSnip + friendly-snippets are installed
+  --                                 and wired by NvChad; nvim also ships
+  --                                 vim.snippet. Was declared TWICE.
+
+  -- CopilotChat.nvim removed. Its 11 commands are covered by
+  -- codecompanion.nvim below, with a better-maintained implementation, and
+  -- running them on Copilot spends AI Credits on work the Claude subscription
+  -- already covers (Copilot's completions and next-edit suggestions stay free,
+  -- but chat and agent sessions are metered since 2026-06-01).
+  -- The pin here was also 59 commits behind, and the config still used the
+  -- legacy `> /COPILOT_GENERATE` idiom. The ,c* keys are remapped in
+  -- mappings.lua.
 
   -- ============================================================
-  -- Copilot Chat: sidebar conversation powered by your Copilot sub
+  -- AI: next-edit prediction + agentic editing
   -- ============================================================
-  -- DISABLED: your Copilot token doesn't include Chat ("chat not
-  -- enabled for IDE token"). To re-enable:
-  --   1. Check your plan on github.com/settings/copilot
-  --   2. Run :Copilot setup to re-auth with chat scope
-  --   3. Change `enabled = false` to `true` below
+  -- Split by subscription on purpose. Since 2026-06-01 Copilot bills by usage,
+  -- but "code completions and Next Edit suggestions remain included in all plans
+  -- and do not consume AI Credits" — while chat and agent sessions are metered.
+  -- So: completion + prediction on Copilot (free), agentic work on Claude
+  -- (already paid for).
+
+  -- sidekick.nvim — Copilot Next Edit Suggestions, the "Tab" behaviour from
+  -- Cursor: after an edit it predicts the NEXT place you need to change and
+  -- jumps you there. This is the one Cursor feature genuinely missing here.
+  -- Reuses the existing Copilot auth (~/.config/github-copilot).
   --
-  -- Usage (once enabled):
-  --   ,cc  -> open chat sidebar (normal mode only — visual ,cc = nerdcommenter)
-  --   ,ce  -> explain selection (visual mode) or current function
-  --   ,cf  -> fix diagnostic on current line
-  --   ,ct  -> generate tests for selection/function
-  --   ,cr  -> review code for issues
-  --   ,cp  -> prompt palette (browse pre-built prompts)
+  -- CAVEAT: this repo is feature-complete but dormant — 0 commits in 90 days,
+  -- 5 unmerged PRs, last release v2.3.0 (2026-03-20). It works, but expect no
+  -- fixes; the lazy-lock pin is the safety net. copilot.lua (actively developed)
+  -- also exposes NES, at the cost of replacing copilot.vim.
+  --
+  -- event = "VeryLazy", NOT keys: NES has to be resident to fetch a prediction
+  -- during a typing pause. It hooks into the <Tab> chain in mappings.lua rather
+  -- than taking a key of its own.
   {
-    "CopilotC-Nvim/CopilotChat.nvim",
-    enabled = true,
-    dependencies = {
-      "github/copilot.vim",
-      "nvim-lua/plenary.nvim",
-    },
-    cmd = {
-      "CopilotChat", "CopilotChatOpen", "CopilotChatToggle",
-      "CopilotChatExplain", "CopilotChatReview", "CopilotChatFix",
-      "CopilotChatOptimize", "CopilotChatDocs", "CopilotChatTests",
-      "CopilotChatCommit", "CopilotChatPrompts",
+    "folke/sidekick.nvim",
+    event = "VeryLazy",
+    opts = {
+      nes = { enabled = true },
+      cli = {
+        -- iTerm, not tmux/zellij
+        mux = { enabled = false },
+      },
     },
     keys = {
-      -- ,cc in normal = Copilot chat; in visual = nerdcommenter (see below)
-      { "<leader>cc", "<cmd>CopilotChatToggle<CR>",  mode = "n",          desc = "Copilot chat toggle" },
-      { "<leader>ce", "<cmd>CopilotChatExplain<CR>", mode = { "n", "x" }, desc = "Copilot explain" },
-      { "<leader>cf", "<cmd>CopilotChatFix<CR>",     mode = { "n", "x" }, desc = "Copilot fix" },
-      { "<leader>ct", "<cmd>CopilotChatTests<CR>",   mode = { "n", "x" }, desc = "Copilot tests" },
-      { "<leader>cr", "<cmd>CopilotChatReview<CR>",  mode = { "n", "x" }, desc = "Copilot review" },
-      { "<leader>co", "<cmd>CopilotChatOptimize<CR>", mode = { "n", "x" }, desc = "Copilot optimize" },
-      { "<leader>cd", "<cmd>CopilotChatDocs<CR>",    mode = { "n", "x" }, desc = "Copilot docs" },
-      { "<leader>cp", "<cmd>CopilotChatPrompts<CR>", mode = { "n", "x" }, desc = "Copilot prompt palette" },
+      { "<leader>aa", function() require("sidekick.cli").toggle() end, desc = "Sidekick CLI toggle" },
+      { "<leader>ac", function() require("sidekick.cli").toggle { name = "claude", focus = true } end, desc = "Claude Code" },
+      { "<leader>ap", function() require("sidekick.cli").prompt() end, desc = "Sidekick prompt library" },
+      {
+        "<leader>av",
+        function() require("sidekick.cli").send { msg = "{selection}" } end,
+        mode = "x",
+        desc = "Send selection to CLI",
+      },
+    },
+  },
+
+  -- codecompanion.nvim — agentic multi-file editing with reviewable diffs,
+  -- inline "edit this selection" (the Cmd-K equivalent), and a chat buffer with
+  -- @-mentions of files/buffers/symbols.
+  --
+  -- Chat and agentic work run on the Claude subscription over ACP; inline runs on
+  -- Copilot because ACP is chat-only.
+  --
+  -- KNOWN LIMITATION of ACP in Neovim: no client implements terminal capability
+  -- (codecompanion documents terminal/* as "not implemented"), so Claude here can
+  -- read and edit files but CANNOT run your tests or builds. For that, use the
+  -- Claude Code terminal on <leader>ac above, which drives the real CLI.
+  {
+    "olimorris/codecompanion.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
+    cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions", "CodeCompanionCmd" },
+    keys = {
+      { "<leader>aC", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "x" }, desc = "CodeCompanion chat" },
+      { "<leader>ai", ":CodeCompanion<cr>", mode = { "n", "x" }, desc = "CodeCompanion inline (Cmd-K)" },
+      { "<leader>aA", "<cmd>CodeCompanionActions<cr>", mode = { "n", "x" }, desc = "CodeCompanion actions" },
     },
     opts = {
-      -- First run: :CopilotChatModels to pick your model, then
-      -- hardcode it here (uncomment + replace):
-      -- model = "claude-3.5-sonnet",
-      window = { layout = "vertical", width = 0.4 },
-      show_help = true,
-      auto_insert_mode = true,
-      -- Built-in chat buffer keymaps:
-      --   <C-s>  send (insert)    <CR>   send (normal)
-      --   gd     show diff        <C-y>  accept diff
-      --   gy     yank code block  gj     jump to diff
-      --   q      close            <C-c>  close (insert)
-      mappings = {
-        submit_prompt = { normal = "<CR>", insert = "<C-s>" },
-        close         = { normal = "q",    insert = "<C-c>" },
-        reset         = { normal = "<C-r>" },
-        accept_diff   = { normal = "<C-y>", insert = "<C-y>" },
-        show_diff     = { normal = "gd" },
-        yank_diff     = { normal = "gy" },
-        jump_to_diff  = { normal = "gj" },
+      -- NOTE: this key is `interactions`, not `strategies`. It was renamed
+      -- upstream (PR #2485, docs dated 2026-07-21) — every tutorial online still
+      -- says `strategies`. Renamed alongside it:
+      --   requires_approval  -> require_approval_before
+      --   user_confirmation  -> require_confirmation_after
+      interactions = {
+        chat = { adapter = "claude_code" },
+        inline = { adapter = "copilot" },
       },
-      -- Custom prompts available as /DocsInline and /FixInline in chat
-      prompts = {
-        DocsInline = {
-          prompt = "> /COPILOT_GENERATE\n\nAdd documentation comments to the selected code. Return the ENTIRE selected code with documentation added. Do NOT remove or change any existing code, ONLY add doc comments.",
-          description = "Add docs (generates applicable diff)",
-        },
-        FixInline = {
-          prompt = "> /COPILOT_GENERATE\n\nFix any issues in the selected code. Return the ENTIRE code with fixes applied. Do NOT remove code that doesn't need fixing.",
-          description = "Fix code (generates applicable diff)",
-        },
-      },
-      highlight_headers = false,
-      highlight_selection = false,
     },
-    config = function(_, opts)
-      local chat = require("CopilotChat")
-      local select = require("CopilotChat.select")
-      opts.selection = select.visual
-      chat.setup(opts)
-
-      -- ,cD / ,cF: trigger the custom prompts on visual selection
-      vim.keymap.set("x", "<leader>cD", function()
-        chat.ask("/DocsInline", { selection = select.visual })
-      end, { silent = true, desc = "Copilot add docs (diff)" })
-
-      vim.keymap.set("x", "<leader>cF", function()
-        chat.ask("/FixInline", { selection = select.visual })
-      end, { silent = true, desc = "Copilot fix code (diff)" })
-
-      -- Disable treesitter in chat buffers to work around nvim 0.12
-      -- query-predicate crash on markdown injections.
-      vim.api.nvim_create_autocmd("FileType", {
-        pattern = "copilot-chat",
-        callback = function()
-          pcall(vim.treesitter.stop)
-        end,
-      })
-    end,
   },
-  { "honza/vim-snippets" },
 
-  { "hashivim/vim-terraform" },
-  { "tpope/vim-endwise" },
-  { "Chiel92/vim-autoformat" },
-  { "tpope/vim-repeat" },
-  { "tpope/vim-surround" },
-  { "kana/vim-submode" },
-  { "jiangmiao/auto-pairs" },
-  { "MattesGroeger/vim-bookmarks", lazy = false },
-  { "kshenoy/vim-signature" },
-  { "tomtom/tlib_vim" },
-  { "sheerun/vim-polyglot" },
-  { "marcweber/vim-addon-mw-utils" },
-  { "junegunn/vim-easy-align", lazy = false },
+  -- vim-surround: ys / cs / ds. This was DEAD — verified with
+  -- maparg("ys", "n") == "" — because it had no trigger. VeryLazy rather than
+  -- `keys` because its lhs set is large (ys yss yS ySS cs cS ds + visual S/gS)
+  -- and vim-repeat has to be loaded alongside it for `.` to repeat a surround.
+  -- Both are tiny vimscript; after UIEnter the cost is negligible.
+  {
+    "tpope/vim-surround",
+    event = "VeryLazy",
+    dependencies = { "tpope/vim-repeat" },
+  },
 
-  -- Colorscheme
+  -- Marks in the signcolumn, and the <Plug> maps used by mappings.lua:71-77.
+  -- Was `lazy = false` only because of those maps; `keys` is enough.
+  {
+    "MattesGroeger/vim-bookmarks",
+    keys = { "bm", "bi", "bn", "bp", "ba", "bC", "bx" },
+  },
+
+  -- <CR> in visual mode aligns. Was `lazy = false` for the same reason.
+  {
+    "junegunn/vim-easy-align",
+    keys = { { "<CR>", "<Plug>(EasyAlign)", mode = "x" } },
+  },
+
+  -- Colorschemes need no trigger and must NOT be lazy = false: lazy.nvim's
+  -- ColorSchemePre hook loads the right plugin on `:colorscheme <name>`.
+  -- gruvbox has always worked this way here, which is the proof.
   { "morhetz/gruvbox" },
+
+  -- Removed here (same unreachable-spec reason as the block above):
+  --   hashivim/vim-terraform  -> treesitter terraform/hcl parsers + terraformls
+  --   tpope/vim-endwise       -> nvim-autopairs; add back with
+  --                              ft = { "ruby", "eruby", "lua", "sh", "vim" }
+  --                              if the Ruby project misses it
+  --   Chiel92/vim-autoformat  -> conform.nvim
+  --   kana/vim-submode        -> the <S-Up/Down/Left/Right> resize maps cover it
+  --   jiangmiao/auto-pairs    -> NvChad ships nvim-autopairs as a cmp dependency
+  --   kshenoy/vim-signature   -> fought vim-bookmarks over the signcolumn;
+  --                              plain marks are covered by `M` -> FzfLua marks
+  --   sheerun/vim-polyglot    -> treesitter. Unmaintained, and its syntax files
+  --                              fight both treesitter and nvim's own ftplugins
+  --   tomtom/tlib_vim, marcweber/vim-addon-mw-utils -> snipMate dependencies,
+  --                              orphaned once vim-snippets went
 
   -- Statusline: using NvChad's built-in statusline (loaded via base46).
   -- lightline.vim removed — was conflicting and lacked Nerd Font icons.
