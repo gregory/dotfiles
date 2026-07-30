@@ -36,6 +36,12 @@ M.mason = {
     "prettier",
     "stylua",
     "shfmt",
+
+    -- Copilot's language server. Here rather than npx or an npm global: the
+    -- server copilot.vim vendors (1.408.0) is far behind and its sign-in RPC
+    -- fails, while npx re-resolved a new version on every launch. See the
+    -- g:copilot_command note on the copilot.vim spec in plugins/init.lua.
+    "copilot-language-server",
   },
 }
 

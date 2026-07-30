@@ -534,19 +534,47 @@ return {
     event = "InsertEnter",
     cmd = "Copilot", -- also load when :Copilot is called (needed for setup)
     init = function()
-      -- Use the language server VENDORED with this plugin instead of npx.
+      -- Pin the language server, and pin it to a CURRENT one.
       --
-      -- Without this, s:Command() in autoload/copilot/client.vim prefers npx
-      -- unconditionally (copilot_npx_command defaults to 1) and asks for
-      -- `@github/copilot-language-server@^<version>` — a CARET range, so npm
-      -- re-resolves the newest 1.x on EVERY launch. Measured in lsp.log:
-      -- 1.515 -> 1.517 -> 1.521 -> 1.526, with 7s, 8s and once 92s before
-      -- Copilot became usable, plus a 608MB ~/.npm/_npx cache.
+      -- Two problems, one fix:
       --
-      -- The vendored dist/language-server.js only needs the platform binary
-      -- on node < 22; on node >= 22 it just require()s ./main. We're on v24.
-      -- Set in `init` (not `config`) so it lands before the first client start.
-      vim.g.copilot_npx_command = 0
+      -- 1. npx churn. s:Command() in autoload/copilot/client.vim prefers npx
+      --    unconditionally and asks for the server with a CARET range, so npm
+      --    re-resolved the newest 1.x on EVERY launch. lsp.log showed
+      --    1.515 -> 1.517 -> 1.521 -> 1.526, with 7s, 8s and once 92s before
+      --    Copilot was usable, plus a 608MB ~/.npm/_npx cache.
+      --
+      -- 2. The server vendored with copilot.vim v1.59.0 is 1.408.0 — 118 minor
+      --    versions behind what npx was fetching. An earlier attempt set only
+      --    copilot_npx_command = 0, which fixed the startup cost but BROKE
+      --    `:Copilot signin`: that old server answers the sign-in RPC with
+      --    "You are not signed into GitHub. Please use `:LspCopilotSignIn`" —
+      --    a command that does not exist in this setup — so signing in was
+      --    impossible.
+      --
+      -- Setting g:copilot_command makes `script` non-empty in s:Command(), which
+      -- turns npx off by itself (solving 1) while pointing at mason's
+      -- copilot-language-server, which is current (solving 2). Mason's prefix is
+      -- independent of the active Node version, unlike an npm global, so this
+      -- survives fnm switching versions.
+      -- No "--stdio" here: copilot.vim appends it itself
+      -- (client.vim:713 `let command = node + argv + ['--stdio']`), and passing
+      -- it produced `--stdio --stdio` on the command line.
+      local server = vim.fn.stdpath "data" .. "/mason/bin/copilot-language-server"
+      if vim.fn.executable(server) == 1 then
+        vim.g.copilot_command = { server }
+      else
+        -- Fall back to the vendored server rather than leaving Copilot dead.
+        -- Startup stays fast, but sign-in may not work until
+        -- `:MasonInstall copilot-language-server` restores the current one.
+        vim.g.copilot_npx_command = 0
+        vim.schedule(function()
+          vim.notify(
+            "copilot: mason copilot-language-server missing — :MasonInstall copilot-language-server",
+            vim.log.levels.WARN
+          )
+        end)
+      end
     end,
     config = function()
       -- Disable the default <Tab> mapping so it doesn't fight coc.
