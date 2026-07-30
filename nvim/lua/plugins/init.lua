@@ -417,16 +417,27 @@ return {
     "folke/flash.nvim",
     event = "VeryLazy",
     opts = {
-      label = { uppercase = false, rainbow = { enabled = false } },
+      -- uppercase left at flash's DEFAULT (true), and it matters in search mode.
+      -- It appends the uppercase variants to the label pool
+      -- (flash/state.lua:78-81), so a label can be typed as a CAPITAL — and a
+      -- capital cannot be mistaken for a continuation of the lowercase pattern
+      -- you are typing. It was set to false here, which left a lowercase-only
+      -- pool ("asdfghjkl…"), so pressing label `a` after `/fun` was
+      -- indistinguishable from extending the search to `funa` — which is how
+      -- you got "pattern not found: funa" instead of jumping to `function`.
+      label = { rainbow = { enabled = false } },
       modes = {
-        -- Enable labels on / and ? results. As you type the search, every
-        -- visible match gets a letter — press the letter to jump straight
-        -- there (no more cycling with n/N). <CR> still accepts the first
-        -- match like normal search.
+        -- Labels on / and ? results: as you type, every visible match gets a
+        -- letter — press it to jump straight there instead of cycling n/N.
+        -- <CR> still accepts the first match like a normal search.
         search = {
           enabled = true,
           highlight = { backdrop = false },
-          incremental = true,
+          -- `incremental` left at flash's default (false); it was true here.
+          -- With it on, Vim's own incsearch evaluates every intermediate
+          -- pattern, so the instant a label lands in the cmdline Vim can raise
+          -- E486 on the combined string and abort before flash's
+          -- CmdlineChanged handler gets to jump.
         },
         char = { enabled = false }, -- don't hijack f/F/t/T
       },
