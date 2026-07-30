@@ -497,3 +497,28 @@ map({ "n", "x" }, "<leader>ct", ":CodeCompanion write tests for this<cr>", { des
 map({ "n", "x" }, "<leader>cr", ":CodeCompanion review this for bugs and issues<cr>", { desc = "AI review" })
 map({ "n", "x" }, "<leader>co", ":CodeCompanion optimise this<cr>", { desc = "AI optimise" })
 map({ "n", "x" }, "<leader>cd", ":CodeCompanion add documentation<cr>", { desc = "AI docs" })
+
+-- ─── Quickfix: diagnostics and project lint ─────────────────────────────────
+-- `,q` was one of only five free <leader> prefixes (o q u y z), and it is the
+-- natural mnemonic. Complements the existing ]q/[q navigation.
+--
+-- Two DIFFERENT scopes, and the distinction matters:
+--   ,qd  every LSP diagnostic Neovim currently knows — which is only the
+--        buffers it has LOADED. With one file open you get that file and
+--        nothing else. This is where messages like "'env' is declared but its
+--        value is never read" (source: ts, from vtsls) show up.
+--   ,ql  the project's own eslint over the nearest package — covers files you
+--        have never opened. This is the real "all lint errors" answer.
+map("n", "<leader>qd", function() require("user").diagnostics_to_qf() end,
+  { desc = "Diagnostics (loaded buffers) → quickfix" })
+map("n", "<leader>qe", function() require("user").diagnostics_to_qf "ERROR" end,
+  { desc = "Diagnostics, errors only → quickfix" })
+map("n", "<leader>ql", function() require("user").lint_project() end,
+  { desc = "eslint on this package → quickfix" })
+map("n", "<leader>qq", function()
+  local open = false
+  for _, w in ipairs(vim.fn.getwininfo()) do
+    if w.quickfix == 1 then open = true end
+  end
+  vim.cmd(open and "cclose" or "copen")
+end, { desc = "Toggle quickfix" })

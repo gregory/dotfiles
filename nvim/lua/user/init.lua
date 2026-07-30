@@ -592,4 +592,75 @@ cmd [[cabbrev grep Ggrep]]
 cmd [[cabbrev git Git]]
 cmd [[abbrev requrie require]]
 
+-- ─── Diagnostics & lint into the quickfix list ─────────────────────────────
+
+-- All LSP diagnostics currently known, into the quickfix list.
+--
+-- IMPORTANT SCOPE NOTE: this only covers buffers Neovim has LOADED. LSP
+-- diagnostics are pushed per open buffer, so with one file open you get that
+-- file's diagnostics and nothing else. For a whole-project sweep use
+-- M.lint_project() below, which runs the project's own eslint.
+function M.diagnostics_to_qf(severity)
+  vim.diagnostic.setqflist {
+    open = true,
+    title = severity and ("Diagnostics (" .. severity .. ")") or "Diagnostics (loaded buffers)",
+    severity = severity and vim.diagnostic.severity[severity:upper()] or nil,
+  }
+end
+
+-- Walk up from `start` looking for the first directory containing any marker.
+local function find_up(start, markers)
+  local dir = vim.fs.dirname(start)
+  local found = vim.fs.find(markers, { path = dir, upward = true, type = "file" })[1]
+  return found and vim.fs.dirname(found) or nil
+end
+
+-- Run the project's own eslint over a directory and put every problem in the
+-- quickfix list. Asynchronous — eslint takes seconds, and on a large monorepo
+-- much longer.
+--
+-- Defaults to the nearest package.json directory, NOT the eslint config root.
+-- Measured on homelifedata/extranet: the propfolio service alone is 2.4s and 17
+-- problems, while the monorepo root is 50s and 38,876 problems — the latter is
+-- not something you can work with in a quickfix list. Pass a path to widen it.
+function M.lint_project(path)
+  local file = api.nvim_buf_get_name(0)
+  local root = path or find_up(file ~= "" and file or vim.uv.cwd() .. "/x", { "package.json" })
+  if not root then
+    vim.notify("lint: no package.json found above " .. (file ~= "" and file or "cwd"), vim.log.levels.WARN)
+    return
+  end
+
+  vim.notify("lint: running eslint in " .. vim.fn.fnamemodify(root, ":~") .. " …", vim.log.levels.INFO)
+
+  vim.system(
+    { "npx", "eslint", ".", "--format", "unix" },
+    { cwd = root, text = true },
+    function(res)
+      local lines = vim.split((res.stdout or "") .. (res.stderr or ""), "\n", { trimempty = true })
+      vim.schedule(function()
+        -- `--format unix` emits "path:line:col: message [Severity/rule]", which
+        -- the default errorformat already understands.
+        local items = vim.fn.getqflist { lines = lines, efm = "%f:%l:%c: %m" }
+        local qf = vim.tbl_filter(function(i) return i.valid == 1 end, items.items or {})
+        if #qf == 0 then
+          vim.notify("lint: clean (" .. vim.fn.fnamemodify(root, ":~") .. ")", vim.log.levels.INFO)
+          return
+        end
+        vim.fn.setqflist({}, " ", { title = "eslint " .. vim.fn.fnamemodify(root, ":~"), items = qf })
+        vim.cmd "copen"
+        vim.notify("lint: " .. #qf .. " problem(s)", vim.log.levels.WARN)
+      end)
+    end
+  )
+end
+
+api.nvim_create_user_command("DiagnosticsQF", function(o)
+  M.diagnostics_to_qf(o.args ~= "" and o.args or nil)
+end, { nargs = "?", complete = function() return { "ERROR", "WARN", "INFO", "HINT" } end })
+
+api.nvim_create_user_command("LintProject", function(o)
+  M.lint_project(o.args ~= "" and vim.fn.expand(o.args) or nil)
+end, { nargs = "?", complete = "dir" })
+
 return M
