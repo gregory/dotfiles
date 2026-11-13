@@ -13,7 +13,7 @@
 # theme's bg color, with a 1-column "gap" between splits (WinSeparator)
 # showing the wallpaper — like tiled windows on a desktop.
 #
-# Invoked from `rake iterm` together with bin/iterm-setup-keys.sh.
+# Invoked from `rake iterm` and from install.sh.
 #
 # Safety notes:
 #   - iTerm2 rewrites the plist on quit; writing while it's running
@@ -23,7 +23,10 @@
 
 set -euo pipefail
 
-PLIST="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+# iTerm2 loads its prefs from the repo (install.sh sets PrefsCustomFolder), so
+# the edit has to land in that copy — writing to ~/Library/Preferences would be
+# silently ignored.
+PLIST="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/iterm2/com.googlecode.iterm2.plist"
 PB=/usr/libexec/PlistBuddy
 
 # Tunables — tweak + re-run if the effect is too strong/subtle.
@@ -34,7 +37,7 @@ BLEND="0.85"
 IMAGE_MODE="2"   # 0=stretch 1=tile 2=fill 3=fit
 
 if [[ ! -f "$PLIST" ]]; then
-  echo "iterm-setup-transparency: $PLIST not found — install iTerm2 first." >&2
+  echo "iterm-setup-transparency: $PLIST not found — run ./install.sh first." >&2
   exit 1
 fi
 

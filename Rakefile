@@ -6,13 +6,16 @@ task :lunchtime do
   `(crontab -l ; echo "0 12 * * 1-5 bash -c \"say -v 'Vicki' 'It is lunch time, baby'\"") | sort - | uniq - | crontab -`
 end
 
-desc "install iTerm2 GlobalKeyMap entries + profile transparency"
+desc "point iTerm2 at the repo's preferences folder + profile transparency"
 task :iterm do
-  # Must be run with iTerm2 quit (⌘Q) — the scripts enforce this and
-  # exit with a clear message otherwise. Re-running is safe / idempotent.
-  # Transparency pairs with nvim's Normal/NormalNC bg=NONE in user/init.lua
-  # to give the "floating windows" look between splits.
-  sh "bash #{File.expand_path('bin/iterm-setup-keys.sh', __dir__)}"
+  # Must be run with iTerm2 quit (⌘Q): it rewrites its prefs on quit and would
+  # clobber this. Re-running is safe / idempotent.
+  # Shortcuts, profiles and colours come from the checked-in
+  # iterm2/com.googlecode.iterm2.plist. Transparency stays a script because it
+  # needs this machine's wallpaper; it pairs with nvim's Normal/NormalNC
+  # bg=NONE in user/init.lua to give the "floating windows" look between splits.
+  sh %q{defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true}
+  sh %Q{defaults write com.googlecode.iterm2 PrefsCustomFolder -string "#{__dir__}/iterm2"}
   sh "bash #{File.expand_path('bin/iterm-setup-transparency.sh', __dir__)}"
 end
 

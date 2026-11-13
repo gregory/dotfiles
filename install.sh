@@ -141,13 +141,21 @@ nvim_setup() {
 }
 
 # ---------------------------------------------------------------------- iTerm
+# Shortcuts, profiles and colours all live in iterm2/com.googlecode.iterm2.plist
+# and are read by iTerm2's own "load preferences from a custom folder", so there
+# is nothing to script for them. Transparency stays a script: it resolves THIS
+# machine's wallpaper at run time, which a checked-in plist cannot carry.
 iterm() {
   if [[ -n "${SKIP_ITERM:-}" ]]; then ok "skipped"; return 0; fi
-  if pgrep -xq iTerm2; then
-    warn "iTerm2 is running — quit it (⌘Q) and run: rake iterm"
+  if pgrep -xq iTerm2 || pgrep -xq iTerm; then
+    warn "iTerm2 is running — quit it (⌘Q) and re-run $0"
     return 0
   fi
-  bash "$DOTFILES/bin/iterm-setup-keys.sh" && bash "$DOTFILES/bin/iterm-setup-transparency.sh"
+  defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+  defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$DOTFILES/iterm2"
+  killall cfprefsd 2>/dev/null || true
+  ok "prefs from $DOTFILES/iterm2 (shortcuts, profiles, colours)"
+  bash "$DOTFILES/bin/iterm-setup-transparency.sh"
 }
 
 # ------------------------------------------------------------------------ run
@@ -166,7 +174,7 @@ step "oh-my-zsh" oh_my_zsh
 step "Node (fnm, LTS)" node_lts
 step "Vim plugins" vim_plugins
 step "Neovim (plugins, LSP servers, formatters, treesitter parsers)" nvim_setup
-step "iTerm2 keys + transparency" iterm
+step "iTerm2 (prefs folder + transparency)" iterm
 
 bold "Done"
 if ! gh auth status >/dev/null 2>&1; then
@@ -174,6 +182,8 @@ if ! gh auth status >/dev/null 2>&1; then
 fi
 echo "  • Copilot in nvim: open nvim and run :Copilot auth"
 echo "  • Set iTerm2's font to 'JetBrainsMono Nerd Font' for nvim icons"
+echo "  • iTerm2 → Settings → General → Preferences: set 'Save changes' to"
+echo "    Automatically, so what you change in the UI flows back to the repo"
 echo "  • Machine-specific shell config goes in ~/.zsh.local, git config in ~/.gitconfig.local"
 if ((${#FAILED[@]})); then
   warn "Failed steps: ${FAILED[*]} — fix and re-run $0 (it skips what is done)"
