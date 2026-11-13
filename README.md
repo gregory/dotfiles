@@ -5,16 +5,28 @@ This repo is aim to unify all my dotfiles
 
 # Setup
 
+On a fresh Mac (or to repair an existing one — it is safe to re-run):
+
 ```
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" &&\
-curl -L http://install.ohmyz.sh | sh &&\
-git clone git@github.com:gregory/dotfiles.git ~/dotfiles &&\
-git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim &&\
-cd ~/dotfiles &&\ rake install
-brew install ctags-exuberant
+git clone https://github.com/gregory/dotfiles.git ~/dotfiles && ~/dotfiles/install.sh
 ```
 
-Then Enter vim and do :BundleInstall
+(`rake install` does the same thing.)
 
+`install.sh` does, in order:
 
-[![Analytics](https://ga-beacon.appspot.com/UA-34823890-2/dotfiles/readme?pixel)](https://github.com/gregory/dotfiles)
+1. Xcode Command Line Tools, Homebrew, and everything in [`Brewfile`](Brewfile)
+   (neovim, vim, tmux, fzf, ripgrep, fnm, direnv, gh, git-lfs, tree-sitter-cli,
+   Nerd Font, iTerm2, …)
+2. Symlinks every dotfile into `~` (`nvim` → `~/.config/nvim`, `bin/heat` →
+   `~/.local/bin/heat`). Anything already there is moved to
+   `~/.dotfiles-backup/<timestamp>/`.
+3. oh-my-zsh, Node LTS via fnm
+4. vim-plug plugins, Neovim plugins at the `lazy-lock.json` commits, every Mason
+   LSP/formatter from `nvim/lua/chadrc.lua` and every treesitter parser
+5. iTerm2 key mappings + transparency (skipped while iTerm2 is running —
+   quit it and run `rake iterm`)
+
+Afterwards: `gh auth login`, `:Copilot auth` in nvim, and set iTerm2's font to
+*JetBrainsMono Nerd Font*. Machine-specific config goes in `~/.zsh.local` and
+`~/.gitconfig.local` (never tracked).
