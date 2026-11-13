@@ -95,7 +95,9 @@ Plug 'MattesGroeger/vim-bookmarks'
 Plug 'kshenoy/vim-signature' "add and navigate to marks
 "Plug 't9md/vim-choosewin'  " NOTE: disavling this to force me to use easymotion
 Plug 'haya14busa/vim-asterisk'
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+" fzf#install() only fetches the binary; './install --all' appended to
+" ~/.zshrc and ~/.bashrc, which are symlinks into this repo.
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
 Plug 'tomtom/tlib_vim'
