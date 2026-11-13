@@ -4,18 +4,20 @@
 	name = gregory
 	email = greg2502@gmail.com
 [alias]
-  lg = log -g --format=raw --date=relative
-  l  = log --format=raw --name-status --abbrev-commit --date=local
+  # --date=relative here only affects the reflog selector (HEAD@{6 weeks ago});
+  # author/committer dates come from the [pretty] formats below.
+  lg = log -g --abbrev-commit --date=relative --pretty=readable-reflog
+  l  = log --name-status --abbrev-commit --pretty=readable
   ll = log --graph --pretty=format:'%C(yellow)%h%C(cyan)%d%Creset %s %C(white)-%an, %ar%Creset'
   me = log --pretty=oneline --format=fuller --author=gregory
   lp = log --pretty=oneline --date=relative
-  wtf = log -g --abbrev-commit --format=raw --date=local --decorate=full --pretty=oneline --all
-  lw = log -p --format=fuller --abbrev-commit --date=local
+  wtf = log -g --abbrev-commit --date=relative --decorate=full --pretty=oneline --all
+  lw = log -p --format=fuller --abbrev-commit
   local = log --branches --not --remotes=origin --pretty=oneline
 	pr = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
 	pr-clean = "!git for-each-ref refs/heads/pr/* --format=\"%(refname)\" | while read ref ; do branch=${ref#refs/heads/} ; git branch -D $branch ; done"
-  b = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
-  rb = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/remotes/origin"
+  b = "!git for-each-ref --sort='-authordate' --format='%(align:24)%(authordate:relative)%(end)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
+  rb = "!git for-each-ref --sort='-authordate' --format='%(align:24)%(authordate:relative)%(end)%09%(objectname:short)%09%(refname)' refs/remotes/origin"
   rlb ="!git for-each-ref --sort=-committerdate refs/$1 --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
   lb ="!git for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'"
   # `fame` removed: it called `python` (only python3 exists here) and gitfame,
@@ -44,7 +46,6 @@
   # files but 178,752 files on disk): `git status --porcelain` took 64ms, of
   # which 47ms was the untracked-file walk (`-uno` ran in 17ms). The prompt runs
   # status on every command, so this was paid constantly.
-  fsmonitor = true
   untrackedCache = true
 
 [maintenance]
@@ -78,6 +79,18 @@
   whitespace = nowarn
 [format]
   pretty = %C(yellow)%h%Creset %s %C(red)(%an, %cr)%Creset
+[log]
+  # "6 weeks ago" wherever a built-in format (medium, fuller, show...)
+  # prints a date. A command-line --date still overrides.
+  date = relative
+[blame]
+  date = relative
+[pretty]
+  # `raw` always prints epoch timestamps and silently ignores --date. These
+  # keep raw's layout (minus the tree line) with the absolute date and its
+  # "time ago". readable-reflog adds the reflog line for `log -g`.
+  readable        = format:%C(yellow)commit %h%C(auto)%d%C(reset)%nparent %p%nauthor %an <%ae> %ai (%ar)%ncommitter %cn <%ce> %ci (%cr)%n%n%w(0,4,4)%B
+  readable-reflog = format:%C(yellow)commit %h%C(auto)%d%C(reset)%nreflog %gd (%gn <%ge>): %gs%nparent %p%nauthor %an <%ae> %ai (%ar)%ncommitter %cn <%ce> %ci (%cr)%n%n%w(0,4,4)%B
 [merge]
   # `tool = meld` removed — meld is not installed, and it is a GTK/Linux tool.
   # Shows the merge base alongside both sides, so you can see what each branch
@@ -123,3 +136,9 @@
 # Last so it wins over anything above.
 [include]
 	path = ~/.gitconfig.local
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
